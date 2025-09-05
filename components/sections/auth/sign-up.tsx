@@ -1,60 +1,50 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { useSignUpMutation } from "@/queries/loginQuery"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useSignUpMutation } from "@/queries/loginQuery";
 
 export default function AuthSignUp() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [organizationName, setOrganizationName] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  const signUpMutation = useSignUpMutation()
+  const signUpMutation = useSignUpMutation();
 
   const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const supabase = createClient()
-    setIsLoading(true)
-    setError(null)
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match")
-      setIsLoading(false)
-      return
-    }
-
-    if (!organizationName.trim()) {
-      setError("Organization name is required")
-      setIsLoading(false)
-      return
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
     }
 
     try {
       await signUpMutation.mutateAsync({
-      email,
-      password,
-      organizationName,
-  })
-      if (error) throw error
-      router.push("/auth/sign-up-success")
+        email,
+        password,
+      });
+      if (error) throw error;
+      router.push("/auth/sign-up-success");
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -77,21 +67,6 @@ export default function AuthSignUp() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSignUp} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="organization-name" className="text-sm font-medium">
-                  Organization Name
-                </Label>
-                <Input
-                  id="organization-name"
-                  type="text"
-                  placeholder="Your Organization"
-                  required
-                  value={organizationName}
-                  onChange={(e) => setOrganizationName(e.target.value)}
-                  className="h-11"
-                />
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
                   Email
@@ -135,9 +110,15 @@ export default function AuthSignUp() {
                 />
               </div>
 
-              {error && <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</div>}
+              {error && (
+                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</div>
+              )}
 
-              <Button type="submit" className="w-full h-11 bg-black hover:bg-gray-800" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full h-11 bg-black hover:bg-gray-800"
+                disabled={isLoading}
+              >
                 {isLoading ? "Creating account..." : "Sign Up"}
               </Button>
             </form>
@@ -152,5 +133,5 @@ export default function AuthSignUp() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
