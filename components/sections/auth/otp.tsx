@@ -8,15 +8,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
+import useLoginMutation, { useSignUpMutation, useVerifyOtpMutation } from "@/queries/loginQuery"
 
 export default function AuthOtp() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get("email") || ""
-
+  const loginMutation = useLoginMutation()
+  const verifyOtpMutation = useVerifyOtpMutation();
+  
   const handleOtpChange = (index: number, value: string) => {
     if (value.length <= 1) {
       const newOtp = [...otp]
@@ -30,6 +35,29 @@ export default function AuthOtp() {
       }
     }
   }
+
+  const handleResendOtp = async () => {
+      setSuccessMessage(null)
+
+   try {
+      console.log("[v0] Attempting to send OTP to:", email)
+
+      loginMutation.mutate(email)
+
+      if (error) {
+        console.log("[v0] OTP send error:", error)
+        throw error
+      }
+
+      console.log("[v0] OTP sent successfully")
+      setSuccessMessage("OTP sent successfully! Check your email.")
+       setTimeout(() => setSuccessMessage(null), 3000)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "An error occurred")
+    } finally {
+      setIsLoading(false)
+    }
+}
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault()
@@ -52,9 +80,9 @@ export default function AuthOtp() {
     }
   }
 
+
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
@@ -66,11 +94,7 @@ export default function AuthOtp() {
     }
 
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token: otpCode,
-        type: "email", // Specify email OTP type
-      })
+     verifyOtpMutation.mutate({ email, otpCode })
       if (error) throw error
       router.push("/dashboard")
     } catch (error: unknown) {
@@ -127,12 +151,21 @@ export default function AuthOtp() {
 
             <div className="mt-6 text-center text-sm text-gray-600">
               Didn't receive the code?{" "}
-              <button onClick={() => router.push("/auth/login")} className="font-medium text-black hover:underline">
+              <Button onClick={handleResendOtp}
+                 variant="link" 
+                 className="font-medium text-black hover:underline">
                 Try again
-              </button>
+              </Button>
             </div>
           </CardContent>
         </Card>
+      <div className="h-8 flex items-center justify-center mt-4">
+        {successMessage && (
+          <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md text-center">
+             {successMessage}
+          </div>
+        )}
+      </div>
       </div>
     </div>
   )
