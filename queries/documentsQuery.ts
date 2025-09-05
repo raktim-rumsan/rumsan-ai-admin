@@ -54,3 +54,27 @@ export function useDocsQuery() {
   })
 }
 
+export function useDocDeleteMutation(onSuccess?: () => void) {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const tenantId = localStorage.getItem("tenantId");
+     const access_token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('sb-127-auth-token='))
+        ?.split('=')[1]
+      const serverApi = process.env.NEXT_PUBLIC_SERVER_API ?? "";
+      const res = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/docs/${id}`, {
+        method: "DELETE",
+        headers: {
+          "X-Tenant-Id": tenantId || "",
+          "access_token": access_token || "",
+        },  
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "File delete failed")
+      return data
+    },
+    onSuccess,
+  })
+}
+

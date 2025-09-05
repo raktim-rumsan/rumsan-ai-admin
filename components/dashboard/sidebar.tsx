@@ -14,11 +14,6 @@ interface SidebarProps {
 
 const navigationItems = [
   {
-    title: "Conversations",
-    icon: MessageSquare,
-    href: "/dashboard/chat/history",
-  },
-  {
     title: "Agent Preview",
     icon: Bot,
     href: "/dashboard/agent-preview",
@@ -27,17 +22,7 @@ const navigationItems = [
     title: "My Documents",
     icon: FolderOpen,
     href: "/dashboard/documents",
-  },
-  {
-    title: "LLM Model Selection",
-    icon: Bot,
-    href: "/dashboard/models",
-  },
-  {
-    title: "Organization Management",
-    icon: Building,
-    href: "/dashboard/organization",
-  },
+  }
 ]
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
