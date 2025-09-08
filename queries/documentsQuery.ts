@@ -11,7 +11,7 @@ export function useDocUploadMutation(onSuccess?: () => void) {
       const tenantId = localStorage.getItem("tenantId");
       const access_token = getAuthToken();
       console.log(access_token, tenantId, "access_token");
-      const serverApi = process.env.NEXT_PUBLIC_SERVER_API ?? "";
+      const serverApi = process.env.NEXT_PUBLIC_SERVER_API!;
       const res = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/docs/upload`, {
         method: "POST",
         body: formData,

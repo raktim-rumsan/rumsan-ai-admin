@@ -35,7 +35,7 @@ export function useTenantQuery() {
         throw new Error("No auth token found");
       }
 
-      const serverApi = process.env.NEXT_PUBLIC_SERVER_API || "http://localhost:5588";
+      const serverApi = process.env.NEXT_PUBLIC_SERVER_API!;
       console.log(
         "Making request to:",
         `${serverApi.replace(/\/$/, "")}/api/v1/orgs/my-workspaces`
