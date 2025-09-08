@@ -1,25 +1,29 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Menu, User, LogOut } from "lucide-react"
-import { createBrowserClient } from "@supabase/ssr"
-import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button";
+import { Menu, User, LogOut } from "lucide-react";
+import { createBrowserClient } from "@supabase/ssr";
+import { useRouter } from "next/navigation";
+import { useTenant } from "@/providers/TenantProvider";
 
 interface HeaderProps {
-  onMenuClick: () => void
+  onMenuClick: () => void;
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
-  const router = useRouter()
+  const router = useRouter();
+  const { clearTenant } = useTenant();
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push("/auth/login")
-  }
+    // Clear tenant data before logging out
+    clearTenant();
+    await supabase.auth.signOut();
+    router.push("/auth/login");
+  };
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-3 lg:px-6">
@@ -51,5 +55,5 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
       </div>
     </header>
-  )
+  );
 }

@@ -1,44 +1,51 @@
-"use client"
+"use client";
 
-import { cn } from "@/lib/utils"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { MessageSquare, ChevronDown, FolderOpen, Bot, Building } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { MessageSquare, ChevronDown, FolderOpen, Bot, Building } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface SidebarProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const navigationItems = [
+  {
+    title: "My Documents",
+    icon: FolderOpen,
+    href: "/dashboard/documents",
+  },
+  {
+    title: "AI Chat",
+    icon: MessageSquare,
+    href: "/dashboard/chat",
+  },
   {
     title: "Agent Preview",
     icon: Bot,
     href: "/dashboard/agent-preview",
   },
-  {
-    title: "My Documents",
-    icon: FolderOpen,
-    href: "/dashboard/documents",
-  }
-]
+];
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <>
       {/* Mobile overlay */}
-      {isOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={onClose} />}
+      {isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={onClose} />
+      )}
 
       {/* Sidebar */}
       <div
         className={cn(
           "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out",
           "lg:relative lg:translate-x-0", // Always visible on desktop
-          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0", // Mobile: show when open, Desktop: always show
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0" // Mobile: show when open, Desktop: always show
         )}
       >
         <div className="flex flex-col h-full">
@@ -68,7 +75,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
                     pathname === item.href
                       ? "bg-gray-100 text-gray-900"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   )}
                 >
                   <item.icon className="mr-3 h-4 w-4" />
@@ -94,5 +101,5 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
       </div>
     </>
-  )
+  );
 }
