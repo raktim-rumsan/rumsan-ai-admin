@@ -28,6 +28,11 @@ const navigationItems = [
     icon: Bot,
     href: "/dashboard/agent-preview",
   },
+   {
+    title: "Organization Management",
+    icon: Building,
+    href: "/dashboard/organization",
+  },
 ];
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {

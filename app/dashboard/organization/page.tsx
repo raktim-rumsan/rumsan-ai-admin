@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,8 +9,21 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Building, Users, MoreHorizontal, UserPlus } from "lucide-react"
+import { AddMemberModal } from "@/components/sections/organization/AddMemberModal"
+import { useTenant } from "@/providers/TenantProvider"
 
 export default function OrganizationPage() {
+  const { workspaceData, tenantId } = useTenant()
+  const workspaceType = workspaceData?.personal?.slug === tenantId ? "personal" : "team"
+
+  const [activeTab, setActiveTab] = useState("settings")
+
+  useEffect(() => {
+    if (workspaceType === "personal" && activeTab === "members") {
+      setActiveTab("settings")
+    }
+  }, [workspaceType, activeTab])
+
   const [members] = useState([
     {
       id: 1,
@@ -35,6 +48,8 @@ export default function OrganizationPage() {
     },
   ])
 
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "admin":
@@ -54,13 +69,13 @@ export default function OrganizationPage() {
         <h1 className="text-2xl font-bold text-gray-900">Organization Management</h1>
         <p className="text-gray-600">Manage your organization settings and team members</p>
       </div>
-
-      <Tabs defaultValue="settings" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="settings">Organization Settings</TabsTrigger>
-          <TabsTrigger value="members">Team Members</TabsTrigger>
+          {workspaceType === "team" && (
+            <TabsTrigger value="members">Team Members</TabsTrigger>
+          )}
         </TabsList>
-
         <TabsContent value="settings" className="space-y-6">
           <Card>
             <CardHeader>
@@ -89,52 +104,59 @@ export default function OrganizationPage() {
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="members" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              <h2 className="text-lg font-semibold">Team Members</h2>
-              <Badge variant="secondary">{members.length}</Badge>
+        {workspaceType === "team" && (
+          <TabsContent value="members" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                <h2 className="text-lg font-semibold">Team Members</h2>
+                <Badge variant="secondary">{members.length}</Badge>
+              </div>
+              <Button onClick={() => setIsInviteModalOpen(true)}>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Invite Member
+              </Button>
             </div>
-            <Button>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Invite Member
-            </Button>
-          </div>
 
-          <Card>
-            <CardContent className="p-0">
-              <div className="divide-y">
-                {members.map((member) => (
-                  <div key={member.id} className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-gray-100 text-gray-600">
-                          {member.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium text-gray-900">{member.name}</p>
-                        <p className="text-sm text-gray-500">{member.email}</p>
+            <AddMemberModal
+              isOpen={isInviteModalOpen}
+              onClose={() => setIsInviteModalOpen(false)}
+              onInviteSuccess={() => setIsInviteModalOpen(false)}
+            />
+
+            <Card>
+              <CardContent className="p-0">
+                <div className="divide-y">
+                  {members.map((member) => (
+                    <div key={member.id} className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="bg-gray-100 text-gray-600">
+                            {member.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-gray-900">{member.name}</p>
+                          <p className="text-sm text-gray-500">{member.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Badge className={getRoleBadgeColor(member.role)}>{member.role}</Badge>
+                        <Badge variant={member.status === "active" ? "default" : "secondary"}>{member.status}</Badge>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Badge className={getRoleBadgeColor(member.role)}>{member.role}</Badge>
-                      <Badge variant={member.status === "active" ? "default" : "secondary"}>{member.status}</Badge>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )
