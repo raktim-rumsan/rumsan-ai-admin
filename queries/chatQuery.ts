@@ -39,7 +39,7 @@ export interface ChatQueryResponse {
   processingTime?: number;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5588";
+const BASE_URL = process.env.NEXT_PUBLIC_SERVER_API || "http://localhost:5588";
 
 // Function to send a chat query to the RAG API
 async function sendChatQuery(request: ChatQueryRequest): Promise<ChatQueryResponse> {
