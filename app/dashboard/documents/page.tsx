@@ -11,10 +11,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Upload, RotateCcw, Trash2 } from "lucide-react";
+import { Upload, RotateCcw, Trash2, ExternalLink } from "lucide-react";
 import { toastUtils, dismissToast } from "@/lib/toast-utils";
 import { SimpleFileUploadModal } from "@/components/documents/fileUploadModal";
-import { useDocsQuery, useDocDeleteMutation, useEmbeddingMutation } from "@/queries/documentsQuery";
+import { useDocsQuery, useDocDeleteMutation, useEmbeddingMutation, viewDocument } from "@/queries/documentsQuery";
+import { PDFViewer } from "@/components/sections/documents/DocumentPreviewModal";
 
 interface Document {
   id: string;
@@ -28,6 +29,7 @@ interface Document {
 export default function DocumentsPage() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [trainingDocumentId, setTrainingDocumentId] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const { data, isLoading, refetch } = useDocsQuery();
   const documents = data?.data || [];
@@ -136,7 +138,19 @@ export default function DocumentsPage() {
                     {documents.map((doc: Document) => (
                       <TableRow key={doc.id}>
                         <TableCell>{formatDate(doc.createdAt)}</TableCell>
-                        <TableCell>{doc.fileName}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {doc.fileName}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => viewDocument(doc.url, setPreviewUrl)}
+                              title="View PDF"
+                            >
+                              <ExternalLink className="w-4 h-4 text-gray-400" />
+                            </Button>
+                          </div>
+                        </TableCell>
                         <TableCell>{doc.status}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -193,6 +207,20 @@ export default function DocumentsPage() {
           refetch();
         }}
       />
+        {previewUrl && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+             <div className="bg-white rounded-lg shadow-lg p-4 max-w-3xl w-full relative">
+              <button
+                 className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                   onClick={() => setPreviewUrl(null)}
+               >
+                Close
+              </button>
+             <PDFViewer fileUrl={previewUrl} />
+             </div>
+          </div>
+)}
+
     </div>
   );
 }

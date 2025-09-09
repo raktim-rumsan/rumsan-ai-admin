@@ -1,6 +1,29 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
+import { useTenant } from "@/providers/TenantProvider";
 
+export function useOrgMembersQuery() {
+  const tenantId=useTenant()
+  return useQuery({
+    queryKey: ["members", tenantId],
+    queryFn: async () => {
+      const access_token = getAuthToken();
+      const tenantId = localStorage.getItem("tenantId");
+      const serverApi = process.env.NEXT_PUBLIC_SERVER_API!;
+      const res = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/orgs/members`, {
+        method: "GET",
+        headers: {
+          accept: "application/json",
+          "x-tenant-id": tenantId || "",
+          access_token: access_token || "",
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to fetch members");
+      return data;
+    },
+  });
+}
 
 export function useAddOrgUserMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient();

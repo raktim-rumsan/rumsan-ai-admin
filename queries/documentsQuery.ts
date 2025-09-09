@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
+import { useTenantId } from "@/providers/TenantProvider";
 
 export function useDocUploadMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient();
@@ -33,8 +34,10 @@ export function useDocUploadMutation(onSuccess?: () => void) {
 }
 
 export function useDocsQuery() {
+    const tenantId = useTenantId();
+
   return useQuery({
-    queryKey: ["documents"],
+    queryKey: ["documents",tenantId],
     queryFn: async () => {
       const tenantId = localStorage.getItem("tenantId");
       const access_token = getAuthToken();
@@ -131,4 +134,26 @@ export function useEmbeddingMutation(onSuccess?: () => void) {
       onSuccess?.();
     },
   });
+}
+
+export async function viewDocument(
+  url: string,
+  setPreviewUrl: (url: string | null) => void
+) {
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_API;
+  const accessToken = getAuthToken();
+  const tenantId = localStorage.getItem("tenantId");
+  const fileUrl = `${serverUrl}/${url.replace(/^\/+/, "")}`;
+
+  const headers: Record<string, string> = { accept: "application/pdf" };
+  if (accessToken) headers["access_token"] = accessToken;
+  if (tenantId) headers["x-tenant-id"] = tenantId;
+
+  const response = await fetch(fileUrl, { headers });
+  if (!response.ok) throw new Error(await response.text());
+
+  const blob = await response.blob();
+  const blobUrl = URL.createObjectURL(blob);
+
+  setPreviewUrl(blobUrl);
 }

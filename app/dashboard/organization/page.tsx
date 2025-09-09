@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Building, Users, MoreHorizontal, UserPlus } from "lucide-react"
 import { AddMemberModal } from "@/components/sections/organization/AddMemberModal"
 import { useTenant } from "@/providers/TenantProvider"
+import { useOrgMembersQuery } from "@/queries/invitationQuery"
 
 export default function OrganizationPage() {
   const { workspaceData, tenantId } = useTenant()
@@ -24,29 +25,12 @@ export default function OrganizationPage() {
     }
   }, [workspaceType, activeTab])
 
-  const [members] = useState([
-    {
-      id: 1,
-      name: "Raktim Shrestha",
-      email: "raktim@rumsan.com",
-      role: "admin",
-      status: "active",
-    },
-    {
-      id: 2,
-      name: "John Doe",
-      email: "john@rumsan.com",
-      role: "member",
-      status: "active",
-    },
-    {
-      id: 3,
-      name: "Jane Smith",
-      email: "jane@rumsan.com",
-      role: "viewer",
-      status: "pending",
-    },
-  ])
+  const {
+    data: membersData,
+    isLoading: membersLoading,
+    error: membersError,
+  } = useOrgMembersQuery()
+  console.log(membersData, "membersData")
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
 
@@ -62,6 +46,11 @@ export default function OrganizationPage() {
         return "bg-gray-100 text-gray-800"
     }
   }
+
+  const org =
+    workspaceType === "personal"
+      ? workspaceData?.personal
+      : workspaceData?.teams?.find((t) => t.slug === tenantId)
 
   return (
     <div className="p-6 space-y-6">
@@ -89,16 +78,16 @@ export default function OrganizationPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="org-name">Organization Name</Label>
-                  <Input id="org-name" defaultValue="Rumsan Associates" />
+                  <Input id="org-name" defaultValue={org?.name || ""} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="org-domain">Domain</Label>
-                  <Input id="org-domain" defaultValue="rumsan.com" />
+                  <Label htmlFor="org-slug">Slug</Label>
+                  <Input id="org-domain" defaultValue={org?.slug || ""} />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="org-description">Description</Label>
-                <Input id="org-description" defaultValue="AI-powered solutions for social impact" />
+                <Input id="org-description" defaultValue={org?.description || ""} />
               </div>
               <Button>Save Changes</Button>
             </CardContent>
@@ -110,7 +99,7 @@ export default function OrganizationPage() {
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
                 <h2 className="text-lg font-semibold">Team Members</h2>
-                <Badge variant="secondary">{members.length}</Badge>
+                <Badge variant="secondary">{membersData?.length || 0}</Badge>
               </div>
               <Button onClick={() => setIsInviteModalOpen(true)}>
                 <UserPlus className="h-4 w-4 mr-2" />
@@ -126,33 +115,41 @@ export default function OrganizationPage() {
 
             <Card>
               <CardContent className="p-0">
-                <div className="divide-y">
-                  {members.map((member) => (
-                    <div key={member.id} className="p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-gray-100 text-gray-600">
-                            {member.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium text-gray-900">{member.name}</p>
-                          <p className="text-sm text-gray-500">{member.email}</p>
+                {membersLoading ? (
+                  <div className="p-4 text-center text-gray-500">Loading members...</div>
+                ) : membersError ? (
+                  <div className="p-4 text-center text-red-500">Failed to load members</div>
+                ) : (
+                  <div className="divide-y">
+                    {Array.isArray(membersData?.data) && membersData.data.map((member: any) => (
+
+                      <div key={member.id} className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarFallback className="bg-gray-100 text-gray-600">
+                                {member.name
+    ? member.name.split(" ").map((n: string) => n[0]).join("")
+    : member.email?.[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium text-gray-900">{member.user.name}</p>
+                            <p className="text-sm text-gray-500">{member.user.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Badge className={getRoleBadgeColor(member.role)}>{member.role}</Badge>
+                          <Badge variant={member.isActive ? "default" : "secondary"}>
+                              {member.isActive ? "Active" : "Inactive"}
+                          </Badge>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Badge className={getRoleBadgeColor(member.role)}>{member.role}</Badge>
-                        <Badge variant={member.status === "active" ? "default" : "secondary"}>{member.status}</Badge>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
