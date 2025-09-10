@@ -10,6 +10,31 @@ interface TenantContextType {
   error: Error | null;
   refetch: () => void;
   clearTenant: () => void;
+  setTenantId: (id: string) => void;
+  workspaceData: {
+    personal: {
+      id: string;
+      name: string;
+      slug: string;
+      description: string | null;
+      isActive: boolean;
+      isPersonal: boolean;
+      ownerId: string;
+      createdAt: string;
+      updatedAt: string;
+    } | null;
+    teams: {
+      id: string;
+      name: string;
+      slug: string;
+      description: string | null;
+      isActive: boolean;
+      isPersonal: boolean;
+      ownerId: string;
+      createdAt: string;
+      updatedAt: string;
+    }[];
+  } | null;
 }
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
@@ -104,6 +129,13 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     error: error as Error | null,
     refetch,
     clearTenant,
+    setTenantId: (id: string) => {
+      setTenantId(id);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("tenantId", id);
+      }
+    },
+    workspaceData: data?.data || null,
   };
 
   return <TenantContext.Provider value={contextValue}>{children}</TenantContext.Provider>;

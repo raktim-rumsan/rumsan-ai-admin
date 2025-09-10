@@ -1,6 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
 
+interface Team {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  isActive: boolean;
+  isPersonal: boolean;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface TenantData {
   personal: {
     id: string;
@@ -12,8 +24,8 @@ interface TenantData {
     ownerId: string;
     createdAt: string;
     updatedAt: string;
-  };
-  teams: unknown[];
+  } | null;
+  teams: Team[];
 }
 
 interface TenantResponse {

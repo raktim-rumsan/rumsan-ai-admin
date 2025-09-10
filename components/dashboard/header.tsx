@@ -1,10 +1,14 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, User, LogOut } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import { useTenant } from "@/providers/TenantProvider";
+import { useTenantQuery } from "@/queries/tenantQuery";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -12,22 +16,100 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const router = useRouter();
-  const { clearTenant } = useTenant();
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
+  const { tenantId, setTenantId, clearTenant } = useTenant();
+  const { data, isLoading,refetch } = useTenantQuery(); 
+
+  const [workspaceType, setWorkspaceType] = useState<"personal" | "team">("personal");
+  const [selectedTeamSlug, setSelectedTeamSlug] = useState<string | null>(null);
+
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !isLoading && data?.data?.personal) {
+      setWorkspaceType("personal");
+      localStorage.setItem("tenantId", data.data.personal.slug);
+    }
+  }, [isMounted, data, isLoading]);
+
+  const handleWorkspaceChange = (value: string) => {
+    if (value === "personal") {
+      setWorkspaceType("personal");
+      setSelectedTeamSlug(null);
+      const slug = data?.data?.personal?.slug;
+      if (slug) {
+        setTenantId(slug); 
+      }
+    } else if (value.startsWith("team-")) {
+      setWorkspaceType("team");
+      const slug = value.replace("team-", "");
+      setSelectedTeamSlug(slug);
+      setTenantId(slug);
+    }
+  };
+
   const handleLogout = async () => {
-    // Clear tenant data before logging out
     clearTenant();
     await supabase.auth.signOut();
     router.push("/auth/login");
   };
 
+  if (!isMounted || isLoading) return null; 
+
+  const teams = data?.data?.teams || [];
+  const currentValue = workspaceType === "personal" 
+    ? "Personal Workspace" 
+    : selectedTeamSlug 
+      ? teams.find(team => team.slug === selectedTeamSlug)?.name || "Team Workspace"
+      : "Select Workspace";
+
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-3 lg:px-6">
       <div className="flex items-center justify-between">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="outline" 
+              className={cn("w-40 sm:w-56 justify-between", "data-[state=open]:bg-accent")}
+            >
+              {currentValue}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="start">
+            <DropdownMenuItem 
+              onClick={() => handleWorkspaceChange("personal")}
+              className={workspaceType === "personal" ? "bg-accent" : ""}
+            >
+              Personal Workspace
+            </DropdownMenuItem>
+            {teams.length > 0 && (
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className={workspaceType !== "personal" && !selectedTeamSlug ? "bg-accent" : ""}>
+                  Team Workspace
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-56">
+                  {teams.map((team) => (
+                    <DropdownMenuItem 
+                      key={team.id}
+                      onClick={() => handleWorkspaceChange(`team-${team.slug}`)}
+                      className={selectedTeamSlug === team.slug ? "bg-accent" : ""}
+                    >
+                      {team.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <div className="flex items-center space-x-4">
           <Button variant="ghost" size="sm" className="lg:hidden" onClick={onMenuClick}>
             <Menu className="h-5 w-5" />
