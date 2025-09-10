@@ -40,7 +40,7 @@ export default function GoogleDriveUploadModal({ isOpen, onClose, onUploadSucces
     }
   }
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!driveUrl.trim()) {
       toast.error("Please enter a Google Drive URL")
       return
@@ -60,20 +60,33 @@ export default function GoogleDriveUploadModal({ isOpen, onClose, onUploadSucces
     setIsUploading(true)
     toast.message("Uploading...", { description: "Please wait while we register your Google Drive file." })
 
-    mutation.mutate(
-      {
-        fileName: `drive_${fileId}`,
-        url: driveUrl,
-        driveFileId: fileId,
-      },
-      {
-        onError: (error: unknown) => {
-          const errorMessage = error instanceof Error ? error.message : "Upload failed"
-          toast.error(errorMessage)
-          setIsUploading(false)
+    // Fetch file name from Google Drive API
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_API_KEY;
+      const metaRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=name&key=${apiKey}`);
+      if (!metaRes.ok) throw new Error("Failed to fetch file metadata from Google Drive");
+      const metaData = await metaRes.json();
+      const fileName = metaData.name || `drive_${fileId}`;
+      console.log( fileName), "filename";
+
+      mutation.mutate(
+        {
+          fileName,
+          url: driveUrl,
+          driveFileId: fileId,
         },
-      }
-    )
+        {
+          onError: (error: unknown) => {
+            const errorMessage = error instanceof Error ? error.message : "Upload failed"
+            toast.error(errorMessage)
+            setIsUploading(false)
+          },
+        }
+      )
+    } catch (err: any) {
+      toast.error(err.message || "Failed to fetch file name from Google Drive")
+      setIsUploading(false)
+    }
   }
 
   return (
