@@ -33,33 +33,6 @@ export function useDocUploadMutation(onSuccess?: () => void) {
   });
 }
 
-export function useGoogleDriveDocMutation(onSuccess?: () => void) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (doc: { fileName: string; url: string; driveFileId: string }) => {
-      const tenantId = localStorage.getItem("tenantId");
-      const access_token = getAuthToken();
-      const serverApi = process.env.NEXT_PUBLIC_SERVER_API!;
-      const res = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/docs/upload-drive`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-tenant-id": tenantId || "",
-          access_token: access_token || "",
-        },
-        body: JSON.stringify(doc),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Google Drive document upload failed");
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["documents"] });
-      onSuccess?.();
-    },
-  });
-}
-
 export function useDocsQuery() {
     const tenantId = useTenantId();
 
@@ -163,3 +136,24 @@ export function useEmbeddingMutation(onSuccess?: () => void) {
   });
 }
 
+export async function viewDocument(
+  url: string,
+  setPreviewUrl: (url: string | null) => void
+) {
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_API;
+  const accessToken = getAuthToken();
+  const tenantId = localStorage.getItem("tenantId");
+  const fileUrl = `${serverUrl}/${url.replace(/^\/+/, "")}`;
+
+  const headers: Record<string, string> = { accept: "application/pdf" };
+  if (accessToken) headers["access_token"] = accessToken;
+  if (tenantId) headers["x-tenant-id"] = tenantId;
+
+  const response = await fetch(fileUrl, { headers });
+  if (!response.ok) throw new Error(await response.text());
+
+  const blob = await response.blob();
+  const blobUrl = URL.createObjectURL(blob);
+
+  setPreviewUrl(blobUrl);
+}

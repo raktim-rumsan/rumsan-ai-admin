@@ -13,15 +13,14 @@ import {
 } from "@/components/ui/table";
 import { Upload, RotateCcw, Trash2, ExternalLink } from "lucide-react";
 import { toastUtils, dismissToast } from "@/lib/toast-utils";
-import { useDocsQuery, useDocDeleteMutation, useEmbeddingMutation } from "@/queries/documentsQuery";
+import { SimpleFileUploadModal } from "@/components/documents/fileUploadModal";
+import { useDocsQuery, useDocDeleteMutation, useEmbeddingMutation, viewDocument } from "@/queries/documentsQuery";
 import { PDFViewer } from "@/components/sections/documents/DocumentPreviewModal";
-import  GoogleDriveUploadModal  from "@/components/documents/fileUploadModal";
 
 interface Document {
   id: string;
   orgId: string;
   fileName: string;
-  driveFileId?: string | null;
   url: string;
   status: string;
   createdAt: string;
@@ -109,21 +108,6 @@ export default function DocumentsPage() {
     });
   };
 
-const handleViewDrivePdf = async (driveFileId: string) => {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_API_KEY;
-  
-  if (!apiKey) {
-    console.error("Google Drive API key is missing");
-    toastUtils.generic.error("Configuration Error", "Google Drive API is not configured properly");
-    return [];
-  }
-  const pdfUrl = `https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media&key=${apiKey}`;
-  
-  setPreviewUrl(pdfUrl);
-  
-  return [];
-};
-
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -160,9 +144,8 @@ const handleViewDrivePdf = async (driveFileId: string) => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => doc.driveFileId && handleViewDrivePdf(doc.driveFileId)}
+                              onClick={() => viewDocument(doc.url, setPreviewUrl)}
                               title="View PDF"
-                              disabled={!doc.driveFileId}
                             >
                               <ExternalLink className="w-4 h-4 text-gray-400" />
                             </Button>
@@ -215,7 +198,7 @@ const handleViewDrivePdf = async (driveFileId: string) => {
         </CardContent>
       </Card>
 
-      <GoogleDriveUploadModal
+      <SimpleFileUploadModal
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onUploadSuccess={() => {
