@@ -129,7 +129,11 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
                           Allow the agent to use uploaded documents as knowledge base
                         </p>
                       </div>
-                      <Switch checked={documentsEnabled} onCheckedChange={setDocumentsEnabled} />
+                      <Switch
+                        checked={documentsEnabled}
+                        onCheckedChange={setDocumentsEnabled}
+                        disabled
+                      />
                     </div>
                   </div>
                   <div className="space-y-4">
