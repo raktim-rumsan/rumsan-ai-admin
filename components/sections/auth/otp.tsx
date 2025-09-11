@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
-import useLoginMutation, { useSignUpMutation, useVerifyOtpMutation } from "@/queries/loginQuery";
+import useLoginMutation, { useVerifyOtpMutation } from "@/queries/loginQuery";
 import { useUser } from "@/providers/UserProvider";
 
 export default function AuthOtp() {
