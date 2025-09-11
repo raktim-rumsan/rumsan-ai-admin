@@ -9,10 +9,13 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   sources?: Array<{
-    title: string;
-    content: string;
-    metadata?: Record<string, unknown>;
-    score?: number;
+    id: number;
+    score: number;
+    payload: {
+      documentId: string;
+      chunk: string;
+      fileName: string;
+    };
   }>;
   confidence?: number;
   processingTime?: number;
@@ -20,23 +23,21 @@ export interface ChatMessage {
 
 export interface ChatQueryRequest {
   query: string;
-  maxSources?: number;
-  scoreThreshold?: number;
-  includeMetadata?: boolean;
-  temperature?: number;
 }
 
 export interface ChatQueryResponse {
   answer: string;
-  sources: Array<{
-    title: string;
-    content: string;
-    metadata?: Record<string, unknown>;
-    score?: number;
-  }>;
-  sessionId?: string;
   confidence?: number;
   processingTime?: number;
+  sources?: Array<{
+    id: number;
+    score: number;
+    payload: {
+      documentId: string;
+      chunk: string;
+      fileName: string;
+    };
+  }>;
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_SERVER_API!;
@@ -74,16 +75,12 @@ async function sendChatQuery(request: ChatQueryRequest): Promise<ChatQueryRespon
 
   const data = await response.json();
 
-  // The API now returns data in a nested format: { data: { answer, sources, confidence, processingTime } }
-  const responseData = data.data || data; // Support both formats for backward compatibility
-
-  // Transform the response to match our interface
+  const responseData: ChatQueryResponse = data.data || data;
   return {
-    answer: responseData.answer || responseData.response || "No response received",
+    answer: responseData.answer || "No response received",
+    confidence: responseData.confidence || 0,
+    processingTime: responseData.processingTime || 0,
     sources: responseData.sources || [],
-    sessionId: responseData.sessionId,
-    confidence: responseData.confidence,
-    processingTime: responseData.processingTime,
   };
 }
 

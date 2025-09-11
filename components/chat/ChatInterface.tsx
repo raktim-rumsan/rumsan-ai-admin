@@ -59,10 +59,6 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
     try {
       const response = await chatMutation.mutateAsync({
         query: input.trim(),
-        maxSources: 10,
-        scoreThreshold: 0.2,
-        includeMetadata: true,
-        temperature: 0.5,
       });
 
       const assistantMessage: ChatMessage = {
