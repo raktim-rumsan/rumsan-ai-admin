@@ -2,19 +2,11 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Bot, Send, RotateCcw } from "lucide-react";
+import { Send, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function AgentPreview() {
@@ -65,30 +57,6 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
                 </button>
               ))}
             </div>
-
-            {/* <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-4">
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">Model:</label>
-                  <Select defaultValue="gpt-4.1">
-                    <SelectTrigger className="w-48 bg-background border-border">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-5 h-5 bg-muted rounded-full flex items-center justify-center">
-                          <Bot className="w-3 h-3 text-muted-foreground" />
-                        </div>
-                        <SelectValue />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gpt-4.1">GPT-4.1</SelectItem>
-                      <SelectItem value="gpt-4o-mini">GPT 4o Mini</SelectItem>
-                      <SelectItem value="claude-3">Claude 3</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div> */}
-
             {activeTab === "Prompt" && (
               <>
                 <div className="bg-muted/50 rounded-lg border border-border p-1 flex-1 relative">
