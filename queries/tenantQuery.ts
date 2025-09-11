@@ -37,22 +37,10 @@ export function useTenantQuery() {
     queryKey: ["tenant"],
     queryFn: async (): Promise<TenantResponse> => {
       const authToken = getAuthToken();
-      console.log(
-        "Fetching tenant data with auth token:",
-        !!authToken,
-        authToken?.substring(0, 20) + "..."
-      );
-
       if (!authToken) {
         throw new Error("No auth token found");
       }
-
       const serverApi = process.env.NEXT_PUBLIC_SERVER_API!;
-      console.log(
-        "Making request to:",
-        `${serverApi.replace(/\/$/, "")}/api/v1/orgs/my-workspaces`
-      );
-
       const response = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/orgs/my-workspaces`, {
         method: "GET",
         headers: {
@@ -60,14 +48,11 @@ export function useTenantQuery() {
           access_token: authToken, // authToken already includes 'base64-' prefix
         },
       });
-
       if (!response.ok) {
         console.error("Tenant API error:", response.status, response.statusText);
         throw new Error(`Failed to fetch tenant data: ${response.statusText}`);
       }
-
       const data = await response.json();
-      console.log("Tenant API response:", data);
       return data;
     },
     enabled: typeof window !== "undefined", // Always try to run on client side

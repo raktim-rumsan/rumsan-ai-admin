@@ -47,7 +47,6 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedTenantId = localStorage.getItem("tenantId");
-      console.log("TenantProvider: Loading tenantId from localStorage:", storedTenantId);
       if (storedTenantId) {
         setTenantId(storedTenantId);
       }
@@ -57,27 +56,15 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
 
   const { data, isLoading, error, refetch } = useTenantQuery();
 
-  // Log query state for debugging
-  useEffect(() => {
-    console.log("TenantProvider: Query state", {
-      hasData: !!data,
-      isLoading,
-      hasError: !!error,
-      authToken: !!getAuthToken(),
-    });
-  }, [data, isLoading, error]);
-
   // Update tenantId when data is fetched
   useEffect(() => {
     if (data?.data?.personal?.slug) {
       const slug = data.data.personal.slug;
-      console.log("TenantProvider: Setting tenantId from API:", slug);
       setTenantId(slug);
 
       // Store in localStorage
       if (typeof window !== "undefined") {
         localStorage.setItem("tenantId", slug);
-        console.log("TenantProvider: Stored tenantId in localStorage:", slug);
       }
     }
   }, [data]);
@@ -86,15 +73,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (hasLoadedFromStorage && !tenantId && !isLoading && typeof window !== "undefined") {
       const authToken = getAuthToken();
-      console.log("TenantProvider: Checking if should refetch", {
-        hasLoadedFromStorage,
-        tenantId,
-        isLoading,
-        hasAuthToken: !!authToken,
-      });
-
       if (authToken) {
-        console.log("TenantProvider: No tenantId found but auth token exists, refetching...");
         refetch();
       }
     }
@@ -106,7 +85,6 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
       if (!tenantId && !isLoading && typeof window !== "undefined") {
         const authToken = getAuthToken();
         if (authToken) {
-          console.log("TenantProvider: Periodic check - auth token found, refetching...");
           refetch();
         }
       }
@@ -116,7 +94,6 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   }, [tenantId, isLoading, refetch]);
 
   const clearTenant = () => {
-    console.log("Clearing tenantId");
     setTenantId(null);
     if (typeof window !== "undefined") {
       localStorage.removeItem("tenantId");
@@ -165,7 +142,6 @@ export function useEnsureTenant() {
     if (!tenantId && !isLoading && typeof window !== "undefined") {
       const authToken = getAuthToken();
       if (authToken) {
-        console.log("useEnsureTenant: Triggering refetch because tenantId is missing");
         refetch();
       }
     }

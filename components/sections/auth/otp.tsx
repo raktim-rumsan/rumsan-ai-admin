@@ -1,108 +1,102 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useState } from "react"
-import useLoginMutation, { useSignUpMutation, useVerifyOtpMutation } from "@/queries/loginQuery"
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import useLoginMutation, { useSignUpMutation, useVerifyOtpMutation } from "@/queries/loginQuery";
 
 export default function AuthOtp() {
-  const [otp, setOtp] = useState(["", "", "", "", "", ""])
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const email = searchParams.get("email") || ""
-  const loginMutation = useLoginMutation()
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email") || "";
+  const loginMutation = useLoginMutation();
   const verifyOtpMutation = useVerifyOtpMutation();
-  
+
   const handleOtpChange = (index: number, value: string) => {
     if (value.length <= 1) {
-      const newOtp = [...otp]
-      newOtp[index] = value
-      setOtp(newOtp)
+      const newOtp = [...otp];
+      newOtp[index] = value;
+      setOtp(newOtp);
 
       // Auto-focus next input
       if (value && index < 5) {
-        const nextInput = document.getElementById(`otp-${index + 1}`)
-        nextInput?.focus()
+        const nextInput = document.getElementById(`otp-${index + 1}`);
+        nextInput?.focus();
       }
     }
-  }
+  };
 
   const handleResendOtp = async () => {
-      setSuccessMessage(null)
+    setSuccessMessage(null);
 
-   try {
-      console.log("[v0] Attempting to send OTP to:", email)
-
-      loginMutation.mutate(email)
+    try {
+      loginMutation.mutate(email);
 
       if (error) {
-        console.log("[v0] OTP send error:", error)
-        throw error
+        throw error;
       }
-
-      console.log("[v0] OTP sent successfully")
-      setSuccessMessage("OTP sent successfully! Check your email.")
-       setTimeout(() => setSuccessMessage(null), 3000)
+      setSuccessMessage("OTP sent successfully! Check your email.");
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-}
+  };
 
   const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault()
-    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "") // Remove non-digits
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").replace(/\D/g, ""); // Remove non-digits
 
     if (pastedData.length >= 6) {
-      const newOtp = pastedData.slice(0, 6).split("")
-      setOtp(newOtp)
+      const newOtp = pastedData.slice(0, 6).split("");
+      setOtp(newOtp);
 
       // Focus on the last input field
-      const lastInput = document.getElementById(`otp-5`)
-      lastInput?.focus()
+      const lastInput = document.getElementById(`otp-5`);
+      lastInput?.focus();
     }
-  }
+  };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
-      const prevInput = document.getElementById(`otp-${index - 1}`)
-      prevInput?.focus()
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      prevInput?.focus();
     }
-  }
-
+  };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
-    const otpCode = otp.join("")
+    const otpCode = otp.join("");
     if (otpCode.length !== 6) {
-      setError("Please enter all 6 digits")
-      setIsLoading(false)
-      return
+      setError("Please enter all 6 digits");
+      setIsLoading(false);
+      return;
     }
 
     try {
-     verifyOtpMutation.mutate({ email, otpCode })
-      if (error) throw error
-      router.push("/dashboard")
+      verifyOtpMutation.mutate({ email, otpCode });
+      if (error) throw error;
+      router.push("/dashboard");
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Invalid OTP code. Please try again.")
+      setError(error instanceof Error ? error.message : "Invalid OTP code. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -121,7 +115,9 @@ export default function AuthOtp() {
         <Card className="border-0 shadow-lg">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-semibold">One Time Password</CardTitle>
-            <CardDescription className="text-gray-600">Please enter the OTP sent to your email.</CardDescription>
+            <CardDescription className="text-gray-600">
+              Please enter the OTP sent to your email.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleVerifyOtp} className="space-y-6">
@@ -142,31 +138,41 @@ export default function AuthOtp() {
                 ))}
               </div>
 
-              {error && <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md text-center">{error}</div>}
+              {error && (
+                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md text-center">
+                  {error}
+                </div>
+              )}
 
-              <Button type="submit" className="w-full h-11 bg-black hover:bg-gray-800" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full h-11 bg-black hover:bg-gray-800"
+                disabled={isLoading}
+              >
                 {isLoading ? "Verifying..." : "Verify OTP"}
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm text-gray-600">
-              Didn't receive the code?{" "}
-              <Button onClick={handleResendOtp}
-                 variant="link" 
-                 className="font-medium text-black hover:underline">
+              Didn&apos;t receive the code?&nbsp;
+              <Button
+                onClick={handleResendOtp}
+                variant="link"
+                className="font-medium text-black hover:underline"
+              >
                 Try again
               </Button>
             </div>
           </CardContent>
         </Card>
-      <div className="h-8 flex items-center justify-center mt-4">
-        {successMessage && (
-          <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md text-center">
-             {successMessage}
-          </div>
-        )}
-      </div>
+        <div className="h-8 flex items-center justify-center mt-4">
+          {successMessage && (
+            <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md text-center">
+              {successMessage}
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  )
+  );
 }

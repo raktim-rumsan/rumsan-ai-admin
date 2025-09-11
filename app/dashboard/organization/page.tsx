@@ -1,56 +1,53 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Building, Users, MoreHorizontal, UserPlus } from "lucide-react"
-import { AddMemberModal } from "@/components/sections/organization/AddMemberModal"
-import { useTenant } from "@/providers/TenantProvider"
-import { useOrgMembersQuery } from "@/queries/invitationQuery"
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Building, Users, MoreHorizontal, UserPlus } from "lucide-react";
+import { AddMemberModal } from "@/components/sections/organization/AddMemberModal";
+import { useTenant } from "@/providers/TenantProvider";
+import { useOrgMembersQuery } from "@/queries/invitationQuery";
 
 export default function OrganizationPage() {
-  const { workspaceData, tenantId } = useTenant()
-  const workspaceType = workspaceData?.personal?.slug === tenantId ? "personal" : "team"
+  const { workspaceData, tenantId } = useTenant();
+  const workspaceType = workspaceData?.personal?.slug === tenantId ? "personal" : "team";
 
-  const [activeTab, setActiveTab] = useState("settings")
+  const [activeTab, setActiveTab] = useState("settings");
 
   useEffect(() => {
     if (workspaceType === "personal" && activeTab === "members") {
-      setActiveTab("settings")
+      setActiveTab("settings");
     }
-  }, [workspaceType, activeTab])
+  }, [workspaceType, activeTab]);
 
   const {
     data: membersData,
     isLoading: membersLoading,
     error: membersError,
-  } = useOrgMembersQuery()
-  console.log(membersData, "membersData")
-
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
-
+  } = useOrgMembersQuery();
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "admin":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800";
       case "member":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-100 text-blue-800";
       case "viewer":
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const org =
     workspaceType === "personal"
       ? workspaceData?.personal
-      : workspaceData?.teams?.find((t) => t.slug === tenantId)
+      : workspaceData?.teams?.find((t) => t.slug === tenantId);
 
   return (
     <div className="p-6 space-y-6">
@@ -61,9 +58,7 @@ export default function OrganizationPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="settings">Organization Settings</TabsTrigger>
-          {workspaceType === "team" && (
-            <TabsTrigger value="members">Team Members</TabsTrigger>
-          )}
+          {workspaceType === "team" && <TabsTrigger value="members">Team Members</TabsTrigger>}
         </TabsList>
         <TabsContent value="settings" className="space-y-6">
           <Card>
@@ -79,10 +74,6 @@ export default function OrganizationPage() {
                 <div className="space-y-2">
                   <Label htmlFor="org-name">Organization Name</Label>
                   <Input id="org-name" defaultValue={org?.name || ""} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="org-slug">Slug</Label>
-                  <Input id="org-domain" defaultValue={org?.slug || ""} />
                 </div>
               </div>
               <div className="space-y-2">
@@ -121,33 +112,36 @@ export default function OrganizationPage() {
                   <div className="p-4 text-center text-red-500">Failed to load members</div>
                 ) : (
                   <div className="divide-y">
-                    {Array.isArray(membersData?.data) && membersData.data.map((member: any) => (
-
-                      <div key={member.id} className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className="bg-gray-100 text-gray-600">
+                    {Array.isArray(membersData?.data) &&
+                      membersData.data.map((member: any) => (
+                        <div key={member.id} className="p-4 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback className="bg-gray-100 text-gray-600">
                                 {member.name
-    ? member.name.split(" ").map((n: string) => n[0]).join("")
-    : member.email?.[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-gray-900">{member.user.name}</p>
-                            <p className="text-sm text-gray-500">{member.user.email}</p>
+                                  ? member.name
+                                      .split(" ")
+                                      .map((n: string) => n[0])
+                                      .join("")
+                                  : member.email?.[0]}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium text-gray-900">{member.user.name}</p>
+                              <p className="text-sm text-gray-500">{member.user.email}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Badge className={getRoleBadgeColor(member.role)}>{member.role}</Badge>
+                            <Badge variant={member.isActive ? "default" : "secondary"}>
+                              {member.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <Badge className={getRoleBadgeColor(member.role)}>{member.role}</Badge>
-                          <Badge variant={member.isActive ? "default" : "secondary"}>
-                              {member.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 )}
               </CardContent>
@@ -156,5 +150,5 @@ export default function OrganizationPage() {
         )}
       </Tabs>
     </div>
-  )
+  );
 }

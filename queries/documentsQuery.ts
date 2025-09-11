@@ -11,7 +11,6 @@ export function useDocUploadMutation(onSuccess?: () => void) {
       formData.append("file", file);
       const tenantId = localStorage.getItem("tenantId");
       const access_token = getAuthToken();
-      console.log(access_token, tenantId, "access_token");
       const serverApi = process.env.NEXT_PUBLIC_SERVER_API!;
       const res = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/docs/upload`, {
         method: "POST",
@@ -34,16 +33,14 @@ export function useDocUploadMutation(onSuccess?: () => void) {
 }
 
 export function useDocsQuery() {
-    const tenantId = useTenantId();
+  const tenantId = useTenantId();
 
   return useQuery({
-    queryKey: ["documents",tenantId],
+    queryKey: ["documents", tenantId],
     queryFn: async () => {
       const tenantId = localStorage.getItem("tenantId");
       const access_token = getAuthToken();
-      console.log({ access_token });
       const serverApi = process.env.NEXT_PUBLIC_SERVER_API ?? "";
-      console.log("here");
       const res = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/docs`, {
         method: "GET",
         headers: {
@@ -53,7 +50,6 @@ export function useDocsQuery() {
         },
       });
       const data = await res.json();
-      console.log(data, tenantId, "access_token");
       if (!res.ok) throw new Error(data.error || "Failed to fetch documents");
       return data;
     },
@@ -136,10 +132,7 @@ export function useEmbeddingMutation(onSuccess?: () => void) {
   });
 }
 
-export async function viewDocument(
-  url: string,
-  setPreviewUrl: (url: string | null) => void
-) {
+export async function viewDocument(url: string, setPreviewUrl: (url: string | null) => void) {
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_API;
   const accessToken = getAuthToken();
   const tenantId = localStorage.getItem("tenantId");

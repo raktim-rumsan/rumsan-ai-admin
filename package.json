@@ -57,7 +57,6 @@
     "react-dom": "19.1.0",
     "react-dropzone": "latest",
     "react-hook-form": "^7.54.1",
-    "react-pdf": "latest",
     "react-resizable-panels": "^2.1.7",
     "recharts": "2.15.0",
     "sonner": "latest",

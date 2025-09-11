@@ -1,49 +1,41 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { createClient } from "@/lib/supabase/client"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import useLoginMutation from "@/queries/loginQuery"
+import { createClient } from "@/lib/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import useLoginMutation from "@/queries/loginQuery";
 
 export default function AuthLogin() {
-  const [email, setEmail] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  const loginMutation = useLoginMutation()
-  
+  const loginMutation = useLoginMutation();
+
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
-
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
     try {
-      console.log("[v0] Attempting to send OTP to:", email)
-
-      loginMutation.mutate(email)
-
+      loginMutation.mutate(email);
       if (error) {
-        console.log("[v0] OTP send error:", error)
-        throw error
+        throw error;
       }
-
-      console.log("[v0] OTP sent successfully, redirecting to verification")
-      router.push("/auth/verify-otp?email=" + encodeURIComponent(email))
+      router.push("/auth/verify-otp?email=" + encodeURIComponent(email));
     } catch (error: unknown) {
-      console.log("[v0] Login error:", error)
-      setError(error instanceof Error ? error.message : "An error occurred")
+      setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -62,7 +54,9 @@ export default function AuthLogin() {
         <Card className="border-0 shadow-lg">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-semibold">Login</CardTitle>
-            <CardDescription className="text-gray-600">Enter your email below to login to your account</CardDescription>
+            <CardDescription className="text-gray-600">
+              Enter your email below to login to your account
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
@@ -81,9 +75,15 @@ export default function AuthLogin() {
                 />
               </div>
 
-              {error && <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</div>}
+              {error && (
+                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</div>
+              )}
 
-              <Button type="submit" className="w-full h-11 bg-black hover:bg-gray-800" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full h-11 bg-black hover:bg-gray-800"
+                disabled={isLoading}
+              >
                 {isLoading ? "Sending OTP..." : "Login"}
               </Button>
             </form>
@@ -98,5 +98,5 @@ export default function AuthLogin() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

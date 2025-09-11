@@ -1,4 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 
 export default function SignUpSuccessPage() {
   return (
@@ -18,15 +19,36 @@ export default function SignUpSuccessPage() {
         <Card className="border-0 shadow-lg">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-semibold">Thank you for signing up!</CardTitle>
-            <CardDescription className="text-gray-600">Check your email to confirm</CardDescription>
+            <CardDescription className="text-gray-600">Procced to login page</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 text-center">
-              You've successfully signed up. Please check your email to confirm your account before signing in.
+              You&apos;ve successfully signed up. Please go back to the login page using this&nbsp;
+              <Link
+                href="/auth/login"
+                className="inline-flex items-center font-medium text-blue-600 dark:text-blue-500 hover:underline"
+              >
+                link
+                <svg
+                  className="w-4 h-4 ms-2 rtl:rotate-180"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 14 10"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M1 5h12m0 0L9 1m4 4L9 9"
+                  />
+                </svg>
+              </Link>
             </p>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }

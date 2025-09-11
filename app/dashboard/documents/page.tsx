@@ -14,8 +14,13 @@ import {
 import { Upload, RotateCcw, Trash2, ExternalLink } from "lucide-react";
 import { toastUtils, dismissToast } from "@/lib/toast-utils";
 import { SimpleFileUploadModal } from "@/components/documents/fileUploadModal";
-import { useDocsQuery, useDocDeleteMutation, useEmbeddingMutation, viewDocument } from "@/queries/documentsQuery";
-import { PDFViewer } from "@/components/sections/documents/DocumentPreviewModal";
+import {
+  useDocsQuery,
+  useDocDeleteMutation,
+  useEmbeddingMutation,
+  viewDocument,
+} from "@/queries/documentsQuery";
+import Link from "next/link";
 
 interface Document {
   id: string;
@@ -139,17 +144,7 @@ export default function DocumentsPage() {
                       <TableRow key={doc.id}>
                         <TableCell>{formatDate(doc.createdAt)}</TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            {doc.fileName}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => viewDocument(doc.url, setPreviewUrl)}
-                              title="View PDF"
-                            >
-                              <ExternalLink className="w-4 h-4 text-gray-400" />
-                            </Button>
-                          </div>
+                          <div className="flex items-center gap-2">{doc.fileName}</div>
                         </TableCell>
                         <TableCell>{doc.status}</TableCell>
                         <TableCell>
@@ -207,20 +202,18 @@ export default function DocumentsPage() {
           refetch();
         }}
       />
-        {previewUrl && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-             <div className="bg-white rounded-lg shadow-lg p-4 max-w-3xl w-full relative">
-              <button
-                 className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-                   onClick={() => setPreviewUrl(null)}
-               >
-                Close
-              </button>
-             <PDFViewer fileUrl={previewUrl} />
-             </div>
+      {previewUrl && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-4 max-w-3xl w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              onClick={() => setPreviewUrl(null)}
+            >
+              Close
+            </button>
           </div>
-)}
-
+        </div>
+      )}
     </div>
   );
 }

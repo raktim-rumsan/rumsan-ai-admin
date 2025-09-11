@@ -11,3 +11,6 @@ npm-debug.log
 node_modules
 .env
 supabase
+env.example
+# Custom
+docs/
