@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Team {
   id: string;
@@ -65,6 +66,59 @@ export function useTenantQuery() {
         return false;
       }
       return failureCount < 2;
+    },
+  });
+}
+
+interface CreateOrgPayload {
+  name: string;
+  description: string;
+}
+
+interface CreateOrgOptions {
+  onSuccess?: (data: unknown) => void;
+}
+
+export function useCreateOrgMutation(options?: CreateOrgOptions) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: CreateOrgPayload) => {
+      const authToken = getAuthToken();
+      if (!authToken) {
+        throw new Error("No auth token found");
+      }
+
+      const serverApi = process.env.NEXT_PUBLIC_SERVER_API!;
+      const response = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/orgs`, {
+        method: "POST",
+        headers: {
+          accept: "*/*",
+          access_token: authToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Failed to create organization: ${response.statusText}`
+        );
+      }
+
+      return response.json();
+    },
+    onSuccess: async (data) => {
+      toast.success("Team created successfully!");
+      // Call custom onSuccess if provided
+      options?.onSuccess?.(data);
+      // Refetch tenant data to show the new team - do this after custom onSuccess
+      await queryClient.refetchQueries({ queryKey: ["tenant"] });
+      return data;
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to create team");
     },
   });
 }

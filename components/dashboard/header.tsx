@@ -7,6 +7,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import { useTenant } from "@/providers/TenantProvider";
 import { useTenantQuery } from "@/queries/tenantQuery";
+import { CreateTeamDialog } from "./CreateTeamDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +17,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "../ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
@@ -30,11 +31,10 @@ export function Header({ onMenuClick }: HeaderProps) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  const { tenantId, setTenantId, clearTenant } = useTenant();
-  const { data, isLoading, refetch } = useTenantQuery();
+  const { setTenantId, clearTenant, tenantId, workspaceData } = useTenant();
+  const { data, isLoading } = useTenantQuery();
 
-  const [workspaceType, setWorkspaceType] = useState<"personal" | "team">("personal");
-  const [selectedTeamSlug, setSelectedTeamSlug] = useState<string | null>(null);
+  const [createTeamDialogOpen, setCreateTeamDialogOpen] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
@@ -43,23 +43,21 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   useEffect(() => {
     if (isMounted && !isLoading && data?.data?.personal) {
-      setWorkspaceType("personal");
-      localStorage.setItem("tenantId", data.data.personal.slug);
+      const slug = data.data.personal.slug;
+      if (slug) {
+        localStorage.setItem("tenantId", slug);
+      }
     }
   }, [isMounted, data, isLoading]);
 
   const handleWorkspaceChange = (value: string) => {
     if (value === "personal") {
-      setWorkspaceType("personal");
-      setSelectedTeamSlug(null);
-      const slug = data?.data?.personal?.slug;
+      const slug = personalSlug;
       if (slug) {
         setTenantId(slug);
       }
     } else if (value.startsWith("team-")) {
-      setWorkspaceType("team");
       const slug = value.replace("team-", "");
-      setSelectedTeamSlug(slug);
       setTenantId(slug);
     }
   };
@@ -71,19 +69,28 @@ export function Header({ onMenuClick }: HeaderProps) {
   };
 
   const handleAddTeam = () => {
-    // Navigate to team creation page or open a modal
-    router.push("/dashboard/organization");
+    setCreateTeamDialogOpen(true);
+  };
+
+  const handleTeamCreated = async (teamSlug: string) => {
+    // Wait a bit for the query to refetch, then the UI should update automatically
+    // The tenant context will handle the state update
+    console.log("Team created with slug:", teamSlug);
   };
 
   if (!isMounted || isLoading) return null;
 
-  const teams = data?.data?.teams || [];
-  const currentValue =
-    workspaceType === "personal"
-      ? "Personal Workspace"
-      : selectedTeamSlug
-      ? teams.find((team) => team.slug === selectedTeamSlug)?.name || "Team Workspace"
-      : "Select Workspace";
+  // Use workspaceData from tenant context for better synchronization
+  const teams = workspaceData?.teams || data?.data?.teams || [];
+  const personalSlug = workspaceData?.personal?.slug || data?.data?.personal?.slug;
+  const isPersonalWorkspace = tenantId === personalSlug;
+  const currentTeam = teams.find((team) => team.slug === tenantId);
+
+  const currentValue = isPersonalWorkspace
+    ? "Personal Workspace"
+    : currentTeam
+    ? currentTeam.name
+    : "Select Workspace";
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-3 lg:px-6">
@@ -119,12 +126,12 @@ export function Header({ onMenuClick }: HeaderProps) {
             <DropdownMenuContent className="w-56" align="start">
               <DropdownMenuItem
                 onClick={() => handleWorkspaceChange("personal")}
-                className={workspaceType === "personal" ? "bg-accent" : ""}
+                className={isPersonalWorkspace ? "bg-accent" : ""}
               >
                 Personal Workspace
               </DropdownMenuItem>
               <DropdownMenuSub>
-                <DropdownMenuSubTrigger className={workspaceType === "team" ? "bg-accent" : ""}>
+                <DropdownMenuSubTrigger className={!isPersonalWorkspace ? "bg-accent" : ""}>
                   Team Workspace
                 </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent className="w-56">
@@ -134,7 +141,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                         <DropdownMenuItem
                           key={team.id}
                           onClick={() => handleWorkspaceChange(`team-${team.slug}`)}
-                          className={selectedTeamSlug === team.slug ? "bg-accent" : ""}
+                          className={tenantId === team.slug ? "bg-accent" : ""}
                         >
                           {team.name}
                         </DropdownMenuItem>
@@ -175,6 +182,12 @@ export function Header({ onMenuClick }: HeaderProps) {
           </Button>
         </div>
       </div>
+
+      <CreateTeamDialog
+        open={createTeamDialogOpen}
+        onOpenChange={setCreateTeamDialogOpen}
+        onTeamCreated={handleTeamCreated}
+      />
     </header>
   );
 }
