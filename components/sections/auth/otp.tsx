@@ -7,14 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import useLoginMutation, { useSignUpMutation, useVerifyOtpMutation } from "@/queries/loginQuery";
 import { useUser } from "@/providers/UserProvider";
 
 export default function AuthOtp() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [isResendPending, startResendTransition] = useTransition();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const router = useRouter();
@@ -42,19 +43,19 @@ export default function AuthOtp() {
   const handleResendOtp = async () => {
     setSuccessMessage(null);
 
-    try {
-      loginMutation.mutate(email);
+    startResendTransition(async () => {
+      try {
+        loginMutation.mutate(email);
 
-      if (error) {
-        throw error;
+        if (error) {
+          throw error;
+        }
+        setSuccessMessage("OTP sent successfully! Check your email.");
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } catch (error: unknown) {
+        setError(error instanceof Error ? error.message : "An error occurred");
       }
-      setSuccessMessage("OTP sent successfully! Check your email.");
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -80,45 +81,43 @@ export default function AuthOtp() {
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError(null);
 
     const otpCode = otp.join("");
     if (otpCode.length !== 6) {
       setError("Please enter all 6 digits");
-      setIsLoading(false);
       return;
     }
 
-    try {
-      // Verify OTP with backend
-      const otpResult = await verifyOtpMutation.mutateAsync({ email, otpCode });
+    startTransition(async () => {
+      try {
+        // Verify OTP with backend
+        const otpResult = await verifyOtpMutation.mutateAsync({ email, otpCode });
 
-      if (otpResult.error) {
-        throw new Error(otpResult.error);
+        if (otpResult.error) {
+          throw new Error(otpResult.error);
+        }
+
+        // Get current user session from Supabase to update UserContext
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error("Error getting session after OTP verification:", sessionError);
+        } else if (session?.user) {
+          // Update UserContext with the authenticated user
+          setUser(session.user);
+          console.log("User data set in context:", session.user);
+        }
+
+        // Navigate to dashboard
+        router.push("/dashboard");
+      } catch (error: unknown) {
+        setError(error instanceof Error ? error.message : "Invalid OTP code. Please try again.");
       }
-
-      // Get current user session from Supabase to update UserContext
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-
-      if (sessionError) {
-        console.error("Error getting session after OTP verification:", sessionError);
-      } else if (session?.user) {
-        // Update UserContext with the authenticated user
-        setUser(session.user);
-        console.log("User data set in context:", session.user);
-      }
-
-      // Navigate to dashboard
-      router.push("/dashboard");
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Invalid OTP code. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   return (
@@ -170,20 +169,21 @@ export default function AuthOtp() {
               <Button
                 type="submit"
                 className="w-full h-11 bg-black hover:bg-gray-800"
-                disabled={isLoading}
+                disabled={isPending}
               >
-                {isLoading ? "Verifying..." : "Verify OTP"}
+                {isPending ? "Verifying..." : "Verify OTP"}
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm text-gray-600">
-              Didn&apos;t receive the code?&nbsp;
+              Didn&apos;t receive the code?
               <Button
                 onClick={handleResendOtp}
                 variant="link"
                 className="font-medium text-black hover:underline"
+                disabled={isResendPending}
               >
-                Try again
+                {isResendPending ? "Sending..." : "Try again"}
               </Button>
             </div>
           </CardContent>

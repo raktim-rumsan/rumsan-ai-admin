@@ -2,39 +2,38 @@
 
 import type React from "react";
 
-import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import useLoginMutation from "@/queries/loginQuery";
 
 export default function AuthLogin() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   const loginMutation = useLoginMutation();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError(null);
-    try {
-      loginMutation.mutate(email);
-      if (error) {
-        throw error;
+
+    startTransition(async () => {
+      try {
+        loginMutation.mutate(email);
+        if (error) {
+          throw error;
+        }
+        router.push("/auth/verify-otp?email=" + encodeURIComponent(email));
+      } catch (error: unknown) {
+        setError(error instanceof Error ? error.message : "An error occurred");
       }
-      router.push("/auth/verify-otp?email=" + encodeURIComponent(email));
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   return (
@@ -82,14 +81,14 @@ export default function AuthLogin() {
               <Button
                 type="submit"
                 className="w-full h-11 bg-black hover:bg-gray-800"
-                disabled={isLoading}
+                disabled={isPending}
               >
-                {isLoading ? "Sending OTP..." : "Login"}
+                {isPending ? "Sending OTP..." : "Login"}
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm text-gray-600">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href="/auth/sign-up" className="font-medium text-black hover:underline">
                 Sign up
               </Link>
