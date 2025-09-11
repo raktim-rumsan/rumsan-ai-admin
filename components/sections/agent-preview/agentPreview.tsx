@@ -1,21 +1,28 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Bot, Send, RotateCcw } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Bot, Send, RotateCcw } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function AgentPreview() {
-  const [activeTab, setActiveTab] = useState("Prompt")
-  const [chatMessage, setChatMessage] = useState("")
-  const [documentsEnabled, setDocumentsEnabled] = useState(true)
-  const [promptContent, setPromptContent] = useState(`## Task
+  const [activeTab, setActiveTab] = useState("Prompt");
+  const [chatMessage, setChatMessage] = useState("");
+  const [documentsEnabled, setDocumentsEnabled] = useState(true);
+  const [promptContent, setPromptContent] = useState(`    
+## Task
 Explain the task that the Agent will be performing and what tools will be needed.
 Example: Lead Generation
 
@@ -29,7 +36,7 @@ Provide example prompts along with the response that you want to see for each pr
 Example:
 Q: What services do you offer?
 A: We specialize in AI Agent development, primarily through our platform Agentive. If you're interested in building AI agents for your business please provide some information on the project you have in mind.
-Alternatively, if you'd like to speak to our team for a consultation you can provide your name and email and we'll be in touch to book in a call.`)
+Alternatively, if you'd like to speak to our team for a consultation you can provide your name and email and we'll be in touch to book in a call.`);
 
   return (
     <div className="h-full flex flex-col bg-background">
@@ -51,7 +58,7 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
                     "px-6 py-3 text-sm font-medium rounded-md transition-colors",
                     activeTab === tab
                       ? "bg-background text-foreground border border-border shadow-sm"
-                      : "text-muted-foreground hover:text-foreground",
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   {tab}
@@ -59,7 +66,7 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
               ))}
             </div>
 
-            <div className="flex items-center justify-between mb-6">
+            {/* <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-4">
                 <div>
                   <label className="text-sm font-medium text-foreground mb-2 block">Model:</label>
@@ -80,28 +87,29 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
                   </Select>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {activeTab === "Prompt" && (
               <>
-                <div className="bg-muted/50 rounded-lg border border-border p-6 flex-1 relative">
+                <div className="bg-muted/50 rounded-lg border border-border p-1 flex-1 relative">
                   <Textarea
                     value={promptContent}
                     onChange={(e) => setPromptContent(e.target.value)}
                     className="h-full font-mono text-sm resize-none border-0 p-0 focus-visible:ring-0 bg-transparent text-foreground placeholder:text-muted-foreground"
                     placeholder="Enter your prompt instructions..."
                   />
-                  <div className="absolute right-2 top-6 bottom-6 w-2 bg-border rounded-full">
-                    <div className="w-full h-16 bg-muted-foreground/50 rounded-full"></div>
-                  </div>
                 </div>
 
                 <div className="mt-6 flex items-center justify-between">
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
                     <RotateCcw className="w-4 h-4" />
                   </Button>
                   <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-2 flex-1 ml-4">
-                    Publish
+                    Save
                   </Button>
                 </div>
               </>
@@ -111,7 +119,9 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
               <div className="bg-background rounded-lg border border-border p-6 flex-1">
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-medium text-foreground mb-4">Document Data Usage</h3>
+                    <h3 className="text-lg font-medium text-foreground mb-4">
+                      Document Data Usage
+                    </h3>
                     <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                       <div>
                         <p className="text-sm font-medium text-foreground">Enable Documents</p>
@@ -122,22 +132,19 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
                       <Switch checked={documentsEnabled} onCheckedChange={setDocumentsEnabled} />
                     </div>
                   </div>
-
-                  {documentsEnabled && (
-                    <div className="space-y-4">
-                      <div className="border border-border rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-foreground">Connected Documents</p>
-                            <p className="text-sm text-muted-foreground">3 documents available</p>
-                          </div>
-                          <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">
-                            Active
-                          </Badge>
+                  <div className="space-y-4">
+                    <div className="border border-border rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="justify-between p-4 bg-muted/50 rounded-lg">
+                          <p className="text-sm font-medium text-foreground">Notes</p>
+                          <p className="text-sm text-muted-foreground">
+                            Documents uploaded in one workspace wont be available in the another
+                            workspace
+                          </p>
                         </div>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             )}
@@ -149,7 +156,11 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground hover:text-foreground"
+                    >
                       <RotateCcw className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
@@ -170,7 +181,10 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
                   placeholder="Send a message..."
                   className="flex-1 bg-background border-border text-foreground placeholder:text-muted-foreground"
                 />
-                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground p-2">
+                <Button
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground p-2"
+                >
                   <Send className="w-4 h-4" />
                 </Button>
               </div>
@@ -179,5 +193,5 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
         </div>
       </div>
     </div>
-  )
+  );
 }

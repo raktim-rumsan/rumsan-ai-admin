@@ -2,12 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, User, LogOut } from "lucide-react";
+import { Menu, User, LogOut, Plus } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import { useTenant } from "@/providers/TenantProvider";
 import { useTenantQuery } from "@/queries/tenantQuery";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "../ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
@@ -22,7 +31,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   );
 
   const { tenantId, setTenantId, clearTenant } = useTenant();
-  const { data, isLoading,refetch } = useTenantQuery(); 
+  const { data, isLoading, refetch } = useTenantQuery();
 
   const [workspaceType, setWorkspaceType] = useState<"personal" | "team">("personal");
   const [selectedTeamSlug, setSelectedTeamSlug] = useState<string | null>(null);
@@ -45,7 +54,7 @@ export function Header({ onMenuClick }: HeaderProps) {
       setSelectedTeamSlug(null);
       const slug = data?.data?.personal?.slug;
       if (slug) {
-        setTenantId(slug); 
+        setTenantId(slug);
       }
     } else if (value.startsWith("team-")) {
       setWorkspaceType("team");
@@ -61,13 +70,19 @@ export function Header({ onMenuClick }: HeaderProps) {
     router.push("/auth/login");
   };
 
-  if (!isMounted || isLoading) return null; 
+  const handleAddTeam = () => {
+    // Navigate to team creation page or open a modal
+    router.push("/dashboard/organization");
+  };
+
+  if (!isMounted || isLoading) return null;
 
   const teams = data?.data?.teams || [];
-  const currentValue = workspaceType === "personal" 
-    ? "Personal Workspace" 
-    : selectedTeamSlug 
-      ? teams.find(team => team.slug === selectedTeamSlug)?.name || "Team Workspace"
+  const currentValue =
+    workspaceType === "personal"
+      ? "Personal Workspace"
+      : selectedTeamSlug
+      ? teams.find((team) => team.slug === selectedTeamSlug)?.name || "Team Workspace"
       : "Select Workspace";
 
   return (
@@ -75,38 +90,56 @@ export function Header({ onMenuClick }: HeaderProps) {
       <div className="flex items-center justify-between">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className={cn("w-40 sm:w-56 justify-between", "data-[state=open]:bg-accent")}
             >
               {currentValue}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="start">
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={() => handleWorkspaceChange("personal")}
               className={workspaceType === "personal" ? "bg-accent" : ""}
             >
               Personal Workspace
             </DropdownMenuItem>
-            {teams.length > 0 && (
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className={workspaceType !== "personal" && !selectedTeamSlug ? "bg-accent" : ""}>
-                  Team Workspace
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="w-56">
-                  {teams.map((team) => (
-                    <DropdownMenuItem 
-                      key={team.id}
-                      onClick={() => handleWorkspaceChange(`team-${team.slug}`)}
-                      className={selectedTeamSlug === team.slug ? "bg-accent" : ""}
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className={workspaceType === "team" ? "bg-accent" : ""}>
+                Team Workspace
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="w-56">
+                {teams.length > 0 ? (
+                  <>
+                    {teams.map((team) => (
+                      <DropdownMenuItem
+                        key={team.id}
+                        onClick={() => handleWorkspaceChange(`team-${team.slug}`)}
+                        className={selectedTeamSlug === team.slug ? "bg-accent" : ""}
+                      >
+                        {team.name}
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleAddTeam}
+                      className="text-blue-600 hover:text-blue-700"
                     >
-                      {team.name}
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Team
                     </DropdownMenuItem>
-                  ))}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-            )}
+                  </>
+                ) : (
+                  <DropdownMenuItem
+                    onClick={handleAddTeam}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Team
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
           </DropdownMenuContent>
         </DropdownMenu>
 

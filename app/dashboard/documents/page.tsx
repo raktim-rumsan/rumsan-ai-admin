@@ -144,7 +144,9 @@ export default function DocumentsPage() {
                       <TableRow key={doc.id}>
                         <TableCell>{formatDate(doc.createdAt)}</TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">{doc.fileName}</div>
+                          <div className="flex items-center gap-2">
+                            {doc.fileName.replaceAll("_", " ")}
+                          </div>
                         </TableCell>
                         <TableCell>{doc.status}</TableCell>
                         <TableCell>
