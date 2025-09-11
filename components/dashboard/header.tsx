@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, User, LogOut, Plus } from "lucide-react";
+import { Menu, User, LogOut, Plus, ChevronDown } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import { useTenant } from "@/providers/TenantProvider";
@@ -88,39 +88,67 @@ export function Header({ onMenuClick }: HeaderProps) {
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-3 lg:px-6">
       <div className="flex items-center justify-between">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn("w-40 sm:w-56 justify-between", "data-[state=open]:bg-accent")}
-            >
-              {currentValue}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="start">
-            <DropdownMenuItem
-              onClick={() => handleWorkspaceChange("personal")}
-              className={workspaceType === "personal" ? "bg-accent" : ""}
-            >
-              Personal Workspace
-            </DropdownMenuItem>
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger className={workspaceType === "team" ? "bg-accent" : ""}>
-                Team Workspace
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="w-56">
-                {teams.length > 0 ? (
-                  <>
-                    {teams.map((team) => (
+        {/* Left side - Logo and hamburger (mobile) or workspace switcher (desktop) */}
+        <div className="flex items-center space-x-4">
+          {/* Logo - visible on mobile */}
+          <div className="flex items-center space-x-2 lg:hidden">
+            <div className="w-6 h-6 bg-black rounded flex items-center justify-center">
+              <svg viewBox="0 0 24 24" className="w-3 h-3 text-white" fill="currentColor">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+            </div>
+            <h1 className="text-lg font-semibold text-gray-900">Rumsan AI</h1>
+          </div>
+
+          {/* Hamburger menu - visible on mobile */}
+          <Button variant="ghost" size="sm" className="lg:hidden" onClick={onMenuClick}>
+            <Menu className="h-5 w-5" />
+          </Button>
+
+          {/* Workspace switcher - visible on mobile after hamburger, always visible on desktop */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn("w-40 sm:w-56 justify-between", "data-[state=open]:bg-accent")}
+              >
+                <span>{currentValue}</span>
+                <ChevronDown className="h-4 w-4 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="start">
+              <DropdownMenuItem
+                onClick={() => handleWorkspaceChange("personal")}
+                className={workspaceType === "personal" ? "bg-accent" : ""}
+              >
+                Personal Workspace
+              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className={workspaceType === "team" ? "bg-accent" : ""}>
+                  Team Workspace
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-56">
+                  {teams.length > 0 ? (
+                    <>
+                      {teams.map((team) => (
+                        <DropdownMenuItem
+                          key={team.id}
+                          onClick={() => handleWorkspaceChange(`team-${team.slug}`)}
+                          className={selectedTeamSlug === team.slug ? "bg-accent" : ""}
+                        >
+                          {team.name}
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        key={team.id}
-                        onClick={() => handleWorkspaceChange(`team-${team.slug}`)}
-                        className={selectedTeamSlug === team.slug ? "bg-accent" : ""}
+                        onClick={handleAddTeam}
+                        className="text-blue-600 hover:text-blue-700"
                       >
-                        {team.name}
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Team
                       </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuSeparator />
+                    </>
+                  ) : (
                     <DropdownMenuItem
                       onClick={handleAddTeam}
                       className="text-blue-600 hover:text-blue-700"
@@ -128,36 +156,14 @@ export function Header({ onMenuClick }: HeaderProps) {
                       <Plus className="w-4 h-4 mr-2" />
                       Add Team
                     </DropdownMenuItem>
-                  </>
-                ) : (
-                  <DropdownMenuItem
-                    onClick={handleAddTeam}
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Team
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" className="lg:hidden" onClick={onMenuClick}>
-            <Menu className="h-5 w-5" />
-          </Button>
-
-          <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 bg-black rounded flex items-center justify-center lg:hidden">
-              <svg viewBox="0 0 24 24" className="w-3 h-3 text-white" fill="currentColor">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
-            </div>
-            <h1 className="text-lg font-semibold text-gray-900 lg:hidden">Rumsan AI</h1>
-          </div>
+                  )}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
+        {/* Right side - Admin and logout */}
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <User className="h-4 w-4 text-gray-600" />
