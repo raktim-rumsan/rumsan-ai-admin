@@ -3,9 +3,10 @@
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { MessageSquare, ChevronDown, FolderOpen, Bot, Building } from "lucide-react";
+import { ChevronDown, FolderOpen, Bot, Building } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useUser } from "@/providers/UserProvider";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -19,16 +20,11 @@ const navigationItems = [
     href: "/dashboard/documents",
   },
   {
-    title: "AI Chat",
-    icon: MessageSquare,
-    href: "/dashboard/chat",
-  },
-  {
     title: "Agent Preview",
     icon: Bot,
     href: "/dashboard/agent-preview",
   },
-   {
+  {
     title: "Organization Management",
     icon: Building,
     href: "/dashboard/organization",
@@ -37,6 +33,40 @@ const navigationItems = [
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { userProfile, isLoading } = useUser();
+
+  // Extract user data with fallbacks
+  const getUserDisplayData = () => {
+    if (isLoading) {
+      return {
+        name: "Loading...",
+        email: "",
+        initials: "...",
+      };
+    }
+
+    if (!userProfile) {
+      return {
+        name: "Guest User",
+        email: "guest@example.com",
+        initials: "GU",
+      };
+    }
+
+    const name = userProfile.name || userProfile.email?.split("@")[0] || "User";
+    const email = userProfile.email || "";
+    const initials =
+      name
+        .split(" ")
+        .map((part) => part.charAt(0))
+        .join("")
+        .toUpperCase()
+        .slice(0, 2) || "U";
+
+    return { name, email, initials };
+  };
+
+  const { name, email, initials } = getUserDisplayData();
 
   return (
     <>
@@ -94,11 +124,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="border-t border-gray-200 p-4">
             <div className="flex items-center space-x-3">
               <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-gray-100 text-gray-600 text-xs">RS</AvatarFallback>
+                <AvatarFallback className="bg-gray-100 text-gray-600 text-xs">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">Raktim Shrestha</p>
-                <p className="text-xs text-gray-500 truncate">raktim@rumsan.com</p>
+                <p className="text-sm font-medium text-gray-900 truncate">{name}</p>
+                <p className="text-xs text-gray-500 truncate">{email}</p>
               </div>
               <ChevronDown className="h-4 w-4 text-gray-400" />
             </div>

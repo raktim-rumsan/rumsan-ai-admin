@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import useLoginMutation, { useSignUpMutation, useVerifyOtpMutation } from "@/queries/loginQuery";
+import { useUser } from "@/providers/UserProvider";
 
 export default function AuthOtp() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -21,6 +22,8 @@ export default function AuthOtp() {
   const email = searchParams.get("email") || "";
   const loginMutation = useLoginMutation();
   const verifyOtpMutation = useVerifyOtpMutation();
+  const { setUser } = useUser();
+  const supabase = createClient();
 
   const handleOtpChange = (index: number, value: string) => {
     if (value.length <= 1) {
@@ -88,8 +91,28 @@ export default function AuthOtp() {
     }
 
     try {
-      verifyOtpMutation.mutate({ email, otpCode });
-      if (error) throw error;
+      // Verify OTP with backend
+      const otpResult = await verifyOtpMutation.mutateAsync({ email, otpCode });
+
+      if (otpResult.error) {
+        throw new Error(otpResult.error);
+      }
+
+      // Get current user session from Supabase to update UserContext
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        console.error("Error getting session after OTP verification:", sessionError);
+      } else if (session?.user) {
+        // Update UserContext with the authenticated user
+        setUser(session.user);
+        console.log("User data set in context:", session.user);
+      }
+
+      // Navigate to dashboard
       router.push("/dashboard");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Invalid OTP code. Please try again.");
