@@ -16,6 +16,7 @@ export interface WidgetConfig {
   color: string;
   title: string;
   logoUrl?: string;
+  bottomPosition: number;
 }
 
 export function WidgetCustomization({ onConfigChange }: WidgetCustomizationProps) {
@@ -25,6 +26,7 @@ export function WidgetCustomization({ onConfigChange }: WidgetCustomizationProps
     color: "#10b981", // emerald-500
     title: "Rumsan AI Chat",
     logoUrl: "",
+    bottomPosition: 20,
   });
 
   const updateConfig = (updates: Partial<WidgetConfig>) => {
@@ -96,6 +98,22 @@ export function WidgetCustomization({ onConfigChange }: WidgetCustomizationProps
           </div>
         </div>
 
+        {/* Position */}
+        <div className="space-y-3">
+          <Label>Distance from Bottom: {config.bottomPosition}px</Label>
+          <Slider
+            value={[config.bottomPosition]}
+            onValueChange={(value) => updateConfig({ bottomPosition: value[0] })}
+            min={0}
+            max={100}
+            step={5}
+            className="w-full"
+          />
+          <p className="text-xs text-gray-500">
+            Adjust how far the chat bubble appears from the bottom of the page
+          </p>
+        </div>
+
         {/* Color Picker */}
         <div className="space-y-3">
           <Label htmlFor="color">Primary Color</Label>
@@ -121,7 +139,10 @@ export function WidgetCustomization({ onConfigChange }: WidgetCustomizationProps
           <Label>Preview</Label>
           <div className="relative border rounded-lg p-4 bg-gray-50 h-32 overflow-hidden">
             {/* Mock chat bubble */}
-            <div className="absolute bottom-4 right-4">
+            <div
+              className="absolute right-4"
+              style={{ bottom: `${Math.max(4, config.bottomPosition * 0.3 + 4)}px` }}
+            >
               <div
                 className="w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg transition-colors"
                 style={{
@@ -153,10 +174,11 @@ export function WidgetCustomization({ onConfigChange }: WidgetCustomizationProps
 
             {/* Mock chat window */}
             <div
-              className="absolute bottom-20 right-4 bg-white rounded-lg shadow-lg border overflow-hidden"
+              className="absolute right-4 bg-white rounded-lg shadow-lg border overflow-hidden"
               style={{
                 width: Math.min(config.width * 0.6, 200),
                 height: Math.min(config.height * 0.4, 120),
+                bottom: `${Math.max(20, config.bottomPosition * 0.3 + 64)}px`,
               }}
             >
               <div

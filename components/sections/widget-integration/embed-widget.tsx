@@ -12,6 +12,7 @@ export function EmbedWidget() {
     color: "#10b981",
     title: "Rumsan AI Chat",
     logoUrl: "",
+    bottomPosition: 20,
   });
 
   return (

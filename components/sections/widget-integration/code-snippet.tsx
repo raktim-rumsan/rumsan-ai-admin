@@ -48,6 +48,10 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
       params.append("logoUrl", config.logoUrl);
     }
 
+    if (config.bottomPosition) {
+      params.append("bottomPosition", config.bottomPosition.toString());
+    }
+
     const iFrameSrc = `${BASE_URL}/widget/chat?${params.toString()}`;
     return {
       react: `<iframe 
@@ -55,8 +59,8 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
   title="${config.title}"
   style={{
     position: "fixed",
-    bottom: 0,
-    right: 0,
+    bottom: "${config.bottomPosition}px",
+    right: "20px",
     width: "${config.width}px",
     height: "${config.height}px",
     border: "none",
@@ -71,8 +75,8 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
   title="${config.title}"
   style="
     position: fixed;
-    bottom: 0;
-    right: 0;
+    bottom: ${config.bottomPosition}px;
+    right: 20px;
     width: ${config.width}px;
     height: ${config.height}px;
     border: none;

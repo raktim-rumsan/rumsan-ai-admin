@@ -11,6 +11,7 @@ export function ChatBubble() {
     title: "Rumsan AI",
     color: "#10b981",
     logoUrl: "",
+    bottomPosition: 20,
   });
 
   useEffect(() => {
@@ -19,8 +20,9 @@ export function ChatBubble() {
     const title = urlParams.get("title") || "Rumsan AI";
     const color = urlParams.get("color") || "#10b981";
     const logoUrl = urlParams.get("logoUrl") || "";
+    const bottomPosition = parseInt(urlParams.get("bottomPosition") || "20", 10);
 
-    setConfig({ title, color, logoUrl });
+    setConfig({ title, color, logoUrl, bottomPosition });
   }, []);
 
   const toggleChat = () => {
@@ -31,7 +33,7 @@ export function ChatBubble() {
     <>
       {/* Chat Bubble - Minimal for iframe integration */}
       {!isOpen && (
-        <div className="fixed bottom-4 right-4 z-50">
+        <div className="fixed right-4 z-50" style={{ bottom: `${config.bottomPosition}px` }}>
           <Button
             onClick={toggleChat}
             className="h-12 w-12 rounded-full transition-colors duration-200 flex items-center justify-center"
@@ -66,7 +68,10 @@ export function ChatBubble() {
           <div className="absolute inset-0" onClick={toggleChat} />
 
           {/* Chat Container - Positioned at bottom right */}
-          <div className="absolute bottom-4 right-4 bg-white w-80 h-96 flex flex-col overflow-hidden">
+          <div
+            className="absolute right-4 bg-white w-80 h-96 flex flex-col overflow-hidden"
+            style={{ bottom: `${config.bottomPosition}px` }}
+          >
             {/* Header */}
             <div
               className="flex items-center justify-between p-3 text-white"
