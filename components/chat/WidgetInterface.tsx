@@ -32,10 +32,6 @@ async function sendWidgetChatQuery(
   // Use a fallback URL if API_BASE_URL is not defined
   const endpoint = `${API_BASE_URL}/rag/query-api`;
 
-  console.log("API_BASE_URL:", API_BASE_URL);
-  console.log("Full endpoint:", endpoint);
-  console.log("Making request with:", { query, apiKey, tenantId });
-
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
@@ -57,9 +53,6 @@ async function sendWidgetChatQuery(
 
     clearTimeout(timeoutId);
 
-    console.log("Response status:", response.status);
-    console.log("Response ok:", response.ok);
-
     if (!response.ok) {
       const errorText = await response.text();
       console.error("API Error Response:", errorText);
@@ -67,7 +60,6 @@ async function sendWidgetChatQuery(
     }
 
     const data = await response.json();
-    console.log("API Response data:", data);
     return {
       answer: data.answer || data.data?.answer || "No response received",
     };
@@ -136,7 +128,6 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
     const apiKey = urlParams.get("apiKey");
     const userId = urlParams.get("user");
 
-    console.log({ apiKey, userId });
     if (!apiKey || !userId) {
       setConfigError("Missing required parameters: apiKey and user");
       return;
@@ -186,8 +177,6 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
         widgetConfig.apiKey,
         widgetConfig.tenantId
       );
-
-      console.log({ response });
 
       const assistantMessage: WidgetMessage = {
         id: (Date.now() + 1).toString(),
@@ -283,7 +272,7 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
               >
                 <Copy className="w-3 h-3" />
               </Button>
-              <Button
+              {/* <Button
                 variant="ghost"
                 size="sm"
                 className="h-7 px-2 text-gray-500 hover:text-gray-700"
@@ -296,7 +285,7 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
                 className="h-7 px-2 text-gray-500 hover:text-gray-700"
               >
                 <ThumbsDown className="w-3 h-3" />
-              </Button>
+              </Button> */}
             </div>
           )}
         </div>
