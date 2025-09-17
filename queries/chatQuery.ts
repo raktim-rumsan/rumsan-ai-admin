@@ -3,6 +3,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
 
+import API_BASE_URL from "@/constants";
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
@@ -40,8 +42,6 @@ export interface ChatQueryResponse {
   }>;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_SERVER_API!;
-
 // Function to send a chat query to the RAG API
 async function sendChatQuery(request: ChatQueryRequest): Promise<ChatQueryResponse> {
   const token = getAuthToken();
@@ -55,7 +55,7 @@ async function sendChatQuery(request: ChatQueryRequest): Promise<ChatQueryRespon
     throw new Error("No tenant ID found");
   }
 
-  const response = await fetch(`${BASE_URL}/api/v1/rag/query`, {
+  const response = await fetch(`${API_BASE_URL}/rag/query`, {
     method: "POST",
     headers: {
       accept: "application/json",

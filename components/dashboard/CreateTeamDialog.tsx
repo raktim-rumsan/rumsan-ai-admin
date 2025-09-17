@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateOrgMutation } from "@/queries/tenantQuery";
-import { useTenant } from "@/providers/TenantProvider";
+import { useSetTenantId } from "@/stores/tenantStore";
 import { Loader2 } from "lucide-react";
 
 interface CreateTeamDialogProps {
@@ -33,12 +33,15 @@ export function CreateTeamDialog({ open, onOpenChange, onTeamCreated }: CreateTe
         // Small delay to ensure query refetch completes
         setTimeout(() => {
           setTenantId(slug);
+          localStorage.setItem("tenantId", slug);
           onTeamCreated?.(slug);
+          // Reload the entire website to refresh all data and state
+          window.location.reload();
         }, 100);
       }
     },
   });
-  const { setTenantId } = useTenant();
+  const setTenantId = useSetTenantId();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

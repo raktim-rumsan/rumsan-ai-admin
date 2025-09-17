@@ -6,7 +6,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ChevronDown, FolderOpen, Bot, Building, Plug } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useUser } from "@/providers/UserProvider";
+import { useUserProfile, useUserLoading } from "@/stores/userStore";
+import { useTenantId, useWorkspaceData } from "@/stores/tenantStore";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -29,22 +30,38 @@ const navigationItems = [
     icon: Building,
     href: "/dashboard/organization",
   },
-   {
-      title: "Integrations",
-      icon: Plug,
-      items: [
-        {
-          title: "Chat Widget",
-          href: "/dashboard/widget-integrations",
-        },
-     
-      ],
-    },
+  {
+    title: "Integrations",
+    icon: Plug,
+    items: [
+      {
+        title: "Chat Widget",
+        href: "/dashboard/widget-integrations",
+      },
+    ],
+  },
 ];
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const { userProfile, isLoading } = useUser();
+  const userProfile = useUserProfile();
+  const isLoading = useUserLoading();
+
+  // Get workspace data to determine if this is a personal/demo workspace
+  const tenantId = useTenantId();
+  const workspaceData = useWorkspaceData();
+
+  // Check if current workspace is personal (demo workspace)
+  const isPersonalWorkspace = workspaceData?.personal?.slug === tenantId;
+
+  // Filter navigation items based on workspace type
+  const filteredNavigationItems = navigationItems.filter((item) => {
+    // Hide "Organization Management" for personal/demo workspaces
+    if (item.title === "Organization Management" && isPersonalWorkspace) {
+      return false;
+    }
+    return true;
+  });
 
   // Extract user data with fallbacks
   const getUserDisplayData = () => {
@@ -113,62 +130,46 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {/* Navigation */}
           <ScrollArea className="flex-1 px-3 py-4">
             <nav className="space-y-1">
-              {/* {navigationItems.map((item) => (
-                <Link
-                  key={item.title}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                    pathname === item.href
-                      ? "bg-gray-100 text-gray-900"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  )}
-                >
-                  <item.icon className="mr-3 h-4 w-4" />
-                  {item.title}
-                </Link>
-              ))} */}
-              {navigationItems.map((item) =>
-  item.items ? (
-    <div key={item.title} className="space-y-1">
-      <div className="flex items-center px-3 py-2 text-sm font-semibold text-gray-700">
-        <item.icon className="mr-3 h-4 w-4" />
-        {item.title}
-      </div>
-      <div className="ml-6 space-y-1">
-        {item.items.map((sub) => (
-          <Link
-            key={sub.title}
-            href={sub.href}
-            className={cn(
-              "flex items-center px-3 py-2 text-sm rounded-md transition-colors",
-              pathname === sub.href
-                ? "bg-gray-100 text-gray-900"
-                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-            )}
-          >
-            {sub.title}
-          </Link>
-        ))}
-      </div>
-    </div>
-  ) : (
-    <Link
-      key={item.title}
-      href={item.href!}
-      className={cn(
-        "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-        pathname === item.href
-          ? "bg-gray-100 text-gray-900"
-          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-      )}
-    >
-      <item.icon className="mr-3 h-4 w-4" />
-      {item.title}
-    </Link>
-  )
-)}
-
+              {filteredNavigationItems.map((item) =>
+                item.items ? (
+                  <div key={item.title} className="space-y-1">
+                    <div className="flex items-center px-3 py-2 text-sm font-semibold text-gray-700">
+                      <item.icon className="mr-3 h-4 w-4" />
+                      {item.title}
+                    </div>
+                    <div className="ml-6 space-y-1">
+                      {item.items.map((sub) => (
+                        <Link
+                          key={sub.title}
+                          href={sub.href}
+                          className={cn(
+                            "flex items-center px-3 py-2 text-sm rounded-md transition-colors",
+                            pathname === sub.href
+                              ? "bg-gray-100 text-gray-900"
+                              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          )}
+                        >
+                          {sub.title}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    key={item.title}
+                    href={item.href!}
+                    className={cn(
+                      "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                      pathname === item.href
+                        ? "bg-gray-100 text-gray-900"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    )}
+                  >
+                    <item.icon className="mr-3 h-4 w-4" />
+                    {item.title}
+                  </Link>
+                )
+              )}
             </nav>
           </ScrollArea>
 

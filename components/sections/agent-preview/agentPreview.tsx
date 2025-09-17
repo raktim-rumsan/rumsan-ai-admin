@@ -9,9 +9,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge";
 import { Send, RotateCcw, User, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useOrg } from "@/providers/OrgProvider";
+import { useOrgSettings } from "@/queries/orgSettingsQuery";
 import { useUpdateSystemPrompt } from "@/queries/orgSettingsQuery";
 import { useChatMutation, ChatMessage } from "@/queries/chatQuery";
+import { useTenantId } from "@/stores/tenantStore";
 
 export default function AgentPreview() {
   const defaultPrompt = `## Task
@@ -38,8 +39,11 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
   const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Get current tenant for tenant-specific org settings
+  const tenantId = useTenantId();
+
   // Get organization settings and update mutation
-  const { orgSettings, isLoading: isOrgLoading } = useOrg();
+  const { data: orgSettings, isLoading: isOrgLoading, refetch } = useOrgSettings();
   const updateSystemPrompt = useUpdateSystemPrompt();
   const chatMutation = useChatMutation();
 
@@ -47,6 +51,13 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Refetch org settings when tenant changes
+  useEffect(() => {
+    if (isMounted && tenantId) {
+      refetch();
+    }
+  }, [tenantId, isMounted, refetch]);
 
   // Load prompt content from org settings when available
   useEffect(() => {

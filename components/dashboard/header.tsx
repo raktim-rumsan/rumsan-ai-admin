@@ -5,9 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Menu, User, LogOut, Plus, ChevronDown } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
-import { useTenant } from "@/providers/TenantProvider";
+import {
+  useTenantId,
+  useWorkspaceData,
+  useSetTenantId,
+  useClearTenant,
+} from "@/stores/tenantStore";
 import { useTenantQuery } from "@/queries/tenantQuery";
 import { CreateTeamDialog } from "./CreateTeamDialog";
+import type { Team } from "@/lib/schemas";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +37,10 @@ export function Header({ onMenuClick }: HeaderProps) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  const { setTenantId, clearTenant, tenantId, workspaceData } = useTenant();
+  const tenantId = useTenantId();
+  const workspaceData = useWorkspaceData();
+  const setTenantId = useSetTenantId();
+  const clearTenant = useClearTenant();
   const { data, isLoading } = useTenantQuery();
 
   const [createTeamDialogOpen, setCreateTeamDialogOpen] = useState(false);
@@ -44,21 +53,30 @@ export function Header({ onMenuClick }: HeaderProps) {
   useEffect(() => {
     if (isMounted && !isLoading && data?.data?.personal) {
       const slug = data.data.personal.slug;
-      if (slug) {
+      // Only set personal workspace as default if no tenantId is currently stored
+      // This prevents overriding user's team selection
+      if (slug && !tenantId && !localStorage.getItem("tenantId")) {
         localStorage.setItem("tenantId", slug);
+        setTenantId(slug);
       }
     }
-  }, [isMounted, data, isLoading]);
+  }, [isMounted, data, isLoading, tenantId, setTenantId]);
 
   const handleWorkspaceChange = (value: string) => {
     if (value === "personal") {
       const slug = personalSlug;
       if (slug) {
         setTenantId(slug);
+        localStorage.setItem("tenantId", slug);
+        // Reload the entire website to refresh all data and state
+        window.location.reload();
       }
-    } else if (value.startsWith("team-")) {
+    } else {
       const slug = value.replace("team-", "");
       setTenantId(slug);
+      localStorage.setItem("tenantId", slug);
+      // Reload the entire website to refresh all data and state
+      window.location.reload();
     }
   };
 
@@ -84,10 +102,10 @@ export function Header({ onMenuClick }: HeaderProps) {
   const teams = workspaceData?.teams || data?.data?.teams || [];
   const personalSlug = workspaceData?.personal?.slug || data?.data?.personal?.slug;
   const isPersonalWorkspace = tenantId === personalSlug;
-  const currentTeam = teams.find((team) => team.slug === tenantId);
+  const currentTeam = teams.find((team: Team) => team.slug === tenantId);
 
   const currentValue = isPersonalWorkspace
-    ? "Personal Workspace"
+    ? "Demo Workspace"
     : currentTeam
     ? currentTeam.name
     : "Select Workspace";
@@ -128,7 +146,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 onClick={() => handleWorkspaceChange("personal")}
                 className={isPersonalWorkspace ? "bg-accent" : ""}
               >
-                Personal Workspace
+                Demo Workspace
               </DropdownMenuItem>
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className={!isPersonalWorkspace ? "bg-accent" : ""}>
@@ -137,7 +155,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 <DropdownMenuSubContent className="w-56">
                   {teams.length > 0 ? (
                     <>
-                      {teams.map((team) => (
+                      {teams.map((team: Team) => (
                         <DropdownMenuItem
                           key={team.id}
                           onClick={() => handleWorkspaceChange(`team-${team.slug}`)}

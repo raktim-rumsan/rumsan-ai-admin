@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import useLoginMutation, { useVerifyOtpMutation } from "@/queries/loginQuery";
-import { useUser } from "@/providers/UserProvider";
+import { UserSchema } from "@/lib/schemas";
+import { initializeAuthAfterLogin } from "@/lib/store-hydration";
 
 export default function AuthOtp() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -23,7 +24,6 @@ export default function AuthOtp() {
   const email = searchParams.get("email") || "";
   const loginMutation = useLoginMutation();
   const verifyOtpMutation = useVerifyOtpMutation();
-  const { setUser } = useUser();
   const supabase = createClient();
 
   const handleOtpChange = (index: number, value: string) => {
@@ -107,9 +107,21 @@ export default function AuthOtp() {
         if (sessionError) {
           console.error("Error getting session after OTP verification:", sessionError);
         } else if (session?.user) {
-          // Update UserContext with the authenticated user
-          setUser(session.user);
-          console.log("User data set in context:", session.user);
+          // Update UserStore with the authenticated user
+          const convertedUser = UserSchema.parse({
+            id: session.user.id,
+            email: session.user.email,
+            phone: session.user.phone,
+            created_at: session.user.created_at,
+            updated_at: session.user.updated_at,
+            user_metadata: session.user.user_metadata,
+          });
+
+          // Update UserStore with the authenticated user directly
+          import("@/stores/userStore").then(({ useUserStore }) => {
+            useUserStore.getState().updateUser(convertedUser);
+          });
+          initializeAuthAfterLogin();
         }
 
         // Navigate to dashboard

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
 import { toast } from "sonner";
 
-const API_BASE_URL = "http://localhost:5588/api/v1";
+import API_BASE_URL from "@/constants";
 
 export interface OrgSettings {
   systemPrompt?: string;
@@ -24,13 +24,15 @@ export interface UpdateSystemPromptPayload {
 
 // Get organization settings
 export const useOrgSettings = () => {
+  const tenantId = typeof window !== "undefined" ? localStorage.getItem("tenantId") : null;
+
   return useQuery({
-    queryKey: ["orgSettings"],
+    queryKey: ["orgSettings", tenantId],
     queryFn: async (): Promise<OrgSettings> => {
       const accessToken = getAuthToken();
-      const tenantId = localStorage.getItem("tenantId");
+      const currentTenantId = localStorage.getItem("tenantId");
 
-      if (!accessToken || !tenantId) {
+      if (!accessToken || !currentTenantId) {
         throw new Error("Missing authentication credentials");
       }
 
@@ -38,7 +40,7 @@ export const useOrgSettings = () => {
         method: "GET",
         headers: {
           accept: "*/*",
-          "x-tenant-id": tenantId,
+          "x-tenant-id": currentTenantId,
           access_token: accessToken,
         },
       });
@@ -50,7 +52,7 @@ export const useOrgSettings = () => {
       const data: OrgSettingsResponse = await response.json();
       return data.data;
     },
-    enabled: false, // Disable auto-fetch, will be manually triggered when needed
+    enabled: typeof window !== "undefined" && !!tenantId, // Only run on client-side when tenantId exists
   });
 };
 
@@ -83,7 +85,7 @@ export const useUpdateSystemPrompt = () => {
       }
     },
     onSuccess: () => {
-      // Invalidate and refetch org settings
+      // Invalidate and refetch org settings for all tenants
       queryClient.invalidateQueries({ queryKey: ["orgSettings"] });
       toast.success("System prompt updated successfully");
     },

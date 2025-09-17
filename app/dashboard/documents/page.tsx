@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -11,16 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Upload, RotateCcw, Trash2, ExternalLink } from "lucide-react";
+import { Upload, RotateCcw, Trash2 } from "lucide-react";
 import { toastUtils, dismissToast } from "@/lib/toast-utils";
 import { SimpleFileUploadModal } from "@/components/documents/fileUploadModal";
-import {
-  useDocsQuery,
-  useDocDeleteMutation,
-  useEmbeddingMutation,
-  viewDocument,
-} from "@/queries/documentsQuery";
-import Link from "next/link";
+import { useDocsQuery, useDocDeleteMutation, useEmbeddingMutation } from "@/queries/documentsQuery";
+import { useDocuments, useSetDocuments } from "@/stores/documentsStore";
+import { DocumentsResponseSchema } from "@/lib/schemas";
 
 interface Document {
   id: string;
@@ -36,15 +32,36 @@ export default function DocumentsPage() {
   const [trainingDocumentId, setTrainingDocumentId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  // Use both TanStack Query and Zustand store
   const { data, isLoading, refetch } = useDocsQuery();
-  const documents = data?.data || [];
+  const documentsFromStore = useDocuments();
+  const setDocuments = useSetDocuments();
+
+  // Prefer store documents if available, otherwise use query data
+  const documents = documentsFromStore.length > 0 ? documentsFromStore : data?.data || [];
+
+  // Sync query data with store when it changes
+  useEffect(() => {
+    if (data?.data) {
+      try {
+        const validatedData = DocumentsResponseSchema.parse(data);
+        setDocuments(validatedData.data);
+      } catch (error) {
+        console.error("Failed to validate documents data:", error);
+        // Fallback to using raw data
+        setDocuments(data.data);
+      }
+    }
+  }, [data, setDocuments]);
 
   const deleteMutation = useDocDeleteMutation(() => {
     toastUtils.data.deleteSuccess("Document");
+    // Note: The store will be updated when the query refetches
   });
 
   const embeddingMutation = useEmbeddingMutation(() => {
     toastUtils.generic.success("Training completed", "Document has been successfully trained.");
+    // Note: The store will be updated when the query refetches
   });
 
   const handleTrain = async (documentId: string, fileName: string, isRetrain: boolean) => {

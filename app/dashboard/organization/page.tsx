@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building, Users, MoreHorizontal, UserPlus } from "lucide-react";
 import { AddMemberModal } from "@/components/sections/organization/AddMemberModal";
-import { useTenant } from "@/providers/TenantProvider";
+import { useTenant } from "@/stores/tenantStore";
 import { useOrgMembersQuery } from "@/queries/invitationQuery";
 
 export default function OrganizationPage() {

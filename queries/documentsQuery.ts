@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
-import { useTenantId } from "@/providers/TenantProvider";
+import { useTenantId } from "@/stores/tenantStore";
+
+import API_BASE_URL from "@/constants";
 
 export function useDocUploadMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient();
@@ -11,8 +13,7 @@ export function useDocUploadMutation(onSuccess?: () => void) {
       formData.append("file", file);
       const tenantId = localStorage.getItem("tenantId");
       const access_token = getAuthToken();
-      const serverApi = process.env.NEXT_PUBLIC_SERVER_API!;
-      const res = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/docs/upload`, {
+      const res = await fetch(`${API_BASE_URL}/docs/upload`, {
         method: "POST",
         body: formData,
         headers: {
@@ -21,7 +22,11 @@ export function useDocUploadMutation(onSuccess?: () => void) {
         },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "File upload failed");
+      if (!res.ok) {
+        // Handle API error responses properly
+        const errorMessage = data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
       return data;
     },
     onSuccess: () => {
@@ -40,8 +45,7 @@ export function useDocsQuery() {
     queryFn: async () => {
       const tenantId = localStorage.getItem("tenantId");
       const access_token = getAuthToken();
-      const serverApi = process.env.NEXT_PUBLIC_SERVER_API ?? "";
-      const res = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/docs`, {
+      const res = await fetch(`${API_BASE_URL}/docs`, {
         method: "GET",
         headers: {
           "x-tenant-id": tenantId || "",
@@ -50,7 +54,11 @@ export function useDocsQuery() {
         },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to fetch documents");
+      if (!res.ok) {
+        // Handle API error responses properly
+        const errorMessage = data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
       return data;
     },
   });
@@ -63,9 +71,7 @@ export function useDocDeleteMutation(onSuccess?: () => void) {
     mutationFn: async (documentId: string) => {
       const tenantId = localStorage.getItem("tenantId");
       const access_token = getAuthToken();
-      const serverApi = process.env.NEXT_PUBLIC_SERVER_API ?? "";
-
-      const res = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/docs/${documentId}`, {
+      const res = await fetch(`${API_BASE_URL}/docs/${documentId}`, {
         method: "DELETE",
         headers: {
           accept: "application/json",
@@ -76,7 +82,10 @@ export function useDocDeleteMutation(onSuccess?: () => void) {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to delete document (${res.status})`);
+        // Handle API error responses properly
+        const errorMessage =
+          errorData.message || errorData.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
       }
 
       // Return success response (might be empty for DELETE)
@@ -98,9 +107,7 @@ export function useEmbeddingMutation(onSuccess?: () => void) {
     mutationFn: async (documentId: string) => {
       const tenantId = localStorage.getItem("tenantId");
       const access_token = getAuthToken();
-      const serverApi = process.env.NEXT_PUBLIC_SERVER_API ?? "";
-
-      const res = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/embeddings`, {
+      const res = await fetch(`${API_BASE_URL}/embeddings`, {
         method: "POST",
         headers: {
           accept: "application/json",
@@ -133,7 +140,7 @@ export function useEmbeddingMutation(onSuccess?: () => void) {
 }
 
 export async function viewDocument(url: string, setPreviewUrl: (url: string | null) => void) {
-  const serverUrl = process.env.NEXT_PUBLIC_SERVER_API;
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_API!;
   const accessToken = getAuthToken();
   const tenantId = localStorage.getItem("tenantId");
   const fileUrl = `${serverUrl}/${url.replace(/^\/+/, "")}`;
@@ -143,7 +150,18 @@ export async function viewDocument(url: string, setPreviewUrl: (url: string | nu
   if (tenantId) headers["x-tenant-id"] = tenantId;
 
   const response = await fetch(fileUrl, { headers });
-  if (!response.ok) throw new Error(await response.text());
+  if (!response.ok) {
+    try {
+      const errorData = await response.json();
+      const errorMessage =
+        errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+      throw new Error(errorMessage);
+    } catch {
+      // If response is not JSON, fall back to response text
+      const errorText = await response.text();
+      throw new Error(errorText || `HTTP ${response.status}: ${response.statusText}`);
+    }
+  }
 
   const blob = await response.blob();
   const blobUrl = URL.createObjectURL(blob);

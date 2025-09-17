@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
 import { toast } from "sonner";
 
+import API_BASE_URL from "@/constants";
+
 interface Team {
   id: string;
   name: string;
@@ -41,8 +43,7 @@ export function useTenantQuery() {
       if (!authToken) {
         throw new Error("No auth token found");
       }
-      const serverApi = process.env.NEXT_PUBLIC_SERVER_API!;
-      const response = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/orgs/my-workspaces`, {
+      const response = await fetch(`${API_BASE_URL}/orgs/my-workspaces`, {
         method: "GET",
         headers: {
           accept: "*/*",
@@ -88,9 +89,7 @@ export function useCreateOrgMutation(options?: CreateOrgOptions) {
       if (!authToken) {
         throw new Error("No auth token found");
       }
-
-      const serverApi = process.env.NEXT_PUBLIC_SERVER_API!;
-      const response = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/orgs`, {
+      const response = await fetch(`${API_BASE_URL}/orgs`, {
         method: "POST",
         headers: {
           accept: "*/*",
@@ -110,7 +109,7 @@ export function useCreateOrgMutation(options?: CreateOrgOptions) {
       return response.json();
     },
     onSuccess: async (data) => {
-      toast.success("Team created successfully!");
+      toast.success("Workspace created successfully!");
       // Call custom onSuccess if provided
       options?.onSuccess?.(data);
       // Refetch tenant data to show the new team - do this after custom onSuccess

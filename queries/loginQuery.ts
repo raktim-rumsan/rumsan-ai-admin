@@ -1,3 +1,4 @@
+import API_BASE_URL from "@/constants";
 import { useMutation } from "@tanstack/react-query";
 
 export default function useLoginMutation() {
@@ -26,15 +27,12 @@ export function useSignUpMutation() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Sign up failed");
-      const {user} = data;
-      // After successful sign up, register organization
-      const serverApi = process.env.NEXT_PUBLIC_SERVER_API!;
-      // Use id from response if available, else fallback to email
+      const { user } = data;
       const orgRegisterPayload = {
         email: user.email,
         id: user.id, // fallback if no id returned
       };
-      const registerRes = await fetch(`${serverApi.replace(/\/$/, "")}/api/v1/auth/register`, {
+      const registerRes = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: {
           accept: "*/*",
@@ -48,7 +46,7 @@ export function useSignUpMutation() {
       if (registerData?.data?.slug) {
         localStorage.setItem("tenantId", registerData.data.slug);
       }
-      return { ...data};
+      return { ...data };
     },
   });
 }
