@@ -14,12 +14,18 @@ interface SimpleFileUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUploadSuccess: () => void;
+  maxDocuments?: number;
+  currentDocumentCount?: number;
+  isPersonalWorkspace?: boolean;
 }
 
 export function SimpleFileUploadModal({
   isOpen,
   onClose,
   onUploadSuccess,
+  maxDocuments,
+  currentDocumentCount = 0,
+  isPersonalWorkspace = false,
 }: SimpleFileUploadModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -41,6 +47,15 @@ export function SimpleFileUploadModal({
   const handleUpload = () => {
     if (!selectedFile) {
       toastUtils.generic.error("No file selected", "Please select a file to upload");
+      return;
+    }
+
+    // Check document limit for demo workspaces
+    if (isPersonalWorkspace && maxDocuments !== undefined && currentDocumentCount >= maxDocuments) {
+      toastUtils.generic.error(
+        "Document limit reached",
+        `Demo workspaces are limited to ${maxDocuments} documents. Please upgrade to upload more files.`
+      );
       return;
     }
 
@@ -85,9 +100,26 @@ export function SimpleFileUploadModal({
               File size shouldn&apos;t exceed 10 MB.
             </AlertDescription>
           </Alert>
+          {isPersonalWorkspace && maxDocuments !== undefined && (
+            <Alert className="border-blue-200 bg-blue-50">
+              <AlertTriangle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                Demo workspace: {currentDocumentCount}/{maxDocuments} documents used.
+                {currentDocumentCount >= maxDocuments
+                  ? " Upgrade to upload more files."
+                  : " Upgrade for unlimited documents."}
+              </AlertDescription>
+            </Alert>
+          )}
           <Button
             onClick={handleUpload}
-            disabled={isUploading || !selectedFile}
+            disabled={
+              isUploading ||
+              !selectedFile ||
+              (isPersonalWorkspace &&
+                maxDocuments !== undefined &&
+                currentDocumentCount >= maxDocuments)
+            }
             className="w-full bg-gray-600 hover:bg-gray-700"
           >
             {isUploading ? "Uploading..." : "Upload"}

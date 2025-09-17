@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -29,11 +29,16 @@ import { useApiKeys, useCreateApiKey, useDeleteApiKey } from "@/queries/apiKeysQ
 export default function SettingsPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
 
   // API hooks
   const { data: apiKeys = [], isLoading, error } = useApiKeys();
   const createApiKeyMutation = useCreateApiKey();
   const deleteApiKeyMutation = useDeleteApiKey();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleCopyKey = async (key: string) => {
     try {
@@ -143,10 +148,10 @@ export default function SettingsPage() {
           </Dialog>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {!isMounted || isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin" />
-              <span className="ml-2">Loading API keys...</span>
+              {isMounted && <Loader2 className="h-6 w-6 animate-spin" />}
+              <span className={isMounted ? "ml-2" : ""}>Loading API keys...</span>
             </div>
           ) : error ? (
             <div className="text-center py-8 text-red-500">

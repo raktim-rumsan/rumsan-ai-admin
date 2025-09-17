@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -16,6 +17,7 @@ import { toastUtils, dismissToast } from "@/lib/toast-utils";
 import { SimpleFileUploadModal } from "@/components/documents/fileUploadModal";
 import { useDocsQuery, useDocDeleteMutation, useEmbeddingMutation } from "@/queries/documentsQuery";
 import { useDocuments, useSetDocuments } from "@/stores/documentsStore";
+import { useTenantId, useWorkspaceData } from "@/stores/tenantStore";
 import { DocumentsResponseSchema } from "@/lib/schemas";
 
 interface Document {
@@ -32,6 +34,14 @@ export default function DocumentsPage() {
   const [trainingDocumentId, setTrainingDocumentId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  // Get workspace data to determine if this is a personal/demo workspace
+  const tenantId = useTenantId();
+  const workspaceData = useWorkspaceData();
+
+  // Check if current workspace is personal (demo workspace)
+  const isPersonalWorkspace = workspaceData?.personal?.slug === tenantId;
+  const MAX_DEMO_DOCUMENTS = 2;
+
   // Use both TanStack Query and Zustand store
   const { data, isLoading, refetch } = useDocsQuery();
   const documentsFromStore = useDocuments();
@@ -39,6 +49,7 @@ export default function DocumentsPage() {
 
   // Prefer store documents if available, otherwise use query data
   const documents = documentsFromStore.length > 0 ? documentsFromStore : data?.data || [];
+  const currentDocumentCount = documents.length;
 
   // Sync query data with store when it changes
   useEffect(() => {
@@ -133,8 +144,19 @@ export default function DocumentsPage() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">My Documents</h1>
-        <Button className="bg-black hover:bg-gray-800" onClick={() => setIsUploadModalOpen(true)}>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-semibold">My Resources</h1>
+          {isPersonalWorkspace && (
+            <Badge variant="secondary" className="text-xs">
+              {currentDocumentCount}/{MAX_DEMO_DOCUMENTS} documents
+            </Badge>
+          )}
+        </div>
+        <Button
+          className="bg-black hover:bg-gray-800"
+          onClick={() => setIsUploadModalOpen(true)}
+          disabled={isPersonalWorkspace && currentDocumentCount >= MAX_DEMO_DOCUMENTS}
+        >
           <Upload className="w-4 h-4 mr-2" />
           Upload File
         </Button>
@@ -220,6 +242,9 @@ export default function DocumentsPage() {
           // Manually refetch documents to ensure the list is updated
           refetch();
         }}
+        maxDocuments={isPersonalWorkspace ? MAX_DEMO_DOCUMENTS : undefined}
+        currentDocumentCount={currentDocumentCount}
+        isPersonalWorkspace={isPersonalWorkspace}
       />
       {previewUrl && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">

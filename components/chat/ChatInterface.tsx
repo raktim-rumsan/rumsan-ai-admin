@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Copy, ThumbsUp, ThumbsDown, RotateCcw } from "lucide-react";
+import { Send, Bot, User, Copy, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -111,12 +111,6 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
     toastUtils.generic.success("Copied to clipboard");
   };
 
-  const clearChat = () => {
-    setMessages([]);
-    saveChatHistory([]);
-    toastUtils.generic.info("Chat cleared");
-  };
-
   const renderMessage = (message: ChatMessage) => {
     const isUser = message.role === "user";
 
@@ -180,33 +174,15 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
   return (
     <div className={`flex flex-col h-full bg-white ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
-          <p className="text-sm text-gray-500">Ask questions about your documents</p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={clearChat}
-          className="text-gray-600 hover:text-gray-800"
-        >
-          <RotateCcw className="w-4 h-4 mr-2" />
-          Clear Chat
-        </Button>
-      </div>
-
       {/* Messages */}
       <ScrollArea ref={scrollAreaRef} className="flex-1">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-full mx-auto">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+            <div className="flex flex-col items-center justify-center h-64 text-gray-500 px-4">
               <Bot className="w-12 h-12 mb-4 text-gray-300" />
               <h3 className="text-lg font-medium mb-2">Welcome to AI Assistant</h3>
-              <p className="text-center max-w-md">
-                Start a conversation by asking questions about your documents. I can help you find
-                information, summarize content, and more.
+              <p className="text-center text-sm">
+                Start a conversation by asking questions about your documents.
               </p>
             </div>
           ) : (
@@ -242,7 +218,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
       {/* Input */}
       <div className="p-4 border-t border-gray-200 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-full mx-auto">
           <div className="flex gap-3">
             <div className="flex-1 relative">
               <Textarea
@@ -251,7 +227,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="Ask a question about your documents..."
-                className="min-h-[48px] max-h-32 resize-none pr-12"
+                className="min-h-[48px] max-h-32 resize-none pr-12 text-sm"
                 disabled={isLoading}
               />
               <Button

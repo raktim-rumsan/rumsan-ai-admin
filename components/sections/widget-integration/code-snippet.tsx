@@ -2,53 +2,98 @@
 import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCopy } from "@/lib/hooks/use-copy";
+import { useApiKeys } from "@/queries/apiKeysQuery";
+import { WidgetConfig } from "./widget-customization";
 
-export function CodeSnippet() {
+interface CodeSnippetProps {
+  config: WidgetConfig;
+}
+
+export function CodeSnippet({ config }: CodeSnippetProps) {
   const [selectedTab, setSelectedTab] = useState("react");
+  const [isMounted, setIsMounted] = useState(false);
   const { isCopied, setIsCopied, copyContent } = useCopy();
+
+  // Only fetch API keys after component is mounted to prevent hydration issues
+  const { data: apiKeys = [], isLoading } = useApiKeys();
+
+  // Ensure component only renders fully after hydration
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleTabChange = (value: string) => {
     setSelectedTab(value);
   };
-  const tenantId = localStorage.getItem("tenantId");
-  const api_key="sk_test_1234567890";
-  const BASE_URL = "http://localhost:3000";
+
+  const tenantId = isMounted ? localStorage.getItem("tenantId") : null;
+  const BASE_URL = process.env.NEXT_PUBLIC_URL!;
+
+  // Get the first available API key
+  const currentApiKey = apiKeys.length > 0 ? apiKeys[0].apiKey : null;
 
   const snippetCode = useMemo(() => {
-    const iFrameSrc = `${BASE_URL}/widget/chat?userId=${tenantId}&apiKey=${api_key}`;
+    if (!currentApiKey) return null;
+
+    const params = new URLSearchParams({
+      user: tenantId || "",
+      apiKey: currentApiKey,
+      title: config.title,
+      color: config.color,
+    });
+
+    if (config.logoUrl) {
+      params.append("logoUrl", config.logoUrl);
+    }
+
+    const iFrameSrc = `${BASE_URL}/widget/chat?${params.toString()}`;
     return {
-      react: `<iframe src="${iFrameSrc}"
-      title="ChatWidget" height="700" width="370" scrolling="no"
-      style={{
-        borderRadius: "20px",
-        boxShadow: "0px 8px 16px 0px rgba(0,0,0,0.2)",
-        border: "none",
-      }}/>`,
-      html: `<iframe src="${iFrameSrc}" 
-     title="ChatWidget" 
-     height="700" 
-     width="370" 
-     scrolling="no" 
-     style="border-radius: 20px; 
-         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); 
-         border: none;">
-     </iframe>`,
+      react: `<iframe 
+  src="${iFrameSrc}"
+  title="${config.title}"
+  style={{
+    position: "fixed",
+    bottom: 0,
+    right: 0,
+    width: "${config.width}px",
+    height: "${config.height}px",
+    border: "none",
+    background: "transparent",
+    zIndex: 1000,
+    pointerEvents: "auto"
+  }}
+  allow="camera; microphone"
+/>`,
+      html: `<iframe 
+  src="${iFrameSrc}" 
+  title="${config.title}"
+  style="
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: ${config.width}px;
+    height: ${config.height}px;
+    border: none;
+    background: transparent;
+    z-index: 1000;
+    pointer-events: auto;
+  "
+  allow="camera; microphone">
+</iframe>`,
     };
-  }, [tenantId, api_key]);
+  }, [tenantId, currentApiKey, BASE_URL, config]);
 
   const handleCopy = () => {
     if (
+      snippetCode &&
       typeof snippetCode === "object" &&
       snippetCode !== null &&
       "react" in snippetCode &&
       "html" in snippetCode
     ) {
-      const cleanCode = snippetCode[selectedTab as "react" | "html"]
-        .replace(/\s+/g, " ")
-        .trim();
+      const cleanCode = snippetCode[selectedTab as "react" | "html"].replace(/\s+/g, " ").trim();
       copyContent(cleanCode);
     }
   };
@@ -58,56 +103,92 @@ export function CodeSnippet() {
       const timer = setTimeout(() => setIsCopied(false), 2000);
       return () => clearTimeout(timer);
     }
-  }, [isCopied]);
+  }, [isCopied, setIsCopied]);
 
   const renderContent = () => {
-    // if (isPending) return "Loading...";
+    if (!isMounted || isLoading) return "Loading...";
+
+    if (!currentApiKey) {
+      return "You have not created an API key yet";
+    }
+
+    if (!snippetCode) return "Unable to generate code snippet";
+
     if (selectedTab === "react") {
       return snippetCode.react;
     }
     return snippetCode.html;
   };
+
+  // Show loading state until component is mounted and hydrated
+  if (!isMounted) {
+    return (
+      <div className="relative mt-4">
+        <div className="flex items-center justify-center p-8 bg-muted rounded-lg">
+          <span className="text-muted-foreground">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative mt-4">
-      <Tabs
-        value={selectedTab}
-        onValueChange={handleTabChange}
-        className="flex flex-col gap-2"
-        defaultValue="react"
-      >
-        <div className="flex gap-2 justify-start items-center">
-          <p className="text-sm">Embed using </p>
-          <TabsList>
-            <TabsTrigger value="react">React</TabsTrigger>
-            <TabsTrigger value="html">HTML</TabsTrigger>
-          </TabsList>
-        </div>
-
-        <div className="relative">
-          <pre className="rounded-lg bg-muted p-4 text-sm whitespace-normal">
-            <TabsContent value="react">{renderContent()}</TabsContent>
-            <TabsContent value="html">{renderContent()}</TabsContent>
-          </pre>
+      {!currentApiKey && !isLoading ? (
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 p-8 bg-muted rounded-lg text-center">
+          <span className="text-muted-foreground">You have not created an API key yet</span>
           <Button
+            onClick={() => (window.location.href = "/dashboard/settings")}
+            variant="outline"
             size="sm"
-            variant="secondary"
-            className="absolute right-3 top-2 border-2 cursor-pointer"
-            onClick={handleCopy}
-            // disabled={isPending || !tenantId || !api_key}
           >
-            {isCopied ? (
-              <>
-                <Check className="h-4 w-4" /> Copied
-              </>
-            ) : (
-              <>
-                <Copy className="h-4 w-4" />
-                Copy
-              </>
-            )}
+            Create API Key
           </Button>
         </div>
-      </Tabs>
+      ) : (
+        <Tabs
+          value={selectedTab}
+          onValueChange={handleTabChange}
+          className="flex flex-col gap-2 w-full"
+          defaultValue="react"
+        >
+          <div className="flex flex-col sm:flex-row gap-2 justify-start items-start sm:items-center">
+            <p className="text-sm whitespace-nowrap">Embed using</p>
+            <TabsList>
+              <TabsTrigger value="react">React</TabsTrigger>
+              <TabsTrigger value="html">HTML</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <div className="relative w-full">
+            <pre className="rounded-lg bg-muted p-4 text-sm whitespace-pre-wrap break-all overflow-x-auto max-w-full min-h-[100px]">
+              <TabsContent value="react" className="whitespace-pre-wrap break-all">
+                {renderContent()}
+              </TabsContent>
+              <TabsContent value="html" className="whitespace-pre-wrap break-all">
+                {renderContent()}
+              </TabsContent>
+            </pre>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="absolute right-3 top-2 border-2 cursor-pointer"
+              onClick={handleCopy}
+              disabled={isLoading || !tenantId || !currentApiKey}
+            >
+              {isCopied ? (
+                <>
+                  <Check className="h-4 w-4" /> Copied
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4" />
+                  Copy
+                </>
+              )}
+            </Button>
+          </div>
+        </Tabs>
+      )}
     </div>
   );
 }

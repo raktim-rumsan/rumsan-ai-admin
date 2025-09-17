@@ -16,7 +16,7 @@ interface SidebarProps {
 
 const navigationItems = [
   {
-    title: "My Documents",
+    title: "My Resources",
     icon: FolderOpen,
     href: "/dashboard/documents",
   },
@@ -31,7 +31,7 @@ const navigationItems = [
     href: "/dashboard/organization",
   },
   {
-    title: "Settings",
+    title: "API Settings",
     icon: Settings,
     href: "/dashboard/settings",
   },
@@ -119,7 +119,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center px-4 py-4 border-b border-gray-200">
-            <div className="flex items-center space-x-2">
+            <Link
+              href="/dashboard"
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            >
               <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
                 <svg viewBox="0 0 24 24" className="w-4 h-4 text-white" fill="currentColor">
                   <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
@@ -129,7 +132,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <h1 className="text-sm font-semibold text-gray-900">Rumsan AI</h1>
                 <p className="text-xs text-gray-500">v1.0.0</p>
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* Navigation */}

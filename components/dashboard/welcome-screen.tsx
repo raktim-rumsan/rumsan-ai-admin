@@ -42,7 +42,7 @@ export function WelcomeScreen() {
               </p>
 
               <h4 className="font-medium mb-2">2. Train AI</h4>
-              <p className="mb-4">Process your documents to make them searchable by the AI.</p>
+              <p className="mb-4">Train your documents to make them accessible by the AI.</p>
 
               <h4 className="font-medium mb-2">3. Customize your AI</h4>
               <p className="mb-4">
