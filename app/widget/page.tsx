@@ -1,10 +1,10 @@
-import { ChatInterface } from "@/components/chat/ChatInterface";
+import { WidgetInterface } from "@/components/chat/WidgetInterface";
 
 export default function WidgetPage() {
   return (
     <div className="p-4">
       <div className="w-full mx-auto">
-        <ChatInterface />
+        <WidgetInterface />
       </div>
     </div>
   );

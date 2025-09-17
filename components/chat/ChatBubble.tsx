@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { MessageCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ChatInterface } from "@/components/chat/ChatInterface";
+import { WidgetInterface } from "@/components/chat/WidgetInterface";
 
 export function ChatBubble() {
   const [isOpen, setIsOpen] = useState(false);
@@ -105,7 +105,7 @@ export function ChatBubble() {
 
             {/* Chat Interface */}
             <div className="flex-1 overflow-hidden">
-              <ChatInterface className="h-full" />
+              <WidgetInterface className="h-full" />
             </div>
           </div>
         </div>

@@ -16,6 +16,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -73,17 +74,17 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
       const finalMessages = [...newMessages, assistantMessage];
       setMessages(finalMessages);
-      saveChatHistory(finalMessages);
 
+      saveChatHistory(finalMessages);
       toastUtils.generic.success("Response received");
     } catch (error) {
       console.error("Chat error:", error);
+
       toastUtils.generic.error(
         "Failed to get response",
         error instanceof Error ? error.message : "Unknown error"
       );
 
-      // Add error message to chat
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -106,9 +107,13 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
     }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toastUtils.generic.success("Copied to clipboard");
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toastUtils.generic.success("Copied to clipboard");
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
   };
 
   const renderMessage = (message: ChatMessage) => {
@@ -135,19 +140,17 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
             )}
           </div>
 
-          <div className="prose prose-sm max-w-none">
-            <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-              {message.content}
-            </div>
+          <div className="text-sm text-gray-700 break-words whitespace-pre-wrap">
+            {message.content}
           </div>
 
           {!isUser && (
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex items-center gap-1 mt-2">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(message.content)}
                 className="h-7 px-2 text-gray-500 hover:text-gray-700"
+                onClick={() => copyToClipboard(message.content)}
               >
                 <Copy className="w-3 h-3" />
               </Button>
@@ -174,7 +177,6 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
   return (
     <div className={`flex flex-col h-full bg-white ${className}`}>
-      {/* Messages */}
       <ScrollArea ref={scrollAreaRef} className="flex-1">
         <div className="max-w-full mx-auto">
           {messages.length === 0 ? (
@@ -216,7 +218,6 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
         </div>
       </ScrollArea>
 
-      {/* Input */}
       <div className="p-4 border-t border-gray-200 bg-gray-50">
         <div className="max-w-full mx-auto">
           <div className="flex gap-3">

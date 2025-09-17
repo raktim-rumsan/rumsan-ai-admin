@@ -68,7 +68,6 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
     zIndex: 1000,
     pointerEvents: "auto"
   }}
-  allow="camera; microphone"
 />`,
       html: `<iframe 
   src="${iFrameSrc}" 
@@ -83,8 +82,7 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
     background: transparent;
     z-index: 1000;
     pointer-events: auto;
-  "
-  allow="camera; microphone">
+  ">
 </iframe>`,
     };
   }, [tenantId, currentApiKey, BASE_URL, config]);
