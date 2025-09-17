@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, User, LogOut, Plus, ChevronDown } from "lucide-react";
+import { Menu, LogOut, Plus, ChevronDown } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import {
@@ -190,10 +190,10 @@ export function Header({ onMenuClick }: HeaderProps) {
 
         {/* Right side - Admin and logout */}
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
+          {/* <div className="flex items-center space-x-2">
             <User className="h-4 w-4 text-gray-600" />
             <span className="text-sm text-gray-700 hidden sm:inline">Admin</span>
-          </div>
+          </div> */}
           <Button variant="outline" size="sm" onClick={handleLogout}>
             <LogOut className="h-4 w-4 mr-2" />
             Logout

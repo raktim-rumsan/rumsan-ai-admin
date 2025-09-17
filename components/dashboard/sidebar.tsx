@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ChevronDown, FolderOpen, Bot, Building, Plug } from "lucide-react";
+import { ChevronDown, FolderOpen, Bot, Building, Plug, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUserProfile, useUserLoading } from "@/stores/userStore";
@@ -29,6 +29,11 @@ const navigationItems = [
     title: "Organization Management",
     icon: Building,
     href: "/dashboard/organization",
+  },
+  {
+    title: "Settings",
+    icon: Settings,
+    href: "/dashboard/settings",
   },
   {
     title: "Integrations",
