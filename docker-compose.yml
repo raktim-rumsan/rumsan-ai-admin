@@ -1,12 +1,6 @@
 services:
   nextjs-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-        SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+    image: rumsan/ai-admin:latest
     container_name: nextjs-app
     restart: unless-stopped
     ports:
@@ -15,6 +9,10 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - HOSTNAME=0.0.0.0
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - NEXT_PUBLIC_URL=${NEXT_PUBLIC_URL}
+      - NEXT_PUBLIC_SERVER_API=${NEXT_PUBLIC_SERVER_API}
     env_file:
       - .env
     extra_hosts:

@@ -26,15 +26,17 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# Build arguments for Supabase (these need to be available during build)
+# Build arguments for Supabase and API (these need to be available during build)
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
-ARG SUPABASE_SERVICE_ROLE_KEY
+ARG NEXT_PUBLIC_SERVER_API
+ARG NEXT_PUBLIC_URL
 
 # Set as environment variables during build
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
-ENV SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY
+ENV NEXT_PUBLIC_SERVER_API=$NEXT_PUBLIC_SERVER_API
+ENV NEXT_PUBLIC_URL=$NEXT_PUBLIC_URL
 
 # Build the app
 RUN \
@@ -68,7 +70,7 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Switch to non-root user
+# Don't run production as root
 USER nextjs
 
 # Expose port
@@ -77,13 +79,6 @@ EXPOSE 3000
 # Set port environment variable
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-
-
-ENV POSTGRES_PASSWORD=postgres123
-ENV POSTGRES_PORT=5434
-ENV POSTGRES_HOST=127.0.0.1
-ENV POSTGRES_USER=postgres
-ENV POSTGRES_DB=postgres
 
 # Start the application
 CMD ["node", "server.js"]
