@@ -42,8 +42,9 @@ if [ ${#missing_vars[@]} -ne 0 ]; then
 fi
 
 # Build the image
-echo "🔨 Building Docker image..."
+echo "🔨 Building Docker image for AMD64 platform..."
 docker build \
+    --platform linux/amd64 \
     --build-arg NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL" \
     --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="$NEXT_PUBLIC_SUPABASE_ANON_KEY" \
     --build-arg NEXT_PUBLIC_URL="$NEXT_PUBLIC_URL" \
