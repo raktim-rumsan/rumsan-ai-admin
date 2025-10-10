@@ -3,6 +3,7 @@ import { getAuthToken } from "@/lib/utils";
 import { useTenantId } from "@/stores/tenantStore";
 
 import API_BASE_URL from "@/constants";
+import { toastUtils } from "@/lib/toast-utils";
 
 export function useDocUploadMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient();
@@ -24,7 +25,8 @@ export function useDocUploadMutation(onSuccess?: () => void) {
       const data = await res.json();
       if (!res.ok) {
         // Handle API error responses properly
-        const errorMessage = data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
         throw new Error(errorMessage);
       }
       return data;
@@ -56,7 +58,8 @@ export function useDocsQuery() {
       const data = await res.json();
       if (!res.ok) {
         // Handle API error responses properly
-        const errorMessage = data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
         throw new Error(errorMessage);
       }
       return data;
@@ -84,7 +87,9 @@ export function useDocDeleteMutation(onSuccess?: () => void) {
         const errorData = await res.json().catch(() => ({}));
         // Handle API error responses properly
         const errorMessage =
-          errorData.message || errorData.error || `HTTP ${res.status}: ${res.statusText}`;
+          errorData.message ||
+          errorData.error ||
+          `HTTP ${res.status}: ${res.statusText}`;
         throw new Error(errorMessage);
       }
 
@@ -124,14 +129,17 @@ export function useEmbeddingMutation(onSuccess?: () => void) {
         const errorData = await res.json().catch(() => ({}));
         // API returns error message in 'message' field
         const errorMessage =
-          errorData.message || errorData.error || `Failed to train document (${res.status})`;
+          errorData.message ||
+          errorData.error ||
+          `Failed to train document (${res.status})`;
         throw new Error(errorMessage);
       }
 
       const data = await res.json();
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      toastUtils.generic.success(data?.data?.status, data?.data?.message);
       // Invalidate documents query to refetch the list and update status
       queryClient.invalidateQueries({ queryKey: ["documents"] });
       onSuccess?.();
@@ -139,7 +147,52 @@ export function useEmbeddingMutation(onSuccess?: () => void) {
   });
 }
 
-export async function viewDocument(url: string, setPreviewUrl: (url: string | null) => void) {
+export function useUnembeddingMutation(onSuccess?: () => void) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (documentId: string) => {
+      const tenantId = localStorage.getItem("tenantId");
+      const access_token = getAuthToken();
+      const res = await fetch(`${API_BASE_URL}/embeddings/unembed`, {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "x-tenant-id": tenantId || "",
+          access_token: access_token || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          documentId: documentId,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        // API returns error message in 'message' field
+        const errorMessage =
+          errorData.message ||
+          errorData.error ||
+          `Failed to unembed document (${res.status})`;
+        throw new Error(errorMessage);
+      }
+
+      const data = await res.json();
+      return data;
+    },
+    onSuccess: (data) => {
+      toastUtils.generic.success(data?.data?.status, data?.data?.message);
+      // Invalidate documents query to refetch the list and update status
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      onSuccess?.();
+    },
+  });
+}
+
+export async function viewDocument(
+  url: string,
+  setPreviewUrl: (url: string | null) => void
+) {
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_API!;
   const accessToken = getAuthToken();
   const tenantId = localStorage.getItem("tenantId");
@@ -154,12 +207,16 @@ export async function viewDocument(url: string, setPreviewUrl: (url: string | nu
     try {
       const errorData = await response.json();
       const errorMessage =
-        errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+        errorData.message ||
+        errorData.error ||
+        `HTTP ${response.status}: ${response.statusText}`;
       throw new Error(errorMessage);
     } catch {
       // If response is not JSON, fall back to response text
       const errorText = await response.text();
-      throw new Error(errorText || `HTTP ${response.status}: ${response.statusText}`);
+      throw new Error(
+        errorText || `HTTP ${response.status}: ${response.statusText}`
+      );
     }
   }
 
