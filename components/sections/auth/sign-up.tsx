@@ -3,7 +3,13 @@
 import type React from "react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
@@ -52,7 +58,10 @@ export default function AuthSignUp() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="currentColor">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-6 h-6 text-white"
+                fill="currentColor">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
@@ -63,7 +72,9 @@ export default function AuthSignUp() {
         <Card className="border-0 shadow-lg">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-semibold">Sign Up</CardTitle>
-            <CardDescription className="text-gray-600">Create a new account</CardDescription>
+            <CardDescription className="text-gray-600">
+              Create a new account
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSignUp} className="space-y-4">
@@ -82,7 +93,7 @@ export default function AuthSignUp() {
                 />
               </div>
 
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium">
                   Password
                 </Label>
@@ -108,24 +119,27 @@ export default function AuthSignUp() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="h-11"
                 />
-              </div>
+              </div> */}
 
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</div>
+                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+                  {error}
+                </div>
               )}
 
               <Button
                 type="submit"
                 className="w-full h-11 bg-black hover:bg-gray-800"
-                disabled={isLoading}
-              >
+                disabled={isLoading}>
                 {isLoading ? "Creating account..." : "Sign Up"}
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm text-gray-600">
               Already have an account?{" "}
-              <Link href="/auth/login" className="font-medium text-black hover:underline">
+              <Link
+                href="/auth/login"
+                className="font-medium text-black hover:underline">
                 Login
               </Link>
             </div>
