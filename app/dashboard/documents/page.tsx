@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -15,7 +16,12 @@ import {
 import { Upload, RotateCcw, Trash2 } from "lucide-react";
 import { toastUtils, dismissToast } from "@/lib/toast-utils";
 import { SimpleFileUploadModal } from "@/components/documents/fileUploadModal";
-import { useDocsQuery, useDocDeleteMutation, useEmbeddingMutation } from "@/queries/documentsQuery";
+import {
+  useDocsQuery,
+  useDocDeleteMutation,
+  useEmbeddingMutation,
+  useUnembeddingMutation,
+} from "@/queries/documentsQuery";
 import { useDocuments, useSetDocuments } from "@/stores/documentsStore";
 import { useTenantId, useWorkspaceData } from "@/stores/tenantStore";
 import { DocumentsResponseSchema } from "@/lib/schemas";
@@ -31,7 +37,9 @@ interface Document {
 
 export default function DocumentsPage() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [trainingDocumentId, setTrainingDocumentId] = useState<string | null>(null);
+  const [trainingDocumentId, setTrainingDocumentId] = useState<string | null>(
+    null
+  );
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Get workspace data to determine if this is a personal/demo workspace
@@ -48,7 +56,8 @@ export default function DocumentsPage() {
   const setDocuments = useSetDocuments();
 
   // Prefer store documents if available, otherwise use query data
-  const documents = documentsFromStore.length > 0 ? documentsFromStore : data?.data || [];
+  const documents =
+    documentsFromStore.length > 0 ? documentsFromStore : data?.data || [];
   const currentDocumentCount = documents.length;
 
   // Sync query data with store when it changes
@@ -70,19 +79,24 @@ export default function DocumentsPage() {
     // Note: The store will be updated when the query refetches
   });
 
-  const embeddingMutation = useEmbeddingMutation(() => {
-    toastUtils.generic.success("Training completed", "Document has been successfully trained.");
-    // Note: The store will be updated when the query refetches
-  });
+  const embeddingMutation = useEmbeddingMutation();
 
-  const handleTrain = async (documentId: string, fileName: string, isRetrain: boolean) => {
+  const unEmbeddingMutation = useUnembeddingMutation();
+
+  const handleTrain = async (
+    documentId: string,
+    fileName: string,
+    isRetrain: boolean
+  ) => {
     const action = isRetrain ? "Retraining" : "Training";
     const loadingToastId = toastUtils.generic.loading(`${action} document...`);
 
     // Set the training document ID to show loading state for this specific document
     setTrainingDocumentId(documentId);
 
-    embeddingMutation.mutate(documentId, {
+    const mutation = isRetrain ? unEmbeddingMutation : embeddingMutation;
+
+    mutation.mutate(documentId, {
       onError: (error: unknown) => {
         dismissToast(loadingToastId);
         setTrainingDocumentId(null); // Clear training state
@@ -98,7 +112,9 @@ export default function DocumentsPage() {
             errorTitle = "Document Processing Error";
             errorMessage =
               "The PDF file appears to be corrupted or invalid. Please try uploading a different file.";
-          } else if (error.message.includes("invalid top-level pages dictionary")) {
+          } else if (
+            error.message.includes("invalid top-level pages dictionary")
+          ) {
             errorTitle = "PDF Format Error";
             errorMessage =
               "This PDF file has an invalid format and cannot be processed. Please try a different PDF file.";
@@ -116,14 +132,17 @@ export default function DocumentsPage() {
 
   const handleDelete = async (id: string, fileName: string) => {
     if (
-      window.confirm(`Are you sure you want to delete "${fileName}"? This action cannot be undone.`)
+      window.confirm(
+        `Are you sure you want to delete "${fileName}"? This action cannot be undone.`
+      )
     ) {
       const loadingToastId = toastUtils.generic.loading("Deleting document...");
 
       deleteMutation.mutate(id, {
         onError: (error: unknown) => {
           dismissToast(loadingToastId);
-          const errorMessage = error instanceof Error ? error.message : undefined;
+          const errorMessage =
+            error instanceof Error ? error.message : undefined;
           toastUtils.data.deleteError(errorMessage);
         },
         onSuccess: () => {
@@ -155,8 +174,9 @@ export default function DocumentsPage() {
         <Button
           className="bg-black hover:bg-gray-800"
           onClick={() => setIsUploadModalOpen(true)}
-          disabled={isPersonalWorkspace && currentDocumentCount >= MAX_DEMO_DOCUMENTS}
-        >
+          disabled={
+            isPersonalWorkspace && currentDocumentCount >= MAX_DEMO_DOCUMENTS
+          }>
           <Upload className="w-4 h-4 mr-2" />
           Upload File
         </Button>
@@ -174,7 +194,7 @@ export default function DocumentsPage() {
                     <TableRow>
                       <TableHead>DATE</TableHead>
                       <TableHead>FILE NAME</TableHead>
-                      <TableHead>STATUS</TableHead>
+                      {/* <TableHead>STATUS</TableHead> */}
                       <TableHead>ACTIONS</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -187,35 +207,34 @@ export default function DocumentsPage() {
                             {doc.fileName.replaceAll("_", " ")}
                           </div>
                         </TableCell>
-                        <TableCell>{doc.status}</TableCell>
+                        {/* <TableCell>{doc.status}</TableCell> */}
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                handleTrain(doc.id, doc.fileName, doc.status !== "PENDING")
-                              }
-                              disabled={trainingDocumentId === doc.id}
-                            >
-                              <RotateCcw
-                                className={`w-4 h-4 ${
-                                  trainingDocumentId === doc.id ? "animate-spin" : ""
-                                }`}
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                // checked={doc.status !== "PENDING"}
+                                onCheckedChange={(checked) =>
+                                  handleTrain(doc.id, doc.fileName, !checked)
+                                }
+                                disabled={trainingDocumentId === doc.id}
                               />
-                              {trainingDocumentId === doc.id
-                                ? "Training..."
-                                : doc.status === "PENDING"
-                                ? "Train"
-                                : "Retrain"}
-                            </Button>
+                              {/* {trainingDocumentId === doc.id && (
+                                <RotateCcw className="w-4 h-4 animate-spin" />
+                              )}
+                              <span className="text-sm text-muted-foreground">
+                                {trainingDocumentId === doc.id
+                                  ? "Training..."
+                                  : doc.status === "PENDING"
+                                  ? "Train"
+                                  : "Trained"}
+                              </span> */}
+                            </div>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleDelete(doc.id, doc.fileName)}
                               className="text-red-600 hover:text-red-700"
-                              disabled={deleteMutation.isPending}
-                            >
+                              disabled={deleteMutation.isPending}>
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
@@ -226,7 +245,9 @@ export default function DocumentsPage() {
                 </Table>
 
                 {documents.length === 0 && !isLoading && (
-                  <div className="text-center py-8 text-gray-500">No documents uploaded yet</div>
+                  <div className="text-center py-8 text-gray-500">
+                    No documents uploaded yet
+                  </div>
                 )}
               </>
             )}
@@ -251,8 +272,7 @@ export default function DocumentsPage() {
           <div className="bg-white rounded-lg shadow-lg p-4 max-w-3xl w-full relative">
             <button
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-              onClick={() => setPreviewUrl(null)}
-            >
+              onClick={() => setPreviewUrl(null)}>
               Close
             </button>
           </div>
