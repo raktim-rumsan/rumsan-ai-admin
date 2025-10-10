@@ -100,7 +100,8 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   // Use workspaceData from tenant context for better synchronization
   const teams = workspaceData?.teams || data?.data?.teams || [];
-  const personalSlug = workspaceData?.personal?.slug || data?.data?.personal?.slug;
+  const personalSlug =
+    workspaceData?.personal?.slug || data?.data?.personal?.slug;
   const isPersonalWorkspace = tenantId === personalSlug;
   const currentTeam = teams.find((team: Team) => team.slug === tenantId);
 
@@ -118,7 +119,10 @@ export function Header({ onMenuClick }: HeaderProps) {
           {/* Logo - visible on mobile */}
           <div className="flex items-center space-x-2 lg:hidden">
             <div className="w-6 h-6 bg-black rounded flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="w-3 h-3 text-white" fill="currentColor">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-3 h-3 text-white"
+                fill="currentColor">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
@@ -126,7 +130,11 @@ export function Header({ onMenuClick }: HeaderProps) {
           </div>
 
           {/* Hamburger menu - visible on mobile */}
-          <Button variant="ghost" size="sm" className="lg:hidden" onClick={onMenuClick}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="lg:hidden"
+            onClick={onMenuClick}>
             <Menu className="h-5 w-5" />
           </Button>
 
@@ -135,8 +143,10 @@ export function Header({ onMenuClick }: HeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className={cn("w-40 sm:w-56 justify-between", "data-[state=open]:bg-accent")}
-              >
+                className={cn(
+                  "w-40 sm:w-56 justify-between",
+                  "data-[state=open]:bg-accent"
+                )}>
                 <span>{currentValue}</span>
                 <ChevronDown className="h-4 w-4 opacity-50" />
               </Button>
@@ -144,46 +154,39 @@ export function Header({ onMenuClick }: HeaderProps) {
             <DropdownMenuContent className="w-56" align="start">
               <DropdownMenuItem
                 onClick={() => handleWorkspaceChange("personal")}
-                className={isPersonalWorkspace ? "bg-accent" : ""}
-              >
+                className={isPersonalWorkspace ? "bg-accent" : ""}>
                 Demo Workspace
               </DropdownMenuItem>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className={!isPersonalWorkspace ? "bg-accent" : ""}>
-                  Team Workspace
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent className="w-56">
-                  {teams.length > 0 ? (
-                    <>
-                      {teams.map((team: Team) => (
-                        <DropdownMenuItem
-                          key={team.id}
-                          onClick={() => handleWorkspaceChange(`team-${team.slug}`)}
-                          className={tenantId === team.slug ? "bg-accent" : ""}
-                        >
-                          {team.name}
-                        </DropdownMenuItem>
-                      ))}
-                      <DropdownMenuSeparator />
+              <DropdownMenu>
+                {teams.length > 0 ? (
+                  <>
+                    {teams.map((team: Team) => (
                       <DropdownMenuItem
-                        onClick={handleAddTeam}
-                        className="text-blue-600 hover:text-blue-700"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Team
+                        key={team.id}
+                        onClick={() =>
+                          handleWorkspaceChange(`team-${team.slug}`)
+                        }
+                        className={tenantId === team.slug ? "bg-accent" : ""}>
+                        {team.name}
                       </DropdownMenuItem>
-                    </>
-                  ) : (
+                    ))}
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={handleAddTeam}
-                      className="text-blue-600 hover:text-blue-700"
-                    >
+                      className="text-blue-600 hover:text-blue-700">
                       <Plus className="w-4 h-4 mr-2" />
                       Add Team
                     </DropdownMenuItem>
-                  )}
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
+                  </>
+                ) : (
+                  <DropdownMenuItem
+                    onClick={handleAddTeam}
+                    className="text-blue-600 hover:text-blue-700">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Team
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenu>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
