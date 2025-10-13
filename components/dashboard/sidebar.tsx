@@ -38,12 +38,13 @@ const navigationItems = [
   {
     title: "Integrations",
     icon: Plug,
-    items: [
-      {
-        title: "Chat Widget",
-        href: "/dashboard/widget-integrations",
-      },
-    ],
+    href: "/dashboard/integration-services",
+    // items: [
+    //   {
+    //     title: "Chat Widget",
+    //     href: "/dashboard/widget-integrations",
+    //   },
+    //  ],
   },
 ];
 
@@ -139,30 +140,31 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <ScrollArea className="flex-1 px-3 py-4">
             <nav className="space-y-1">
               {filteredNavigationItems.map((item) =>
-                item.items ? (
-                  <div key={item.title} className="space-y-1">
-                    <div className="flex items-center px-3 py-2 text-sm font-semibold text-gray-700">
-                      <item.icon className="mr-3 h-4 w-4" />
-                      {item.title}
-                    </div>
-                    <div className="ml-6 space-y-1">
-                      {item.items.map((sub) => (
-                        <Link
-                          key={sub.title}
-                          href={sub.href}
-                          className={cn(
-                            "flex items-center px-3 py-2 text-sm rounded-md transition-colors",
-                            pathname === sub.href
-                              ? "bg-gray-100 text-gray-900"
-                              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                          )}
-                        >
-                          {sub.title}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
+                // item.items ? (
+                //   <div key={item.title} className="space-y-1">
+                //     <div className="flex items-center px-3 py-2 text-sm font-semibold text-gray-700">
+                //       <item.icon className="mr-3 h-4 w-4" />
+                //       {item.title}
+                //     </div>
+                //     <div className="ml-6 space-y-1">
+                //       {item.items.map((sub) => (
+                //         <Link
+                //           key={sub.title}
+                //           href={sub.href}
+                //           className={cn(
+                //             "flex items-center px-3 py-2 text-sm rounded-md transition-colors",
+                //             pathname === sub.href
+                //               ? "bg-gray-100 text-gray-900"
+                //               : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                //           )}
+                //         >
+                //           {sub.title}
+                //         </Link>
+                //       ))}
+                //     </div>
+                //   </div>
+                // ) : (
+                  (
                   <Link
                     key={item.title}
                     href={item.href!}
