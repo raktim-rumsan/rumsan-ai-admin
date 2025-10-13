@@ -13,7 +13,7 @@ import { useState } from "react";
 export default function EventSubscription() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_API;
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);

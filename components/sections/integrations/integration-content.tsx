@@ -1,18 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, Puzzle, Settings, Trash2 } from "lucide-react";
+import { Clock, Puzzle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
+import { IntegrationContentProps } from "@/types/integration-types";
+import { Badge } from "@/components/ui/badge";
 
 export default function IntegrationsContent({
   item,
   onRemoveConnection,
-}: Readonly<any>) {
+}: Readonly<IntegrationContentProps>) {
   const router = useRouter();
-return (
-   <Card className="relative">
-      <CardContent className="p-6">
+  return (
+    <Card className="relative flex flex-col h-full">
+      <CardContent className="p-6 flex flex-col h-full">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg flex items-center justify-center">
@@ -28,29 +29,33 @@ return (
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-gray-900">{item.name}</h3>
               </div>
-              <p className="text-sm text-gray-500">Type: Communication</p>
+              <p className="text-sm text-gray-500">Type: {item.type}</p>
             </div>
           </div>
-          <Link href="https://api.slack.com/apps" target="_blank">
-            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-600">
-              <ExternalLink className="w-4 h-4" />
-            </Button>
-          </Link>
         </div>
 
-        <p className="text-gray-600 text-sm mb-6 leading-relaxed">
-          Keep your team connected with real-time messaging, notifications, and seamless collaboration across all your
-          tools.
+        <p className="text-gray-600 text-sm mb-6 leading-relaxed flex-grow">
+          {item.content}
         </p>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-auto">
           <Button
-            onClick={() => router.push(`integration-services/${item.slug}?isCreate=true`)}
+            onClick={() => router.push(`integrations/${item.slug}`)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+            disabled={!item.isAvailable}
           >
             <Puzzle className="w-4 h-4 mr-2" />
             Integrate
           </Button>
+          {!item.isAvailable && (
+            <Badge
+              variant="secondary"
+              className="gap-1 px-2.5 py-1 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 text-xs font-medium text-amber-700 shadow-sm"
+            >
+              <Clock className="w-3 h-3" />
+              Coming Soon
+            </Badge>
+          )}
         </div>
       </CardContent>
     </Card>
