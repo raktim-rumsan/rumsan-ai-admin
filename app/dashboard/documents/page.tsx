@@ -212,7 +212,7 @@ export default function DocumentsPage() {
                           <div className="flex items-center gap-2">
                             <div className="flex items-center gap-2">
                               <Switch
-                                // checked={doc.status !== "PENDING"}
+                                checked={doc.status !== "PENDING"}
                                 onCheckedChange={(checked) =>
                                   handleTrain(doc.id, doc.fileName, !checked)
                                 }
