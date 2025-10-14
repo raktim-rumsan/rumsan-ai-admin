@@ -1,5 +1,8 @@
 import { EmbedWidget } from "../widget-integration/embed-widget";
 import SlackIntegrationGuide from "./slack-instruction-guide";
+import ChatWidgetIcon from "../../../public/logos/chat_widget_5.png";
+import SlackIcon from "../../../public/logos/slack_icon.png";
+import WhatsAppIcon from "../../../public/logos/whatsapp_logo.png";
 
 export const integrationItem = {
   slugsItems: [
@@ -7,7 +10,7 @@ export const integrationItem = {
       name: "Chat Widget",
       slug: "chat-widget",
       type: "AI Assistant",
-      image: "/logos/chat_widget_5.png",
+      image: ChatWidgetIcon,
       category: "widget",
       content: "Bring intelligent, real-time assistance to your website with the chat widget.",
       isAvailable: true,
@@ -17,7 +20,7 @@ export const integrationItem = {
       name: "Slack",
       slug: "slack",
       type: "Communication",
-      image: "/logos/slack_icon.png",
+      image: SlackIcon,
       category: "service",
       content:
         "Keep your team connected with real-time messaging, notifications, and seamless collaboration across all your tools.",
@@ -28,7 +31,7 @@ export const integrationItem = {
       name: "WhatsApp",
       slug: "whatsapp",
       type: "Messaging",
-      image: "/logos/whatsapp_logo.png",
+      image: WhatsAppIcon,
       category: "service",
 
       content:

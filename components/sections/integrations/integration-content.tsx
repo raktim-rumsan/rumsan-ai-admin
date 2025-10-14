@@ -6,9 +6,7 @@ import Image from "next/image";
 import { IntegrationContentProps } from "@/types/integration-types";
 import { Badge } from "@/components/ui/badge";
 
-export default function IntegrationsContent({
-  item,
-}: Readonly<IntegrationContentProps>) {
+export default function IntegrationsContent({ item }: Readonly<IntegrationContentProps>) {
   const router = useRouter();
   return (
     <Card className="relative flex flex-col h-full">
@@ -33,9 +31,7 @@ export default function IntegrationsContent({
           </div>
         </div>
 
-        <p className="text-gray-600 text-sm mb-6 leading-relaxed flex-grow">
-          {item.content}
-        </p>
+        <p className="text-gray-600 text-sm mb-6 leading-relaxed flex-grow">{item.content}</p>
 
         <div className="flex items-center justify-between mt-auto">
           <Button
