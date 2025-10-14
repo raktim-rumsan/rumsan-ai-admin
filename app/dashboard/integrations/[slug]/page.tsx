@@ -1,7 +1,5 @@
 "use client";
 import { integrationItem } from "@/components/sections/integrations/integration-constant";
-import SlackIntegrationGuide from "@/components/sections/integrations/slack-instruction-guide";
-import { EmbedWidget } from "@/components/sections/widget-integration/embed-widget";
 import { Button } from "@/components/ui/button";
 import { notFound, useRouter } from "next/navigation";
 import React from "react";

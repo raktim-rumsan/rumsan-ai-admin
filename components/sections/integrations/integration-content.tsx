@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 
 export default function IntegrationsContent({
   item,
-  onRemoveConnection,
 }: Readonly<IntegrationContentProps>) {
   const router = useRouter();
   return (
