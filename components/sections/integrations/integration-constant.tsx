@@ -9,8 +9,7 @@ export const integrationItem = {
       type: "AI Assistant",
       image: "/logos/chat_widget_5.png",
       category: "widget",
-      content:
-        "Bring intelligent, real-time assistance to your website with the Rumsan AI Chat Widget.",
+      content: "Bring intelligent, real-time assistance to your website with the chat widget.",
       isAvailable: true,
       component: <EmbedWidget />,
     },
@@ -42,8 +41,7 @@ export const integrationItem = {
       type: "Messaging",
       image: "/logos/messenger_logo.png",
       category: "service",
-      content:
-        "Integrate your Facebook Messenger to engage users, respond automatically with AI.",
+      content: "Integrate your Facebook Messenger to engage users and respond automatically.",
       isAvailable: false,
     },
   ],
