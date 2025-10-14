@@ -28,7 +28,7 @@ import { DocumentsResponseSchema } from "@/lib/schemas";
 
 interface Document {
   id: string;
-  orgId: string;
+  workspaceId: string;
   fileName: string;
   url: string;
   status: string;

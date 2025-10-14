@@ -3,7 +3,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
 
-import API_BASE_URL from "@/constants";
+import { ROUTES } from "@/constants";
 
 export interface ChatMessage {
   id: string;
@@ -55,7 +55,7 @@ async function sendChatQuery(request: ChatQueryRequest): Promise<ChatQueryRespon
     throw new Error("No tenant ID found");
   }
 
-  const response = await fetch(`${API_BASE_URL}/rag/query`, {
+  const response = await fetch(ROUTES.QUERY, {
     method: "POST",
     headers: {
       accept: "application/json",

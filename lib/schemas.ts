@@ -45,7 +45,7 @@ export const TenantResponseSchema = z.object({
 // Organization Settings Schemas
 export const OrgSettingsSchema = z.object({
   id: z.string(),
-  orgId: z.string(),
+  workspaceId: z.string(),
   systemPrompt: z.string(),
   temperature: z.number(),
   model: z.string(),
@@ -64,7 +64,7 @@ export const OrgSettingsResponseSchema = z.object({
 // Documents Schemas
 export const DocumentSchema = z.object({
   id: z.string(),
-  orgId: z.string(),
+  workspaceId: z.string(),
   fileName: z.string(),
   url: z.string(),
   status: z.string(),

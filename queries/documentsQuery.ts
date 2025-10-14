@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
 import { useTenantId } from "@/stores/tenantStore";
 
-import API_BASE_URL from "@/constants";
+import { ROUTES } from "@/constants";
 import { toastUtils } from "@/lib/toast-utils";
 
 export function useDocUploadMutation(onSuccess?: () => void) {
@@ -14,7 +14,7 @@ export function useDocUploadMutation(onSuccess?: () => void) {
       formData.append("file", file);
       const tenantId = localStorage.getItem("tenantId");
       const access_token = getAuthToken();
-      const res = await fetch(`${API_BASE_URL}/docs/upload`, {
+      const res = await fetch(ROUTES.UPLOAD_DOCUMENTS, {
         method: "POST",
         body: formData,
         headers: {
@@ -47,7 +47,7 @@ export function useDocsQuery() {
     queryFn: async () => {
       const tenantId = localStorage.getItem("tenantId");
       const access_token = getAuthToken();
-      const res = await fetch(`${API_BASE_URL}/docs`, {
+      const res = await fetch(ROUTES.DOCUMENTS, {
         method: "GET",
         headers: {
           "x-tenant-id": tenantId || "",
@@ -74,7 +74,7 @@ export function useDocDeleteMutation(onSuccess?: () => void) {
     mutationFn: async (documentId: string) => {
       const tenantId = localStorage.getItem("tenantId");
       const access_token = getAuthToken();
-      const res = await fetch(`${API_BASE_URL}/docs/${documentId}`, {
+      const res = await fetch(ROUTES.DELETE_DOCUMENT(documentId), {
         method: "DELETE",
         headers: {
           accept: "application/json",
@@ -112,7 +112,7 @@ export function useEmbeddingMutation(onSuccess?: () => void) {
     mutationFn: async (documentId: string) => {
       const tenantId = localStorage.getItem("tenantId");
       const access_token = getAuthToken();
-      const res = await fetch(`${API_BASE_URL}/embeddings`, {
+      const res = await fetch(ROUTES.EMBEDDINGS, {
         method: "POST",
         headers: {
           accept: "application/json",
@@ -154,7 +154,7 @@ export function useUnembeddingMutation(onSuccess?: () => void) {
     mutationFn: async (documentId: string) => {
       const tenantId = localStorage.getItem("tenantId");
       const access_token = getAuthToken();
-      const res = await fetch(`${API_BASE_URL}/embeddings/unembed`, {
+      const res = await fetch(ROUTES.UNEMBEDDINGS, {
         method: "POST",
         headers: {
           accept: "application/json",
