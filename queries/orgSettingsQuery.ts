@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
 import { toast } from "sonner";
 
-import API_BASE_URL from "@/constants";
+import API_BASE_URL, { ROUTES } from "@/constants";
 
 export interface OrgSettings {
   systemPrompt?: string;
@@ -36,7 +36,7 @@ export const useOrgSettings = () => {
         throw new Error("Missing authentication credentials");
       }
 
-      const response = await fetch(`${API_BASE_URL}/orgs/settings`, {
+      const response = await fetch(ROUTES.WORKSPACE_SETTING, {
         method: "GET",
         headers: {
           accept: "*/*",
@@ -69,7 +69,7 @@ export const useUpdateSystemPrompt = () => {
         throw new Error("Missing authentication credentials");
       }
 
-      const response = await fetch(`${API_BASE_URL}/orgs/settings/systemPrompt`, {
+      const response = await fetch(ROUTES.SETTING_SYSTEM_PROMT, {
         method: "POST",
         headers: {
           accept: "*/*",

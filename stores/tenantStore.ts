@@ -5,7 +5,7 @@ import { devtools } from "zustand/middleware";
 import { TenantResponseSchema, type TenantData, type Team } from "@/lib/schemas";
 import { getAuthToken } from "@/lib/utils";
 
-import API_BASE_URL from "@/constants";
+import { ROUTES } from "@/constants";
 
 interface TenantState {
   // State
@@ -105,7 +105,7 @@ export const useTenantStore = create<TenantState>()(
             return;
           }
 
-          const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/orgs/my-workspaces`, {
+          const response = await fetch(ROUTES.MY_WORKSPACE, {
             method: "GET",
             headers: {
               accept: "*/*",
