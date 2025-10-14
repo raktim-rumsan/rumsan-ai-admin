@@ -1,24 +1,30 @@
-import { createClient } from "@/lib/supabase/server"
-import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json()
-    const supabase = await createClient()
+    const { email } = await request.json();
+    const supabase = await createClient();
 
-    const { error } = await supabase.auth.signInWithOtp({
+    const { data, error } = await supabase.auth.signInWithOtp({
       email,
       options: {
         shouldCreateUser: false,
       },
-    })
+    });
+    console.log(data, "data");
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+      console.log(error.message, "error");
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.log(error, "error");
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
