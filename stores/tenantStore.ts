@@ -120,6 +120,27 @@ export const useTenantStore = create<TenantState>()(
           const rawData = await response.json();
           const validatedData = TenantResponseSchema.parse(rawData);
 
+          // Check for orgId presence and redirect to onboarding if not found
+          let hasValidOrgId = false;
+
+          // First check personal workspace
+          if (validatedData.data.personal && validatedData.data.personal.orgId !== null) {
+            hasValidOrgId = true;
+          }
+
+          // If no personal workspace or personal workspace has no orgId, check teams
+          if (!hasValidOrgId) {
+            hasValidOrgId = validatedData.data.teams.some((team) => team.orgId !== null);
+          }
+
+          // If no valid orgId found anywhere, redirect to onboarding
+          if (!hasValidOrgId) {
+            if (typeof window !== "undefined") {
+              window.location.href = "/onboarding";
+              return; // Exit early to prevent setting the state
+            }
+          }
+
           set(
             {
               workspaceData: validatedData.data,

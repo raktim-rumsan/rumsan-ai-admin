@@ -1,11 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-import API_BASE_URL, { ROUTES } from "@/constants";
+import { ROUTES } from "@/constants";
 
 interface Team {
   id: string;
+  orgId: string | null;
   name: string;
   slug: string;
   description: string | null;
@@ -19,6 +22,7 @@ interface Team {
 interface TenantData {
   personal: {
     id: string;
+    orgId: string | null;
     name: string;
     slug: string;
     description: string | null;
@@ -69,6 +73,34 @@ export function useTenantQuery() {
       return failureCount < 2;
     },
   });
+}
+
+export function useTenantWithOnboarding() {
+  const router = useRouter();
+  const tenantQuery = useTenantQuery();
+
+  useEffect(() => {
+    if (tenantQuery.data?.data) {
+      let hasValidOrgId = false;
+
+      // First check personal workspace
+      if (tenantQuery.data.data.personal && tenantQuery.data.data.personal.orgId !== null) {
+        hasValidOrgId = true;
+      }
+
+      // If no personal workspace or personal workspace has no orgId, check teams
+      if (!hasValidOrgId) {
+        hasValidOrgId = tenantQuery.data.data.teams.some((team) => team.orgId !== null);
+      }
+
+      // If no valid orgId found anywhere, redirect to onboarding
+      if (!hasValidOrgId) {
+        router.push("/onboarding");
+      }
+    }
+  }, [tenantQuery.data, router]);
+
+  return tenantQuery;
 }
 
 interface CreateOrgPayload {

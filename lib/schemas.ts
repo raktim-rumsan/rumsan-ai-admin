@@ -23,6 +23,7 @@ export const UserSchema = z.object({
 // Tenant Schemas
 export const TeamSchema = z.object({
   id: z.string(),
+  orgId: z.string().nullable(),
   name: z.string(),
   slug: z.string(),
   description: z.string().nullable(),
