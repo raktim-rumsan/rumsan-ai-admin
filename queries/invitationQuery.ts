@@ -11,7 +11,7 @@ export function useOrgMembersQuery() {
     queryFn: async () => {
       const access_token = getAuthToken();
       const tenantId = localStorage.getItem("tenantId");
-      const res = await fetch(`${API_BASE_URL}/orgs/members`, {
+      const res = await fetch(`${API_BASE_URL}/organizations/members`, {
         method: "GET",
         headers: {
           accept: "application/json",
@@ -33,7 +33,7 @@ export function useAddOrgUserMutation(onSuccess?: () => void) {
     mutationFn: async ({ email, role }: { email: string; role: string }) => {
       const access_token = getAuthToken();
       const tenantId = localStorage.getItem("tenantId");
-      const res = await fetch(`${API_BASE_URL}/orgs/users`, {
+      const res = await fetch(`${API_BASE_URL}/organizations/users`, {
         method: "POST",
         headers: {
           accept: "application/json",

@@ -43,7 +43,7 @@ export function useTenantQuery() {
       if (!authToken) {
         throw new Error("No auth token found");
       }
-      const response = await fetch(`${API_BASE_URL}/orgs/my-workspaces`, {
+      const response = await fetch(`${API_BASE_URL}/workspaces/my-workspaces`, {
         method: "GET",
         headers: {
           accept: "*/*",

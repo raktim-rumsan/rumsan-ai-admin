@@ -105,13 +105,16 @@ export const useTenantStore = create<TenantState>()(
             return;
           }
 
-          const response = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/orgs/my-workspaces`, {
-            method: "GET",
-            headers: {
-              accept: "*/*",
-              access_token: authToken,
-            },
-          });
+          const response = await fetch(
+            `${API_BASE_URL.replace(/\/$/, "")}/workspaces/my-workspaces`,
+            {
+              method: "GET",
+              headers: {
+                accept: "*/*",
+                access_token: authToken,
+              },
+            }
+          );
 
           if (!response.ok) {
             throw new Error(`Failed to fetch tenant data: ${response.statusText}`);

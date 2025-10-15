@@ -36,7 +36,7 @@ export const useOrgSettings = () => {
         throw new Error("Missing authentication credentials");
       }
 
-      const response = await fetch(`${API_BASE_URL}/orgs/settings`, {
+      const response = await fetch(`${API_BASE_URL}/workspaces/settings`, {
         method: "GET",
         headers: {
           accept: "*/*",
@@ -69,7 +69,7 @@ export const useUpdateSystemPrompt = () => {
         throw new Error("Missing authentication credentials");
       }
 
-      const response = await fetch(`${API_BASE_URL}/orgs/settings/systemPrompt`, {
+      const response = await fetch(`${API_BASE_URL}/workspaces/settings/systemPrompt`, {
         method: "POST",
         headers: {
           accept: "*/*",
