@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, LogOut, Plus, ChevronDown } from "lucide-react";
+import { Menu, LogOut, ChevronDown } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import {
@@ -18,11 +18,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
@@ -86,13 +82,7 @@ export function Header({ onMenuClick }: HeaderProps) {
     router.push("/auth/login");
   };
 
-  const handleAddTeam = () => {
-    setCreateTeamDialogOpen(true);
-  };
-
   const handleTeamCreated = async (teamSlug: string) => {
-    // Wait a bit for the query to refetch, then the UI should update automatically
-    // The tenant context will handle the state update
     console.log("Team created with slug:", teamSlug);
   };
 
@@ -122,7 +112,8 @@ export function Header({ onMenuClick }: HeaderProps) {
               <svg
                 viewBox="0 0 24 24"
                 className="w-3 h-3 text-white"
-                fill="currentColor">
+                fill="currentColor"
+              >
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
@@ -134,7 +125,8 @@ export function Header({ onMenuClick }: HeaderProps) {
             variant="ghost"
             size="sm"
             className="lg:hidden"
-            onClick={onMenuClick}>
+            onClick={onMenuClick}
+          >
             <Menu className="h-5 w-5" />
           </Button>
 
@@ -146,7 +138,8 @@ export function Header({ onMenuClick }: HeaderProps) {
                 className={cn(
                   "w-40 sm:w-56 justify-between",
                   "data-[state=open]:bg-accent"
-                )}>
+                )}
+              >
                 <span>{currentValue}</span>
                 <ChevronDown className="h-4 w-4 opacity-50" />
               </Button>
@@ -154,49 +147,16 @@ export function Header({ onMenuClick }: HeaderProps) {
             <DropdownMenuContent className="w-56" align="start">
               <DropdownMenuItem
                 onClick={() => handleWorkspaceChange("personal")}
-                className={isPersonalWorkspace ? "bg-accent" : ""}>
+                className={isPersonalWorkspace ? "bg-accent" : ""}
+              >
                 Demo Workspace
               </DropdownMenuItem>
-              {/* <DropdownMenu>
-                {teams.length > 0 ? (
-                  <>
-                    {teams.map((team: Team) => (
-                      <DropdownMenuItem
-                        key={team.id}
-                        onClick={() =>
-                          handleWorkspaceChange(`team-${team.slug}`)
-                        }
-                        className={tenantId === team.slug ? "bg-accent" : ""}>
-                        {team.name}
-                      </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={handleAddTeam}
-                      className="text-blue-600 hover:text-blue-700">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Team
-                    </DropdownMenuItem>
-                  </>
-                ) : (
-                  <DropdownMenuItem
-                    onClick={handleAddTeam}
-                    className="text-blue-600 hover:text-blue-700">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Team
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenu> */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
         {/* Right side - Admin and logout */}
         <div className="flex items-center space-x-4">
-          {/* <div className="flex items-center space-x-2">
-            <User className="h-4 w-4 text-gray-600" />
-            <span className="text-sm text-gray-700 hidden sm:inline">Admin</span>
-          </div> */}
           <Button variant="outline" size="sm" onClick={handleLogout}>
             <LogOut className="h-4 w-4 mr-2" />
             Logout

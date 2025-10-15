@@ -68,10 +68,14 @@ async function sendWidgetChatQuery(
 
     if (error instanceof Error) {
       if (error.name === "AbortError") {
-        throw new Error("Request timeout: The server took too long to respond.");
+        throw new Error(
+          "Request timeout: The server took too long to respond."
+        );
       }
       if (error.message.includes("ERR_BLOCKED_BY_CLIENT")) {
-        throw new Error("Request blocked: Please disable ad blockers or try a different browser.");
+        throw new Error(
+          "Request blocked: Please disable ad blockers or try a different browser."
+        );
       }
       if (error.message.includes("Failed to fetch")) {
         throw new Error(
@@ -92,9 +96,9 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
     tenantId: "",
   });
   const [configError, setConfigError] = useState<string | null>(null);
-  const [connectionStatus, setConnectionStatus] = useState<"checking" | "connected" | "failed">(
-    "checking"
-  );
+  const [connectionStatus, setConnectionStatus] = useState<
+    "checking" | "connected" | "failed"
+  >("checking");
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -111,7 +115,6 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
 
       if (response.ok) {
         setConnectionStatus("connected");
-        console.log("API connection test successful");
       } else {
         setConnectionStatus("failed");
         console.warn("API connection test failed:", response.status);
@@ -193,11 +196,14 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
 
       if (error instanceof Error) {
         if (error.message.includes("Request blocked")) {
-          errorMessage = "Request blocked by browser. Please disable ad blockers and try again.";
+          errorMessage =
+            "Request blocked by browser. Please disable ad blockers and try again.";
         } else if (error.message.includes("Request timeout")) {
-          errorMessage = "Request timed out. The server is taking too long to respond.";
+          errorMessage =
+            "Request timed out. The server is taking too long to respond.";
         } else if (error.message.includes("Network error")) {
-          errorMessage = "Unable to connect to the server. Please check your connection.";
+          errorMessage =
+            "Unable to connect to the server. Please check your connection.";
         } else if (error.message.includes("API Error: 401")) {
           errorMessage = "Authentication failed. Please check your API key.";
         } else if (error.message.includes("API Error: 403")) {
@@ -241,7 +247,10 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
     const isUser = message.role === "user";
 
     return (
-      <div key={message.id} className={`flex gap-3 p-4 ${isUser ? "bg-gray-50" : "bg-white"}`}>
+      <div
+        key={message.id}
+        className={`flex gap-3 p-4 ${isUser ? "bg-gray-50" : "bg-white"}`}
+      >
         <div
           className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
             isUser ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"
@@ -255,7 +264,9 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
             <span className="font-medium text-sm text-gray-900">
               {isUser ? "You" : "AI Assistant"}
             </span>
-            <span className="text-xs text-gray-500">{message.timestamp.toLocaleTimeString()}</span>
+            <span className="text-xs text-gray-500">
+              {message.timestamp.toLocaleTimeString()}
+            </span>
           </div>
 
           <div className="text-sm text-gray-700 break-words whitespace-pre-wrap">
@@ -299,7 +310,9 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
       <div className={`flex flex-col h-full bg-white ${className}`}>
         <div className="flex flex-col items-center justify-center h-full text-gray-500 px-4">
           <Bot className="w-12 h-12 mb-4 text-red-300" />
-          <h3 className="text-lg font-medium mb-2 text-red-600">Configuration Error</h3>
+          <h3 className="text-lg font-medium mb-2 text-red-600">
+            Configuration Error
+          </h3>
           <p className="text-center text-sm mb-4">{configError}</p>
           <div className="text-xs text-gray-400 text-center space-y-1">
             <p>Required URL parameters:</p>
@@ -318,7 +331,8 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
         <div className="bg-red-50 border-b border-red-200 px-4 py-2">
           <div className="flex items-center justify-center text-red-600 text-sm">
             <span className="mr-2">⚠️</span>
-            API connection failed. Please check your ad blocker or try a different browser.
+            API connection failed. Please check your ad blocker or try a
+            different browser.
           </div>
         </div>
       )}
@@ -329,11 +343,17 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-gray-500 px-4">
               <Bot className="w-12 h-12 mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium mb-2">Welcome to AI Assistant</h3>
-              <p className="text-center text-sm">Start a conversation by asking questions.</p>
+              <h3 className="text-lg font-medium mb-2">
+                Welcome to AI Assistant
+              </h3>
+              <p className="text-center text-sm">
+                Start a conversation by asking questions.
+              </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">{messages.map(renderMessage)}</div>
+            <div className="divide-y divide-gray-100">
+              {messages.map(renderMessage)}
+            </div>
           )}
 
           {isLoading && (
@@ -343,7 +363,9 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-sm text-gray-900">AI Assistant</span>
+                  <span className="font-medium text-sm text-gray-900">
+                    AI Assistant
+                  </span>
                   <span className="text-xs text-gray-500">thinking...</span>
                 </div>
                 <div className="flex items-center gap-1">
