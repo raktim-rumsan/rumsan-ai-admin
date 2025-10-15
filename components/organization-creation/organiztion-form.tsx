@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toastUtils } from "@/lib/toast-utils";
+import { useOrganizationMutation } from "@/queries/organizationQuery";
 
 interface OrganizationFormProps {
   onSuccess: (organizationName: string) => void;
@@ -16,17 +17,14 @@ interface OrganizationFormProps {
 
 export function OrganizationForm({ onSuccess }: OrganizationFormProps) {
   const [organizationName, setOrganizationName] = useState("");
-  const [organizationSlug, setOrganizationSlug] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+
+  const organizationMutation = useOrganizationMutation(() => {
+    onSuccess(organizationName);
+  });
 
   const handleNameChange = (value: string) => {
     setOrganizationName(value);
     // Auto-generate slug from name
-    const slug = value
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
-    setOrganizationSlug(slug);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,26 +38,9 @@ export function OrganizationForm({ onSuccess }: OrganizationFormProps) {
       return;
     }
 
-    setIsLoading(true);
-
-    try {
-      // Simulate API call to create organization
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      toastUtils.generic.success(
-        "Organization created!",
-        `${organizationName} has been successfully created.`
-      );
-
-      onSuccess(organizationName);
-    } catch (error) {
-      toastUtils.generic.error(
-        "Error creating organization",
-        "Something went wrong. Please try again."
-      );
-    } finally {
-      setIsLoading(false);
-    }
+    organizationMutation.mutate({
+      name: organizationName,
+    });
   };
 
   return (
@@ -89,19 +70,19 @@ export function OrganizationForm({ onSuccess }: OrganizationFormProps) {
               placeholder="Acme Inc."
               value={organizationName}
               onChange={(e) => handleNameChange(e.target.value)}
-              disabled={isLoading}
+              disabled={organizationMutation.isPending}
               className="h-11"
               autoFocus
             />
             <p className="text-xs text-muted-foreground">
-              This is your organization's visible name within the app.
+              This is your organization&apos;s visible name within the app.
             </p>
           </div>
 
           {/* Features list */}
           <div className="bg-secondary/50 rounded-lg p-4 space-y-3">
             <p className="text-sm font-medium text-foreground">
-              What you'll get:
+              What you&apos;ll get:
             </p>
             <ul className="space-y-2">
               {[
@@ -124,8 +105,10 @@ export function OrganizationForm({ onSuccess }: OrganizationFormProps) {
           <Button
             type="submit"
             className="w-full h-11 text-base"
-            disabled={isLoading || !organizationName.trim()}>
-            {isLoading ? (
+            disabled={
+              organizationMutation.isPending || !organizationName.trim()
+            }>
+            {organizationMutation.isPending ? (
               <>
                 <span className="animate-spin mr-2">⏳</span>
                 Creating organization...
