@@ -157,7 +157,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 className={isPersonalWorkspace ? "bg-accent" : ""}>
                 Demo Workspace
               </DropdownMenuItem>
-              <DropdownMenu>
+              {/* <DropdownMenu>
                 {teams.length > 0 ? (
                   <>
                     {teams.map((team: Team) => (
@@ -186,7 +186,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                     Add Team
                   </DropdownMenuItem>
                 )}
-              </DropdownMenu>
+              </DropdownMenu> */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

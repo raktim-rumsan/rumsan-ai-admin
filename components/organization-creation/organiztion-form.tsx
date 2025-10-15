@@ -80,7 +80,7 @@ export function OrganizationForm({ onSuccess }: OrganizationFormProps) {
           </div>
 
           {/* Features list */}
-          <div className="bg-secondary/50 rounded-lg p-4 space-y-3">
+          {/* <div className="bg-secondary/50 rounded-lg p-4 space-y-3">
             <p className="text-sm font-medium text-foreground">
               What you&apos;ll get:
             </p>
@@ -99,7 +99,7 @@ export function OrganizationForm({ onSuccess }: OrganizationFormProps) {
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
 
           {/* Submit button */}
           <Button
