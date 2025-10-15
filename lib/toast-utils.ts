@@ -65,26 +65,73 @@ export const toastUtils = {
   data: {
     saveSuccess: (itemName?: string) =>
       toast.success("Saved successfully", {
-        description: itemName ? `${itemName} has been saved.` : "Your changes have been saved.",
+        description: itemName
+          ? `${itemName} has been saved.`
+          : "Your changes have been saved.",
         duration: 3000,
       }),
 
     saveError: (error?: string) =>
       toast.error("Failed to save", {
-        description: error || "An error occurred while saving. Please try again.",
+        description:
+          error || "An error occurred while saving. Please try again.",
         duration: 5000,
       }),
 
     deleteSuccess: (itemName?: string) =>
       toast.success("Deleted successfully", {
-        description: itemName ? `${itemName} has been deleted.` : "Item has been deleted.",
+        description: itemName
+          ? `${itemName} has been deleted.`
+          : "Item has been deleted.",
         duration: 3000,
       }),
 
     deleteError: (error?: string) =>
       toast.error("Failed to delete", {
-        description: error || "An error occurred while deleting. Please try again.",
+        description:
+          error || "An error occurred while deleting. Please try again.",
         duration: 5000,
+      }),
+  },
+
+  // Invitation related toasts
+  invitations: {
+    sendingStarted: (count: number) =>
+      toast.loading("Sending invitations...", {
+        description: `Sending ${count} invitation${count > 1 ? "s" : ""}`,
+        id: "send-invitations",
+      }),
+
+    sendSuccess: (count: number) => {
+      toast.dismiss("send-invitations");
+      return toast.success("Invitations sent!", {
+        description: `${count} invitation${
+          count > 1 ? "s" : ""
+        } sent successfully.`,
+        duration: 4000,
+      });
+    },
+
+    sendError: (error?: string) => {
+      toast.dismiss("send-invitations");
+      return toast.error("Failed to send invitations", {
+        description:
+          error ||
+          "An error occurred while sending invitations. Please try again.",
+        duration: 5000,
+      });
+    },
+
+    noValidEmails: () =>
+      toast.error("No valid emails", {
+        description: "Please enter at least one valid email address.",
+        duration: 4000,
+      }),
+
+    invalidEmail: (email: string) =>
+      toast.warning("Invalid email format", {
+        description: `Please check the email format for: ${email}`,
+        duration: 4000,
       }),
   },
 
