@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
 import { useTenant } from "@/stores/tenantStore";
 
-import API_BASE_URL from "@/constants";
+import API_BASE_URL, { ROUTES } from "@/constants";
 
 export function useOrgMembersQuery() {
   const tenantId = useTenant();
@@ -11,7 +11,7 @@ export function useOrgMembersQuery() {
     queryFn: async () => {
       const access_token = getAuthToken();
       const tenantId = localStorage.getItem("tenantId");
-      const res = await fetch(`${API_BASE_URL}/organizations/members`, {
+      const res = await fetch(ROUTES.MEMBER, {
         method: "GET",
         headers: {
           accept: "application/json",
@@ -33,7 +33,7 @@ export function useAddOrgUserMutation(onSuccess?: () => void) {
     mutationFn: async ({ email, role }: { email: string; role: string }) => {
       const access_token = getAuthToken();
       const tenantId = localStorage.getItem("tenantId");
-      const res = await fetch(`${API_BASE_URL}/organizations/users`, {
+      const res = await fetch(ROUTES.USERS, {
         method: "POST",
         headers: {
           accept: "application/json",

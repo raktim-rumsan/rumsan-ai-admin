@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
 import { toast } from "sonner";
 
-import API_BASE_URL from "@/constants";
+import { ROUTES } from "@/constants";
 
 export interface ApiKey {
   id?: string;
@@ -41,7 +41,7 @@ export const useApiKeys = () => {
         throw new Error("Missing authentication credentials");
       }
 
-      const response = await fetch(`${API_BASE_URL}/organization-api-key`, {
+      const response = await fetch(ROUTES.ORG_API_KEYS, {
         method: "GET",
         headers: {
           accept: "*/*",
@@ -87,7 +87,7 @@ export const useCreateApiKey = () => {
         throw new Error("Missing authentication credentials");
       }
 
-      const response = await fetch(`${API_BASE_URL}/organization-api-key/create`, {
+      const response = await fetch(ROUTES.CREATE_ORG_API_KEY, {
         method: "POST",
         headers: {
           accept: "*/*",
@@ -143,7 +143,7 @@ export const useDeleteApiKey = () => {
         throw new Error("Missing authentication credentials");
       }
 
-      const response = await fetch(`${API_BASE_URL}/organization-api-key/${apiKeyId}`, {
+      const response = await fetch(ROUTES.DELETE_ORG_API_KEY(apiKeyId), {
         method: "DELETE",
         headers: {
           accept: "*/*",

@@ -5,7 +5,7 @@ import { devtools } from "zustand/middleware";
 import { TenantResponseSchema, type TenantData, type Team } from "@/lib/schemas";
 import { getAuthToken } from "@/lib/utils";
 
-import API_BASE_URL from "@/constants";
+import { ROUTES } from "@/constants";
 
 interface TenantState {
   // State
@@ -105,16 +105,13 @@ export const useTenantStore = create<TenantState>()(
             return;
           }
 
-          const response = await fetch(
-            `${API_BASE_URL.replace(/\/$/, "")}/workspaces/my-workspaces`,
-            {
-              method: "GET",
-              headers: {
-                accept: "*/*",
-                access_token: authToken,
-              },
-            }
-          );
+          const response = await fetch(ROUTES.MY_WORKSPACE, {
+            method: "GET",
+            headers: {
+              accept: "*/*",
+              access_token: authToken,
+            },
+          });
 
           if (!response.ok) {
             throw new Error(`Failed to fetch tenant data: ${response.statusText}`);

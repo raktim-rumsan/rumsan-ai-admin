@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
 import { toast } from "sonner";
 
-import API_BASE_URL from "@/constants";
+import API_BASE_URL, { ROUTES } from "@/constants";
 
 interface Team {
   id: string;
@@ -43,7 +43,7 @@ export function useTenantQuery() {
       if (!authToken) {
         throw new Error("No auth token found");
       }
-      const response = await fetch(`${API_BASE_URL}/workspaces/my-workspaces`, {
+      const response = await fetch(ROUTES.MY_WORKSPACE, {
         method: "GET",
         headers: {
           accept: "*/*",
@@ -89,7 +89,7 @@ export function useCreateOrgMutation(options?: CreateOrgOptions) {
       if (!authToken) {
         throw new Error("No auth token found");
       }
-      const response = await fetch(`${API_BASE_URL}/orgs`, {
+      const response = await fetch(ROUTES.CREATE_WORKSPACE, {
         method: "POST",
         headers: {
           accept: "*/*",

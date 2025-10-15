@@ -1,4 +1,4 @@
-import API_BASE_URL from "@/constants";
+import { ROUTES } from "@/constants";
 import { useMutation } from "@tanstack/react-query";
 
 export default function useLoginMutation() {
@@ -32,7 +32,7 @@ export function useSignUpMutation() {
         email: user.email,
         id: user.id, // fallback if no id returned
       };
-      const registerRes = await fetch(`${API_BASE_URL}/auth/register`, {
+      const registerRes = await fetch(ROUTES.AUTH_REGISTER, {
         method: "POST",
         headers: {
           accept: "*/*",
