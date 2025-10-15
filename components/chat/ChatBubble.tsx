@@ -25,15 +25,24 @@ export function ChatBubble() {
     setConfig({ title, color, logoUrl, bottomPosition });
   }, []);
 
+
+
   const toggleChat = () => {
     setIsOpen(!isOpen);
   };
 
   return (
-    <>
+    <div
+      className="fixed right-4 z-50 transition-all duration-300 ease-in-out"
+      style={{
+        bottom: `${config.bottomPosition}px`,
+        height: isOpen ? "500px" : "60px",
+        width: "400px",
+        overflow: "hidden",
+      }}>
       {/* Chat Bubble - Minimal for iframe integration */}
       {!isOpen && (
-        <div className="fixed right-4 z-50" style={{ bottom: `${config.bottomPosition}px` }}>
+        <div className="fixed right-4 z-50 " style={{ bottom: `${config.bottomPosition}px`  }} >
           <Button
             onClick={toggleChat}
             className="h-12 w-12 rounded-full transition-colors duration-200 flex items-center justify-center"
@@ -63,18 +72,18 @@ export function ChatBubble() {
 
       {/* Chat Interface Overlay - Minimal styling */}
       {isOpen && (
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-50  bg-transparent "> {/* outside content */}
           {/* Backdrop - Transparent for iframe */}
-          <div className="absolute inset-0" onClick={toggleChat} />
+          <div className="absolute inset-0 bg-transparent" onClick={toggleChat} />
 
           {/* Chat Container - Positioned at bottom right */}
           <div
-            className="absolute right-4 bg-white w-80 h-96 flex flex-col overflow-hidden"
+            className="absolute right-4 w-80 h-100 flex flex-col overflow-hidden  border-2 border-indigo-500"
             style={{ bottom: `${config.bottomPosition}px` }}
-          >
+          > {/* outside content */}
             {/* Header */}
             <div
-              className="flex items-center justify-between p-3 text-white"
+              className="flex items-center justify-between p-3 text-white border-2"
               style={{ backgroundColor: config.color }}
             >
               <div className="flex items-center gap-2">
@@ -104,12 +113,12 @@ export function ChatBubble() {
             </div>
 
             {/* Chat Interface */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden  ">
               <WidgetInterface className="h-full" />
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
