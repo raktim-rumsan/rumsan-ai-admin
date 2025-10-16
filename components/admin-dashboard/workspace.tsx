@@ -48,7 +48,7 @@ export default function WorkspacesPage() {
           <div className="flex items-center justify-between">
             <div>
               <Link
-                href="/dashboard/admin"
+                href="/admin"
                 className="text-sm text-muted-foreground hover:text-foreground mb-2 inline-block"
               >
                 ← Back to Dashboard
@@ -71,10 +71,7 @@ export default function WorkspacesPage() {
       <div className="container mx-auto px-6 py-8">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {workspaces.map((workspace) => (
-            <Link
-              key={workspace.id}
-              href={`/dashboard/admin/workspaces/${workspace.id}`}
-            >
+            <Link key={workspace.id} href={`/admin/workspaces/${workspace.id}`}>
               <Card className="group h-full transition-all hover:shadow-lg hover:border-primary/50">
                 <CardHeader>
                   <div className="flex items-start justify-between mb-3">

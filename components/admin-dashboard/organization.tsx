@@ -1,9 +1,15 @@
-import Link from "next/link"
-import { Building2, Users, Settings } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import Link from "next/link";
+import { Building2, Users, Settings } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function OrganizationPage() {
   return (
@@ -13,13 +19,17 @@ export default function OrganizationPage() {
           <div className="flex items-center justify-between">
             <div>
               <Link
-                href="/dashboard/admin"
+                href="/admin"
                 className="text-sm text-muted-foreground hover:text-foreground mb-2 inline-block"
               >
                 ← Back to Dashboard
               </Link>
-              <h1 className="text-2xl font-bold text-foreground">Organization Management</h1>
-              <p className="text-sm text-muted-foreground">Manage your organization settings and configuration</p>
+              <h1 className="text-2xl font-bold text-foreground">
+                Organization Management
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Manage your organization settings and configuration
+              </p>
             </div>
           </div>
         </div>
@@ -36,7 +46,9 @@ export default function OrganizationPage() {
                 </div>
                 <div>
                   <CardTitle>Organization Details</CardTitle>
-                  <CardDescription>Basic information about your organization</CardDescription>
+                  <CardDescription>
+                    Basic information about your organization
+                  </CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -51,7 +63,10 @@ export default function OrganizationPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="org-description">Description</Label>
-                <Input id="org-description" defaultValue="Leading digital banking solutions" />
+                <Input
+                  id="org-description"
+                  defaultValue="Leading digital banking solutions"
+                />
               </div>
               <Button>Save Changes</Button>
             </CardContent>
@@ -66,7 +81,9 @@ export default function OrganizationPage() {
                 </div>
                 <div>
                   <CardTitle>Team Management</CardTitle>
-                  <CardDescription>Manage team members and their roles</CardDescription>
+                  <CardDescription>
+                    Manage team members and their roles
+                  </CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -104,7 +121,9 @@ export default function OrganizationPage() {
                 </div>
                 <div>
                   <CardTitle>General Settings</CardTitle>
-                  <CardDescription>Configure organization-wide settings</CardDescription>
+                  <CardDescription>
+                    Configure organization-wide settings
+                  </CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -113,7 +132,9 @@ export default function OrganizationPage() {
                 <div className="flex items-center justify-between py-3 border-b">
                   <div>
                     <p className="font-medium">Security Settings</p>
-                    <p className="text-sm text-muted-foreground">2FA, SSO, and access controls</p>
+                    <p className="text-sm text-muted-foreground">
+                      2FA, SSO, and access controls
+                    </p>
                   </div>
                   <Button variant="outline" size="sm">
                     Configure
@@ -122,7 +143,9 @@ export default function OrganizationPage() {
                 <div className="flex items-center justify-between py-3 border-b">
                   <div>
                     <p className="font-medium">API Keys</p>
-                    <p className="text-sm text-muted-foreground">Manage API access</p>
+                    <p className="text-sm text-muted-foreground">
+                      Manage API access
+                    </p>
                   </div>
                   <Button variant="outline" size="sm">
                     View Keys
@@ -134,5 +157,5 @@ export default function OrganizationPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
