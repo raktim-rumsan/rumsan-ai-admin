@@ -1,4 +1,4 @@
-import { FolderKanban, Plus, Users, MessageSquare } from "lucide-react";
+import { FolderKanban, Plus, Users } from "lucide-react";
 import Link from "next/link";
 import {
   Card,
