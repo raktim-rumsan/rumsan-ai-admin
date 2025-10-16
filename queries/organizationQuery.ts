@@ -59,12 +59,15 @@ export function useOrganizationMutation(onSuccess?: () => void) {
       return data;
     },
     onSuccess: (data) => {
+      const { data: orgData } = data;
+      console.log("data:", orgData);
       // Invalidate organizations query to refetch the list
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
       toastUtils.generic.success(
         "Organization created!",
-        `${data.name || "Organization"} has been successfully created.`
+        `${orgData.name || "Organization"} has been successfully created.`
       );
+      localStorage.setItem("orgId", orgData.id);
       onSuccess?.();
     },
     onError: (error: Error) => {

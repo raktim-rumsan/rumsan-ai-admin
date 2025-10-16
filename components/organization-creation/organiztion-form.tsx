@@ -107,7 +107,8 @@ export function OrganizationForm({ onSuccess }: OrganizationFormProps) {
             className="w-full h-11 text-base"
             disabled={
               organizationMutation.isPending || !organizationName.trim()
-            }>
+            }
+          >
             {organizationMutation.isPending ? (
               <>
                 <span className="animate-spin mr-2">⏳</span>
