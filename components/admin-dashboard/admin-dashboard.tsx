@@ -44,7 +44,7 @@ export default function AdminDashboard() {
                 }`}
                 onClick={() => {
                   if (card.isAvailable) {
-                    router.push(`/dashboard/admin/${card.slug}`);
+                    router.push(`/admin/${card.slug}`);
                   }
                 }}
               >
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <Link
-                  href="/dashboard/admin/workspaces"
+                  href="/admin/workspaces"
                   className="text-sm text-primary hover:underline"
                 >
                   + New Workspace
