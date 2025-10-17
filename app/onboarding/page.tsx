@@ -10,7 +10,12 @@ import { useState, useEffect } from "react";
 import { useTenantQuery } from "@/queries/tenantQuery";
 import { useRouter } from "next/navigation";
 
-type OnboardingStep = "checking" | "organization" | "billing" | "invite" | "complete";
+type OnboardingStep =
+  | "checking"
+  | "organization"
+  | "billing"
+  | "invite"
+  | "complete";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -43,7 +48,9 @@ export default function OnboardingPage() {
 
       // If no personal orgId, check teams
       if (!hasValidOrgId) {
-        hasValidOrgId = tenantData.data.teams.some((team) => team.orgId !== null);
+        hasValidOrgId = tenantData.data.teams.some(
+          (team) => team.orgId !== null
+        );
       }
 
       if (hasValidOrgId) {
@@ -75,8 +82,8 @@ export default function OnboardingPage() {
   };
 
   const handleOnboardingComplete = () => {
-    // After onboarding is complete, redirect to dashboard
-    router.push("/dashboard");
+    // After onboarding is complete, redirect to admin dashboard
+    router.push("/admin");
   };
 
   const handleBack = () => {
@@ -93,10 +100,14 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 gap-8">
-      {showStepIndicator && <StepIndicator currentStep={step} completedSteps={completedSteps} />}
+      {showStepIndicator && (
+        <StepIndicator currentStep={step} completedSteps={completedSteps} />
+      )}
 
       {(step === "checking" || isLoading) && <OrganizationCheck />}
-      {step === "organization" && <OrganizationForm onSuccess={handleOrganizationCreated} />}
+      {step === "organization" && (
+        <OrganizationForm onSuccess={handleOrganizationCreated} />
+      )}
       {step === "billing" && (
         <BillingSetup
           onComplete={handleBillingComplete}

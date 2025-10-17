@@ -10,7 +10,7 @@ export const managementCardItem = [
     description:
       "Manage your organization settings, branding, and general configuration",
     icon: Building2,
-    href: "/dashboard/admin/organization",
+    href: "/admin/organization",
     slug: "organization",
     stats: "1 Organization",
     color: "text-primary",
@@ -34,7 +34,7 @@ export const managementCardItem = [
     description:
       "View your subscription plan, usage, and manage payment methods",
     icon: CreditCard,
-    href: "/dashboard/admin/billing",
+    href: "/admin/billing",
     slug: "ai",
     stats: "Pro Plan Active",
     color: "text-secondary",
@@ -45,7 +45,7 @@ export const managementCardItem = [
     title: "AI Management",
     description: "Configure AI models, training data, and chatbot behavior",
     icon: Bot,
-    href: "/dashboard/admin/ai",
+    href: "/admin/ai",
     slug: "billing",
     stats: "2 Models Active",
     color: "text-chart-3",

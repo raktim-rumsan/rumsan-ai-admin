@@ -1,8 +1,14 @@
-import Link from "next/link"
-import { CreditCard, TrendingUp, Calendar, Download } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import Link from "next/link";
+import { CreditCard, TrendingUp, Calendar, Download } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export default function BillingPage() {
   return (
@@ -12,13 +18,17 @@ export default function BillingPage() {
           <div className="flex items-center justify-between">
             <div>
               <Link
-                href="/dashboard/admin"
+                href="/admin"
                 className="text-sm text-muted-foreground hover:text-foreground mb-2 inline-block"
               >
                 ← Back to Dashboard
               </Link>
-              <h1 className="text-2xl font-bold text-foreground">Billing & Subscription</h1>
-              <p className="text-sm text-muted-foreground">Manage your subscription and payment methods</p>
+              <h1 className="text-2xl font-bold text-foreground">
+                Billing & Subscription
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Manage your subscription and payment methods
+              </p>
             </div>
           </div>
         </div>
@@ -45,15 +55,21 @@ export default function BillingPage() {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between py-3 border-b">
-                  <span className="text-sm text-muted-foreground">Monthly Cost</span>
+                  <span className="text-sm text-muted-foreground">
+                    Monthly Cost
+                  </span>
                   <span className="font-semibold">$299/month</span>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b">
-                  <span className="text-sm text-muted-foreground">Billing Cycle</span>
+                  <span className="text-sm text-muted-foreground">
+                    Billing Cycle
+                  </span>
                   <span className="font-semibold">Monthly</span>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b">
-                  <span className="text-sm text-muted-foreground">Next Billing Date</span>
+                  <span className="text-sm text-muted-foreground">
+                    Next Billing Date
+                  </span>
                   <span className="font-semibold">Jan 15, 2025</span>
                 </div>
                 <div className="flex gap-3 mt-4">
@@ -77,7 +93,9 @@ export default function BillingPage() {
                 </div>
                 <div>
                   <CardTitle>Usage This Month</CardTitle>
-                  <CardDescription>Your current usage statistics</CardDescription>
+                  <CardDescription>
+                    Your current usage statistics
+                  </CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -89,7 +107,10 @@ export default function BillingPage() {
                     <span className="font-medium">12,450 / 50,000</span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-primary" style={{ width: "25%" }} />
+                    <div
+                      className="h-full bg-primary"
+                      style={{ width: "25%" }}
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -98,7 +119,10 @@ export default function BillingPage() {
                     <span className="font-medium">3.2 GB / 10 GB</span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-accent" style={{ width: "32%" }} />
+                    <div
+                      className="h-full bg-accent"
+                      style={{ width: "32%" }}
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -107,7 +131,10 @@ export default function BillingPage() {
                     <span className="font-medium">28 / 50</span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-secondary" style={{ width: "56%" }} />
+                    <div
+                      className="h-full bg-secondary"
+                      style={{ width: "56%" }}
+                    />
                   </div>
                 </div>
               </div>
@@ -124,7 +151,9 @@ export default function BillingPage() {
                   </div>
                   <div>
                     <CardTitle>Billing History</CardTitle>
-                    <CardDescription>Your past invoices and payments</CardDescription>
+                    <CardDescription>
+                      Your past invoices and payments
+                    </CardDescription>
                   </div>
                 </div>
               </div>
@@ -136,10 +165,15 @@ export default function BillingPage() {
                   { date: "Nov 15, 2024", amount: "$299.00", status: "Paid" },
                   { date: "Oct 15, 2024", amount: "$299.00", status: "Paid" },
                 ].map((invoice, i) => (
-                  <div key={i} className="flex items-center justify-between py-3 border-b last:border-0">
+                  <div
+                    key={i}
+                    className="flex items-center justify-between py-3 border-b last:border-0"
+                  >
                     <div>
                       <p className="font-medium">{invoice.date}</p>
-                      <p className="text-sm text-muted-foreground">{invoice.amount}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {invoice.amount}
+                      </p>
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge variant="outline">{invoice.status}</Badge>
@@ -155,5 +189,5 @@ export default function BillingPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
