@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +15,7 @@ import { useClearTenant, useUserLoading, useUserProfile } from "@/stores";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 
-export function ProfileDashboard() {
+export function ProfileUserDashboard() {
   const userProfile = useUserProfile();
   const isLoading = useUserLoading();
   const clearTenant = useClearTenant();

@@ -2,17 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, LogOut, ChevronDown } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
-import { useRouter } from "next/navigation";
+import { Menu, ChevronDown } from "lucide-react";
 import {
   useTenantId,
   useWorkspaceData,
   useSetTenantId,
-  useClearTenant,
 } from "@/stores/tenantStore";
 import { useTenantQuery } from "@/queries/tenantQuery";
-import { CreateTeamDialog } from "./CreateTeamDialog";
 import type { Team } from "@/lib/schemas";
 import {
   DropdownMenu,
@@ -21,22 +17,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { CreateTeamDialog } from "../dashboard/CreateTeamDialog";
+import { ProfileUserDashboard } from "../profile/profile";
+import { usePathname } from "next/navigation";
 
 interface HeaderProps {
-  onMenuClick: () => void;
+  onMenuClick?: () => void;
 }
 
-export function Header({ onMenuClick }: HeaderProps) {
-  const router = useRouter();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+export function MainHeader({ onMenuClick }: HeaderProps) {
+  const pathname = usePathname();
 
   const tenantId = useTenantId();
   const workspaceData = useWorkspaceData();
   const setTenantId = useSetTenantId();
-  const clearTenant = useClearTenant();
   const { data, isLoading } = useTenantQuery();
 
   const [createTeamDialogOpen, setCreateTeamDialogOpen] = useState(false);
@@ -76,12 +70,6 @@ export function Header({ onMenuClick }: HeaderProps) {
     }
   };
 
-  const handleLogout = async () => {
-    clearTenant();
-    await supabase.auth.signOut();
-    router.push("/auth/login");
-  };
-
   const handleTeamCreated = async (teamSlug: string) => {
     console.log("Team created with slug:", teamSlug);
   };
@@ -101,13 +89,21 @@ export function Header({ onMenuClick }: HeaderProps) {
     ? currentTeam.name
     : "Select Workspace";
 
+  // Check if we're in the admin dashboard
+  const isAdminDashboard = pathname?.startsWith("/admin");
+
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-3 lg:px-6">
       <div className="flex items-center justify-between">
         {/* Left side - Logo and hamburger (mobile) or workspace switcher (desktop) */}
         <div className="flex items-center space-x-4">
-          {/* Logo - visible on mobile */}
-          <div className="flex items-center space-x-2 lg:hidden">
+          {/* Logo and title - visible on mobile dashboard and always in admin dashboard, hidden on desktop dashboard */}
+          <div
+            className={cn(
+              "flex items-center space-x-2",
+              !isAdminDashboard && "lg:hidden"
+            )}
+          >
             <div className="w-6 h-6 bg-black rounded flex items-center justify-center">
               <svg
                 viewBox="0 0 24 24"
@@ -121,47 +117,47 @@ export function Header({ onMenuClick }: HeaderProps) {
           </div>
 
           {/* Hamburger menu - visible on mobile */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="lg:hidden"
-            onClick={onMenuClick}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
+          {onMenuClick && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden"
+              onClick={onMenuClick}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
 
-          {/* Workspace switcher - visible on mobile after hamburger, always visible on desktop */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-40 sm:w-56 justify-between",
-                  "data-[state=open]:bg-accent"
-                )}
-              >
-                <span>{currentValue}</span>
-                <ChevronDown className="h-4 w-4 opacity-50" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="start">
-              <DropdownMenuItem
-                onClick={() => handleWorkspaceChange("personal")}
-                className={isPersonalWorkspace ? "bg-accent" : ""}
-              >
-                Demo Workspace
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Workspace switcher - visible on mobile after hamburger, always visible on desktop, hidden in admin dashboard */}
+          {!isAdminDashboard && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-40 sm:w-56 justify-between",
+                    "data-[state=open]:bg-accent"
+                  )}
+                >
+                  <span>{currentValue}</span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="start">
+                <DropdownMenuItem
+                  onClick={() => handleWorkspaceChange("personal")}
+                  className={isPersonalWorkspace ? "bg-accent" : ""}
+                >
+                  Demo Workspace
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
         {/* Right side - Admin and logout */}
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
-        </div>
+
+        <ProfileUserDashboard />
       </div>
 
       <CreateTeamDialog

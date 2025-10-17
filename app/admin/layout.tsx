@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProtectedStoreInitializer } from "@/components/layout/ProtectedStoreInitializer";
 import { AdminHeader } from "@/components/admin-dashboard/header";
+import { MainHeader } from "@/components/header/header";
 
 export default async function DashboardLayoutPage({
   children,
@@ -20,7 +21,7 @@ export default async function DashboardLayoutPage({
     <ProtectedStoreInitializer>
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
-        <AdminHeader />
+        <MainHeader />
       </div>
       {children}
     </ProtectedStoreInitializer>
