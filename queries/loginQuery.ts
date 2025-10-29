@@ -42,7 +42,9 @@ export function useSignUpMutation() {
       });
       const registerData = await registerRes.json();
       if (!registerRes.ok)
-        throw new Error(registerData.error || "Organization registration failed");
+        throw new Error(
+          registerData.error || "Organization registration failed"
+        );
       if (registerData?.data?.slug) {
         localStorage.setItem("tenantId", registerData.data.slug);
       }
