@@ -42,7 +42,9 @@ export function useSignUpMutation() {
       });
       const registerData = await registerRes.json();
       if (!registerRes.ok)
-        throw new Error(registerData.error || "Organization registration failed");
+        throw new Error(
+          registerData.error || "Organization registration failed"
+        );
       if (registerData?.data?.slug) {
         localStorage.setItem("tenantId", registerData.data.slug);
       }
@@ -63,6 +65,41 @@ export function useVerifyOtpMutation() {
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.error || "OTP verification failed");
+
+      return data;
+    },
+  });
+}
+export function useVerifyEmailMutation() {
+  return useMutation({
+    mutationFn: async (payload: { tokenHash: string }) => {
+      const res = await fetch("/api/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Email verification failed");
+
+      return data;
+    },
+  });
+}
+export function useResendVerificationEmailMutation() {
+  return useMutation({
+    mutationFn: async (email: string) => {
+      const res = await fetch("/api/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok)
+        throw new Error(data.error || "Resend verification email failed");
 
       return data;
     },

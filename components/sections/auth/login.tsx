@@ -2,7 +2,13 @@
 
 import type React from "react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
@@ -25,10 +31,9 @@ export default function AuthLogin() {
 
     startTransition(async () => {
       try {
-        loginMutation.mutate(email);
-        if (error) {
-          throw error;
-        }
+        await loginMutation.mutateAsync(email);
+        if (error) throw error;
+
         router.push("/auth/verify-otp?email=" + encodeURIComponent(email));
       } catch (error: unknown) {
         setError(error instanceof Error ? error.message : "An error occurred");
@@ -42,7 +47,11 @@ export default function AuthLogin() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="currentColor">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-6 h-6 text-white"
+                fill="currentColor"
+              >
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
@@ -75,7 +84,9 @@ export default function AuthLogin() {
               </div>
 
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</div>
+                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+                  {error}
+                </div>
               )}
 
               <Button
@@ -89,7 +100,10 @@ export default function AuthLogin() {
 
             <div className="mt-6 text-center text-sm text-gray-600">
               Don&apos;t have an account?{" "}
-              <Link href="/auth/sign-up" className="font-medium text-black hover:underline">
+              <Link
+                href="/auth/sign-up"
+                className="font-medium text-black hover:underline"
+              >
                 Sign up
               </Link>
             </div>

@@ -7,21 +7,16 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
 
-    const { data, error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.resend({
+      type: "signup", // resend signup verification email
       email,
-      options: {
-        shouldCreateUser: false,
-      },
     });
-
     if (error) {
-      console.error("error in try:", error.message);
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("error: in catch", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

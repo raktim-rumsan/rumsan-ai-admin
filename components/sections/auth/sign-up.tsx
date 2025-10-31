@@ -61,7 +61,8 @@ export default function AuthSignUp() {
               <svg
                 viewBox="0 0 24 24"
                 className="w-6 h-6 text-white"
-                fill="currentColor">
+                fill="currentColor"
+              >
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
@@ -130,7 +131,8 @@ export default function AuthSignUp() {
               <Button
                 type="submit"
                 className="w-full h-11 bg-black hover:bg-gray-800"
-                disabled={isLoading}>
+                disabled={isLoading}
+              >
                 {isLoading ? "Creating account..." : "Sign Up"}
               </Button>
             </form>
@@ -139,7 +141,8 @@ export default function AuthSignUp() {
               Already have an account?{" "}
               <Link
                 href="/auth/login"
-                className="font-medium text-black hover:underline">
+                className="font-medium text-black hover:underline"
+              >
                 Login
               </Link>
             </div>

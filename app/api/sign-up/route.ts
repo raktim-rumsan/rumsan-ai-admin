@@ -13,6 +13,9 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password: randomPassword,
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_URL}/auth/verify-email`,
+      },
     });
 
     if (error) {
