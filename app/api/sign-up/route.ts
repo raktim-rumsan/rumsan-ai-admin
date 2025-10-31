@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       email,
       password: randomPassword,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_URL}/auth/login`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_URL}/auth/verify-email`,
       },
     });
 

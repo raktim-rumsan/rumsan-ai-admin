@@ -70,3 +70,38 @@ export function useVerifyOtpMutation() {
     },
   });
 }
+export function useVerifyEmailMutation() {
+  return useMutation({
+    mutationFn: async (payload: { tokenHash: string }) => {
+      const res = await fetch("/api/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Email verification failed");
+
+      return data;
+    },
+  });
+}
+export function useResendVerificationEmailMutation() {
+  return useMutation({
+    mutationFn: async (email: string) => {
+      const res = await fetch("/api/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok)
+        throw new Error(data.error || "Resend verification email failed");
+
+      return data;
+    },
+  });
+}
