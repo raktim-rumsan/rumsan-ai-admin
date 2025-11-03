@@ -11,13 +11,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { LogOut } from "lucide-react";
-import { useUserLoading, useUserProfile } from "@/stores";
+import { useUserLoading, useUserProfile, useClearUser } from "@/stores";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 
 export function ProfileUserDashboard() {
   const userProfile = useUserProfile();
   const isLoading = useUserLoading();
+  const clearUser = useClearUser();
 
   const router = useRouter();
   const supabase = createBrowserClient(
@@ -57,8 +58,20 @@ export function ProfileUserDashboard() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/auth/login");
+    try {
+      // First sign out from Supabase
+      await supabase.auth.signOut();
+
+      // Clear all user and organization data
+      await clearUser();
+
+      // Navigate to login page
+      router.push("/auth/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Still navigate to login even if there's an error
+      router.push("/auth/login");
+    }
   };
 
   const { name, email, initials } = getUserDisplayData();

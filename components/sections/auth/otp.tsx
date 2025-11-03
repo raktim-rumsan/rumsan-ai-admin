@@ -4,13 +4,23 @@ import type React from "react";
 
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import useLoginMutation, { useVerifyOtpMutation } from "@/queries/loginQuery";
 import { UserSchema } from "@/lib/schemas";
 import { initializeAuthAfterLogin } from "@/lib/store-hydration";
+import { getRedirectPath } from "@/stores/organizationStore";
+import { getAuthToken } from "@/lib/utils";
+import { ROUTES } from "@/constants";
+import { useOrganizationContext } from "@/hooks/useOrganizationContext";
 
 export default function AuthOtp() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -19,6 +29,7 @@ export default function AuthOtp() {
   const [isResendPending, startResendTransition] = useTransition();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  const orgContext = useOrganizationContext();
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -92,22 +103,24 @@ export default function AuthOtp() {
     startTransition(async () => {
       try {
         // Verify OTP with backend
-        const otpResult = await verifyOtpMutation.mutateAsync({ email, otpCode });
-
-        if (otpResult.error) {
-          throw new Error(otpResult.error);
+        const otpResult = await verifyOtpMutation.mutateAsync({
+          email,
+          otpCode,
+        });
+        if (!otpResult.success) {
+          throw new Error("OTP verification failed");
         }
-
-        // Get current user session from Supabase to update UserContext
         const {
           data: { session },
           error: sessionError,
         } = await supabase.auth.getSession();
 
         if (sessionError) {
-          console.error("Error getting session after OTP verification:", sessionError);
+          console.error(
+            "Error getting session after OTP verification:",
+            sessionError
+          );
         } else if (session?.user) {
-          // Update UserStore with the authenticated user
           const convertedUser = UserSchema.parse({
             id: session.user.id,
             email: session.user.email,
@@ -116,18 +129,52 @@ export default function AuthOtp() {
             updated_at: session.user.updated_at,
             user_metadata: session.user.user_metadata,
           });
-
-          // Update UserStore with the authenticated user directly
           import("@/stores/userStore").then(({ useUserStore }) => {
             useUserStore.getState().updateUser(convertedUser);
           });
           initializeAuthAfterLogin();
+          const token = getAuthToken();
+          // TODO: Fix the manually fetch organization context with the current token
+          try {
+            if (token) {
+              const response = await fetch(ROUTES.ORGANIZATION_CONTEXT, {
+                method: "GET",
+                headers: {
+                  access_token: token,
+                  "Content-Type": "application/json",
+                },
+              });
+              if (response.ok) {
+                const contextData = await response.json();
+                const redirectPath = getRedirectPath(
+                  contextData?.data?.redirectTo
+                );
+                router.push(redirectPath);
+              } else {
+                console.warn(
+                  "Failed to fetch organization context, using fallback"
+                );
+                router.push("/dashboard");
+              }
+            } else {
+              console.warn("No token available, using fallback");
+              router.push("/dashboard");
+            }
+          } catch (contextError) {
+            console.error(
+              "Failed to fetch organization context:",
+              contextError
+            );
+            // Fallback to dashboard if context fetch fails
+            router.push("/dashboard");
+          }
         }
-
-        // Navigate to dashboard
-        router.push("/dashboard");
       } catch (error: unknown) {
-        setError(error instanceof Error ? error.message : "Invalid OTP code. Please try again.");
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Invalid OTP code. Please try again."
+        );
       }
     });
   };
@@ -138,7 +185,11 @@ export default function AuthOtp() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="currentColor">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-6 h-6 text-white"
+                fill="currentColor"
+              >
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
@@ -148,7 +199,9 @@ export default function AuthOtp() {
 
         <Card className="border-0 shadow-lg">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-semibold">One Time Password</CardTitle>
+            <CardTitle className="text-2xl font-semibold">
+              One Time Password
+            </CardTitle>
             <CardDescription className="text-gray-600">
               Please enter the OTP sent to your email.
             </CardDescription>

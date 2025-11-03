@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
+import { z } from "zod";
 
 import { ROUTES } from "@/constants";
 import { toastUtils } from "@/lib/toast-utils";
@@ -72,5 +73,112 @@ export function useOrganizationMutation(onSuccess?: () => void) {
         error.message || "Something went wrong. Please try again."
       );
     },
+  });
+}
+
+// Zod schema for organization context response validation
+const OrganizationContextSchema = z.object({
+  data: z.object({
+    redirectTo: z.string(),
+    userState: z.string(),
+    message: z.string(),
+    organizations: z.object({
+      primary: z
+        .object({
+          id: z.string(),
+          name: z.string(),
+          slug: z.string(),
+          role: z.string(),
+          isOwner: z.boolean(),
+          joinedAt: z.string(),
+          workspacesCount: z.number(),
+          membersCount: z.number(),
+        })
+        .optional(),
+      all: z.array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          slug: z.string(),
+          role: z.string(),
+          isOwner: z.boolean(),
+          joinedAt: z.string(),
+        })
+      ),
+    }),
+    workspaces: z.object({
+      accessible: z.array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          slug: z.string(),
+          description: z.string(),
+          role: z.string(),
+          organization: z.object({
+            id: z.string(),
+            name: z.string(),
+            slug: z.string(),
+          }),
+          joinedAt: z.string(),
+          isActive: z.boolean(),
+        })
+      ),
+      totalCount: z.number(),
+    }),
+    pendingInvitations: z.array(
+      z.object({
+        id: z.string(),
+        email: z.string(),
+        role: z.string(),
+        organizationId: z.string(),
+        workspaceId: z.string().optional(),
+        invitedAt: z.string(),
+      })
+    ),
+    nextActions: z.array(
+      z.object({
+        action: z.string(),
+        title: z.string(),
+        description: z.string(),
+        priority: z.string(),
+        url: z.string(),
+      })
+    ),
+  }),
+});
+
+export type OrganizationContextResponse = z.infer<
+  typeof OrganizationContextSchema
+>;
+
+// Export the schema for use in other parts of the application
+export { OrganizationContextSchema };
+
+export function useOrganizationContextQuery(accessToken: string) {
+  return useQuery({
+    queryKey: ["organizationContext"],
+    queryFn: async (): Promise<OrganizationContextResponse> => {
+      const res = await fetch(ROUTES.ORGANIZATION_CONTEXT, {
+        method: "GET",
+        headers: {
+          access_token: accessToken,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(
+          errorData.error ||
+            errorData.message ||
+            `HTTP ${res.status}: ${res.statusText}`
+        );
+      }
+
+      const data = await res.json();
+      return OrganizationContextSchema.parse(data);
+    },
+    retry: false,
+    enabled: !!accessToken,
   });
 }

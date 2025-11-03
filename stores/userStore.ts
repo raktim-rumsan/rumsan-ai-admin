@@ -114,7 +114,16 @@ export const useUserStore = create<UserState>()(
           localStorage.removeItem("userProfile");
         }
 
-        // Tenant store has been removed - no longer clearing tenant data
+        // Clear organization context on logout
+        try {
+          const { useOrganizationStore } = await import("./organizationStore");
+          useOrganizationStore.getState().clearContext();
+        } catch (error) {
+          console.error(
+            "Failed to clear organization context on logout:",
+            error
+          );
+        }
       },
 
       updateUserProfile: (profile) => {

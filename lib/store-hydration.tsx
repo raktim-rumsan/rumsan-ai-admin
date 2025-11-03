@@ -5,7 +5,14 @@ import { usePathname } from "next/navigation";
 import { useUserStore } from "@/stores/userStore";
 import { useOrgSettingsStore } from "@/stores/orgSettingsStore";
 import { useDocumentsStore } from "@/stores/documentsStore";
+import { useOrganizationStore } from "@/stores/organizationStore";
 import type { UserProfile, User, OrgSettings, Document } from "@/lib/schemas";
+import type {
+  Organization,
+  Workspace,
+  NextAction,
+  PendingInvitation,
+} from "@/stores/organizationStore";
 
 interface HydrationData {
   user?: {
@@ -17,6 +24,15 @@ interface HydrationData {
   };
   documents?: {
     documents: Document[];
+  };
+  organization?: {
+    organizations: Organization[];
+    workspaces: Workspace[];
+    primaryOrganization: Organization | null;
+    pendingInvitations: PendingInvitation[];
+    nextActions: NextAction[];
+    userState: string | null;
+    lastFetched?: number;
   };
 }
 
@@ -46,12 +62,14 @@ export function useStoreHydration(
   const userStore = useUserStore();
   const orgSettingsStore = useOrgSettingsStore();
   const documentsStore = useDocumentsStore();
+  const organizationStore = useOrganizationStore();
 
   // Use refs to track initialization to prevent infinite loops
   const initializationRef = useRef({
     userHydrated: false,
     orgSettingsHydrated: false,
     documentsHydrated: false,
+    organizationHydrated: false,
     authInitialized: false,
   });
 
@@ -80,6 +98,15 @@ export function useStoreHydration(
     ) {
       documentsStore.hydrate(data.documents);
       init.documentsHydrated = true;
+    }
+
+    if (
+      data?.organization &&
+      !organizationStore.isLoaded &&
+      !init.organizationHydrated
+    ) {
+      organizationStore.hydrate(data.organization);
+      init.organizationHydrated = true;
     }
 
     // Only initialize auth if not on a public route and shouldInitializeAuth is true
@@ -154,6 +181,45 @@ export function initializeAuthAfterLogin() {
     // Initialize auth if not already done
     if (!userStore.isInitialized) {
       userStore.initializeAuth();
+    }
+  });
+}
+
+/**
+ * Function to load organization context from localStorage on app start
+ * Call this during app initialization to restore organization state
+ */
+export function initializeOrganizationContext() {
+  if (typeof window === "undefined") return;
+
+  import("@/stores/organizationStore").then(({ useOrganizationStore }) => {
+    const orgStore = useOrganizationStore.getState();
+
+    // Only hydrate if not already loaded
+    if (!orgStore.isLoaded) {
+      const savedContext = localStorage.getItem("organizationContext");
+      if (savedContext) {
+        try {
+          const parsedContext = JSON.parse(savedContext);
+
+          // Check if data is stale (older than 5 minutes)
+          const CACHE_DURATION = 5 * 60 * 1000;
+          const isStale =
+            !parsedContext.lastFetched ||
+            Date.now() - parsedContext.lastFetched > CACHE_DURATION;
+
+          if (!isStale) {
+            orgStore.hydrate(parsedContext);
+          } else {
+            // Remove stale data
+            localStorage.removeItem("organizationContext");
+            console.log("Removed stale organization context from localStorage");
+          }
+        } catch (error) {
+          console.error("Failed to parse saved organization context:", error);
+          localStorage.removeItem("organizationContext");
+        }
+      }
     }
   });
 }

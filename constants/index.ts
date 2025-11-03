@@ -15,6 +15,7 @@ export const ROUTES = {
 
   //organization routes
   ORGANIZATIONS: `${API_BASE_URL}/organizations`,
+  ORGANIZATION_CONTEXT: `${API_BASE_URL}/organizations/context`,
 
   //auth register
   AUTH_REGISTER: `${API_BASE_URL}/auth/register`,

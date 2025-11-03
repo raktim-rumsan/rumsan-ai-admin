@@ -1,0 +1,203 @@
+"use client";
+
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
+import type { OrganizationContextResponse } from "@/queries/organizationQuery";
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  role: string;
+  isOwner: boolean;
+  joinedAt: string;
+}
+
+export interface Workspace {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  role: string;
+  organization: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  joinedAt: string;
+  isActive: boolean;
+}
+
+export interface NextAction {
+  action: string;
+  title: string;
+  description: string;
+  priority: string;
+  url: string;
+}
+
+export interface PendingInvitation {
+  id: string;
+  email: string;
+  role: string;
+  organizationId: string;
+  workspaceId?: string;
+  invitedAt: string;
+}
+
+interface OrganizationContextState {
+  // State
+  organizations: Organization[];
+  workspaces: Workspace[];
+  primaryOrganization: Organization | null;
+  pendingInvitations: PendingInvitation[];
+  nextActions: NextAction[];
+  userState: string | null;
+  redirectTo: string | null;
+  isLoaded: boolean;
+  isLoading: boolean;
+  error: string | null;
+  lastFetched: number | null;
+
+  // Actions
+  setContext: (data: OrganizationContextResponse["data"]) => void;
+  clearContext: () => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+
+  // Internal actions for hydration
+  hydrate: (data: {
+    organizations: Organization[];
+    workspaces: Workspace[];
+    primaryOrganization: Organization | null;
+    pendingInvitations: PendingInvitation[];
+    nextActions: NextAction[];
+    userState: string | null;
+    redirectTo: string | null;
+  }) => void;
+}
+export const useOrganizationStore = create<OrganizationContextState>()(
+  devtools(
+    (set) => ({
+      // Initial state
+      organizations: [],
+      workspaces: [],
+      primaryOrganization: null,
+      pendingInvitations: [],
+      nextActions: [],
+      userState: null,
+      redirectTo: null,
+      isLoaded: false,
+      isLoading: false,
+      error: null,
+      lastFetched: null,
+
+      // Actions
+      setContext: (data) => {
+        set(
+          {
+            organizations: data.organizations.all,
+            workspaces: data.workspaces.accessible,
+            primaryOrganization: data.organizations.primary || null,
+            pendingInvitations: data.pendingInvitations,
+            nextActions: data.nextActions,
+            userState: data.userState,
+            redirectTo: data.redirectTo,
+            isLoaded: true,
+            isLoading: false,
+            error: null,
+            lastFetched: Date.now(),
+          },
+          false,
+          "setContext"
+        );
+
+        // Persist to localStorage
+        if (typeof window !== "undefined") {
+          const persistData = {
+            organizations: data.organizations.all,
+            workspaces: data.workspaces.accessible,
+            primaryOrganization: data.organizations.primary || null,
+            pendingInvitations: data.pendingInvitations,
+            nextActions: data.nextActions,
+            userState: data.userState,
+            redirectTo: data.redirectTo,
+            lastFetched: Date.now(),
+          };
+          localStorage.setItem(
+            "organizationContext",
+            JSON.stringify(persistData)
+          );
+        }
+      },
+
+      clearContext: () => {
+        set(
+          {
+            organizations: [],
+            workspaces: [],
+            primaryOrganization: null,
+            pendingInvitations: [],
+            nextActions: [],
+            userState: null,
+            redirectTo: null,
+            isLoaded: false,
+            isLoading: false,
+            error: null,
+            lastFetched: null,
+          },
+          false,
+          "clearContext"
+        );
+
+        // Clear from localStorage
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("organizationContext");
+        }
+      },
+
+      setLoading: (loading) => {
+        set({ isLoading: loading }, false, "setLoading");
+      },
+
+      setError: (error) => {
+        set({ error, isLoading: false }, false, "setError");
+      },
+
+      // Internal hydration action (for SSR/client sync)
+      hydrate: (data) => {
+        set(
+          {
+            ...data,
+            isLoaded: true,
+            isLoading: false,
+            error: null,
+          },
+          false,
+          "hydrate"
+        );
+      },
+    }),
+    {
+      name: "organization-store",
+    }
+  )
+);
+
+export const getRedirectPath = (redirectTo: string): string => {
+  switch (redirectTo) {
+    case "onboarding":
+      return "/onboarding";
+    case "admin":
+      return "/admin";
+    case "dashboard":
+      return "/dashboard";
+    default:
+      return "/dashboard"; // fallback
+  }
+};
+
+// Utility function to clear organization context (can be called from anywhere)
+export const clearOrganizationContext = () => {
+  useOrganizationStore.getState().clearContext();
+};
