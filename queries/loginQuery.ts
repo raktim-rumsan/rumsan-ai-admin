@@ -1,4 +1,3 @@
-import { ROUTES } from "@/constants";
 import { useMutation } from "@tanstack/react-query";
 
 export default function useLoginMutation() {
@@ -27,27 +26,6 @@ export function useSignUpMutation() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Sign up failed");
-      const { user } = data;
-      const orgRegisterPayload = {
-        email: user.email,
-        id: user.id, // fallback if no id returned
-      };
-      const registerRes = await fetch(ROUTES.AUTH_REGISTER, {
-        method: "POST",
-        headers: {
-          accept: "*/*",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orgRegisterPayload),
-      });
-      const registerData = await registerRes.json();
-      if (!registerRes.ok)
-        throw new Error(
-          registerData.error || "Organization registration failed"
-        );
-      if (registerData?.data?.slug) {
-        localStorage.setItem("workspaceId", registerData.data.slug);
-      }
       return { ...data };
     },
   });
@@ -61,11 +39,8 @@ export function useVerifyOtpMutation() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.error || "OTP verification failed");
-
       return data;
     },
   });
