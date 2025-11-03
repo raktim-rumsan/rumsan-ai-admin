@@ -29,15 +29,16 @@ export interface CreateApiKeyResponse {
 
 // Get organization API keys
 export const useApiKeys = () => {
-  const tenantId = typeof window !== "undefined" ? localStorage.getItem("tenantId") : null;
+  const workspaceId =
+    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
 
   return useQuery({
-    queryKey: ["apiKeys", tenantId],
+    queryKey: ["apiKeys", workspaceId],
     queryFn: async (): Promise<ApiKey[]> => {
       const accessToken = getAuthToken();
-      const currentTenantId = localStorage.getItem("tenantId");
+      const workspaceId = localStorage.getItem("workspaceId");
 
-      if (!accessToken || !currentTenantId) {
+      if (!accessToken || !workspaceId) {
         throw new Error("Missing authentication credentials");
       }
 
@@ -45,7 +46,7 @@ export const useApiKeys = () => {
         method: "GET",
         headers: {
           accept: "*/*",
-          "x-tenant-id": currentTenantId,
+          "x-tenant-id": workspaceId,
           access_token: accessToken,
         },
       });
@@ -70,7 +71,7 @@ export const useApiKeys = () => {
 
       return transformedData;
     },
-    enabled: typeof window !== "undefined" && !!tenantId, // Only run on client-side when tenantId exists
+    enabled: typeof window !== "undefined" && !!workspaceId, // Only run on client-side when workspaceId exists
   });
 };
 
@@ -81,31 +82,27 @@ export const useCreateApiKey = () => {
   return useMutation({
     mutationFn: async (payload: CreateApiKeyPayload): Promise<ApiKey> => {
       const accessToken = getAuthToken();
-      const tenantId = localStorage.getItem("tenantId");
-
-      if (!accessToken || !tenantId) {
+      const workspaceId = localStorage.getItem("workspaceId");
+      if (!accessToken || !workspaceId) {
         throw new Error("Missing authentication credentials");
       }
-
       const response = await fetch(ROUTES.CREATE_ORG_API_KEY, {
         method: "POST",
         headers: {
           accept: "*/*",
-          "x-tenant-id": tenantId,
+          "x-tenant-id": workspaceId,
           access_token: accessToken,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.message || errorData.error || response.statusText;
+        const errorMessage =
+          errorData.message || errorData.error || response.statusText;
         throw new Error(`Failed to create API key: ${errorMessage}`);
       }
-
       const data: CreateApiKeyResponse = await response.json();
-
       // Transform the created API key to match our UI interface
       const transformedApiKey = {
         ...data.data,
@@ -116,7 +113,6 @@ export const useCreateApiKey = () => {
           year: "numeric",
         }),
       };
-
       return transformedApiKey;
     },
     onSuccess: () => {
@@ -137,24 +133,22 @@ export const useDeleteApiKey = () => {
   return useMutation({
     mutationFn: async (apiKeyId: string): Promise<void> => {
       const accessToken = getAuthToken();
-      const tenantId = localStorage.getItem("tenantId");
-
-      if (!accessToken || !tenantId) {
+      const workspaceId = localStorage.getItem("workspaceId");
+      if (!accessToken || !workspaceId) {
         throw new Error("Missing authentication credentials");
       }
-
       const response = await fetch(ROUTES.DELETE_ORG_API_KEY(apiKeyId), {
         method: "DELETE",
         headers: {
           accept: "*/*",
-          "x-tenant-id": tenantId,
+          "x-tenant-id": workspaceId,
           access_token: accessToken,
         },
       });
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.message || errorData.error || response.statusText;
+        const errorMessage =
+          errorData.message || errorData.error || response.statusText;
         throw new Error(`Failed to delete API key: ${errorMessage}`);
       }
     },

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
 import { toast } from "sonner";
 
-import API_BASE_URL, { ROUTES } from "@/constants";
+import { ROUTES } from "@/constants";
 
 export interface OrgSettings {
   systemPrompt?: string;
@@ -24,23 +24,20 @@ export interface UpdateSystemPromptPayload {
 
 // Get organization settings
 export const useOrgSettings = () => {
-  const tenantId = typeof window !== "undefined" ? localStorage.getItem("tenantId") : null;
+  const workspaceId = localStorage.getItem("workspaceId");
 
   return useQuery({
-    queryKey: ["orgSettings", tenantId],
+    queryKey: ["orgSettings", workspaceId],
     queryFn: async (): Promise<OrgSettings> => {
       const accessToken = getAuthToken();
-      const currentTenantId = localStorage.getItem("tenantId");
-
-      if (!accessToken || !currentTenantId) {
+      if (!accessToken || !workspaceId) {
         throw new Error("Missing authentication credentials");
       }
-
       const response = await fetch(ROUTES.WORKSPACE_SETTING, {
         method: "GET",
         headers: {
           accept: "*/*",
-          "x-tenant-id": currentTenantId,
+          "x-tenant-id": workspaceId,
           access_token: accessToken,
         },
       });
@@ -52,7 +49,7 @@ export const useOrgSettings = () => {
       const data: OrgSettingsResponse = await response.json();
       return data.data;
     },
-    enabled: typeof window !== "undefined" && !!tenantId, // Only run on client-side when tenantId exists
+    enabled: typeof window !== "undefined" && !!workspaceId, // Only run on client-side when workspaceId exists
   });
 };
 
@@ -63,17 +60,15 @@ export const useUpdateSystemPrompt = () => {
   return useMutation({
     mutationFn: async (payload: UpdateSystemPromptPayload): Promise<void> => {
       const accessToken = getAuthToken();
-      const tenantId = localStorage.getItem("tenantId");
-
-      if (!accessToken || !tenantId) {
+      const workspaceId = localStorage.getItem("workspaceId");
+      if (!accessToken || !workspaceId) {
         throw new Error("Missing authentication credentials");
       }
-
       const response = await fetch(ROUTES.SETTING_SYSTEM_PROMT, {
         method: "POST",
         headers: {
           accept: "*/*",
-          "x-tenant-id": tenantId,
+          "x-tenant-id": workspaceId,
           access_token: accessToken,
           "Content-Type": "application/json",
         },
@@ -81,7 +76,9 @@ export const useUpdateSystemPrompt = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to update system prompt: ${response.statusText}`);
+        throw new Error(
+          `Failed to update system prompt: ${response.statusText}`
+        );
       }
     },
     onSuccess: () => {

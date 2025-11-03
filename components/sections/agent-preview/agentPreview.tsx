@@ -44,7 +44,7 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Get current tenant for tenant-specific org settings
-  const tenantId = localStorage.getItem("workspaceId");
+  const workspaceId = localStorage.getItem("workspaceId");
 
   // Get organization settings and update mutation
   const {
@@ -62,10 +62,10 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
 
   // Refetch org settings when tenant changes
   useEffect(() => {
-    if (isMounted && tenantId) {
+    if (isMounted && workspaceId) {
       refetch();
     }
-  }, [tenantId, isMounted, refetch]);
+  }, [workspaceId, isMounted, refetch]);
 
   // Load prompt content from org settings when available
   useEffect(() => {

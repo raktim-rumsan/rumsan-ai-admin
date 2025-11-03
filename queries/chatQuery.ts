@@ -43,15 +43,17 @@ export interface ChatQueryResponse {
 }
 
 // Function to send a chat query to the RAG API
-async function sendChatQuery(request: ChatQueryRequest): Promise<ChatQueryResponse> {
+async function sendChatQuery(
+  request: ChatQueryRequest
+): Promise<ChatQueryResponse> {
   const token = getAuthToken();
-  const tenantId = localStorage.getItem("tenantId");
+  const workspaceId = localStorage.getItem("workspaceId");
 
   if (!token) {
     throw new Error("No authentication token found");
   }
 
-  if (!tenantId) {
+  if (!workspaceId) {
     throw new Error("No tenant ID found");
   }
 
@@ -59,7 +61,7 @@ async function sendChatQuery(request: ChatQueryRequest): Promise<ChatQueryRespon
     method: "POST",
     headers: {
       accept: "application/json",
-      "x-tenant-id": tenantId,
+      "x-tenant-id": workspaceId,
       access_token: token,
       "Content-Type": "application/json",
     },
@@ -69,7 +71,9 @@ async function sendChatQuery(request: ChatQueryRequest): Promise<ChatQueryRespon
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     const errorMessage =
-      errorData.message || errorData.error || `HTTP error! status: ${response.status}`;
+      errorData.message ||
+      errorData.error ||
+      `HTTP error! status: ${response.status}`;
     throw new Error(errorMessage);
   }
 

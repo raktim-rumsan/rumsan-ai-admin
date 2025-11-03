@@ -28,7 +28,7 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
     setSelectedTab(value);
   };
 
-  const tenantId = isMounted ? localStorage.getItem("tenantId") : null;
+  const workspaceId = isMounted ? localStorage.getItem("workspaceId") : null;
   const BASE_URL = process.env.NEXT_PUBLIC_URL!;
 
   // Get the first available API key
@@ -38,7 +38,7 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
     if (!currentApiKey) return null;
 
     const params = new URLSearchParams({
-      user: tenantId || "",
+      user: workspaceId || "",
       apiKey: currentApiKey,
       title: config.title,
       color: config.color,
@@ -85,7 +85,7 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
   ">
 </iframe>`,
     };
-  }, [tenantId, currentApiKey, BASE_URL, config]);
+  }, [workspaceId, currentApiKey, BASE_URL, config]);
 
   const handleCopy = () => {
     if (
@@ -95,7 +95,9 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
       "react" in snippetCode &&
       "html" in snippetCode
     ) {
-      const cleanCode = snippetCode[selectedTab as "react" | "html"].replace(/\s+/g, " ").trim();
+      const cleanCode = snippetCode[selectedTab as "react" | "html"]
+        .replace(/\s+/g, " ")
+        .trim();
       copyContent(cleanCode);
     }
   };
@@ -137,7 +139,9 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
     <div className="relative mt-4">
       {!currentApiKey && !isLoading ? (
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 p-8 bg-muted rounded-lg text-center">
-          <span className="text-muted-foreground">You have not created an API key yet</span>
+          <span className="text-muted-foreground">
+            You have not created an API key yet
+          </span>
           <Button
             onClick={() => (window.location.href = "/dashboard/settings")}
             variant="outline"
@@ -163,10 +167,16 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
 
           <div className="relative w-full">
             <pre className="rounded-lg bg-muted p-4 text-sm whitespace-pre-wrap break-all overflow-x-auto max-w-full min-h-[100px]">
-              <TabsContent value="react" className="whitespace-pre-wrap break-all">
+              <TabsContent
+                value="react"
+                className="whitespace-pre-wrap break-all"
+              >
                 {renderContent()}
               </TabsContent>
-              <TabsContent value="html" className="whitespace-pre-wrap break-all">
+              <TabsContent
+                value="html"
+                className="whitespace-pre-wrap break-all"
+              >
                 {renderContent()}
               </TabsContent>
             </pre>
@@ -175,7 +185,7 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
               variant="secondary"
               className="absolute right-3 top-2 border-2 cursor-pointer"
               onClick={handleCopy}
-              disabled={isLoading || !tenantId || !currentApiKey}
+              disabled={isLoading || !workspaceId || !currentApiKey}
             >
               {isCopied ? (
                 <>

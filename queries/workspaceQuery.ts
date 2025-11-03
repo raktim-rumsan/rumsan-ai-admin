@@ -20,18 +20,16 @@ export interface WorkspacesResponse {
   data: Workspace[];
 }
 export function useWorkspaceQuery() {
-  const tenantId = localStorage.getItem("workspaceId");
-  console.log("tenantId:", tenantId);
+  const workspaceId = localStorage.getItem("workspaceId");
   return useQuery({
-    queryKey: ["workspaces", tenantId],
+    queryKey: ["workspaces", workspaceId],
     queryFn: async (): Promise<WorkspacesResponse> => {
-      const tenantId = localStorage.getItem("tenantId");
       const orgId = localStorage.getItem("orgId");
       const access_token = getAuthToken();
       const res = await fetch(`${ROUTES.ORG_WORKSPACE}/${orgId}/workspaces`, {
         method: "GET",
         headers: {
-          "x-tenant-id": tenantId || "",
+          "x-tenant-id": workspaceId || "",
           access_token: access_token || "",
           accept: "application/json",
         },
@@ -54,11 +52,11 @@ export function useCreateWorkspace() {
       description?: string;
     }) => {
       const access_token = getAuthToken();
-      const tenantId = localStorage.getItem("tenantId");
+      const workspaceId = localStorage.getItem("workspaceId");
       const res = await fetch(ROUTES.ADMIN_WORKSPACE, {
         method: "POST",
         headers: {
-          "x-tenant-id": tenantId || "",
+          "x-tenant-id": workspaceId || "",
           access_token: access_token || "",
           "Content-Type": "application/json",
         },

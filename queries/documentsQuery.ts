@@ -11,13 +11,13 @@ export function useDocUploadMutation(onSuccess?: () => void) {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
-      const tenantId = localStorage.getItem("tenantId");
+      const workspaceId = localStorage.getItem("workspaceId");
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.UPLOAD_DOCUMENTS, {
         method: "POST",
         body: formData,
         headers: {
-          "x-tenant-id": tenantId || "",
+          "x-tenant-id": workspaceId || "",
           access_token: access_token || "",
         },
       });
@@ -69,7 +69,7 @@ export function useDocDeleteMutation(onSuccess?: () => void) {
 
   return useMutation({
     mutationFn: async (documentId: string) => {
-      const workspaceId = localStorage.getItem("tenantId");
+      const workspaceId = localStorage.getItem("workspaceId");
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.DELETE_DOCUMENT(documentId), {
         method: "DELETE",
@@ -107,13 +107,13 @@ export function useEmbeddingMutation(onSuccess?: () => void) {
 
   return useMutation({
     mutationFn: async (documentId: string) => {
-      const tenantId = localStorage.getItem("tenantId");
+      const workspaceId = localStorage.getItem("workspaceId");
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.EMBEDDINGS, {
         method: "POST",
         headers: {
           accept: "application/json",
-          "x-tenant-id": tenantId || "",
+          "x-tenant-id": workspaceId || "",
           access_token: access_token || "",
           "Content-Type": "application/json",
         },
@@ -149,13 +149,13 @@ export function useUnembeddingMutation(onSuccess?: () => void) {
 
   return useMutation({
     mutationFn: async (documentId: string) => {
-      const tenantId = localStorage.getItem("tenantId");
+      const workspaceId = localStorage.getItem("workspaceId");
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.UNEMBEDDINGS, {
         method: "POST",
         headers: {
           accept: "application/json",
-          "x-tenant-id": tenantId || "",
+          "x-tenant-id": workspaceId || "",
           access_token: access_token || "",
           "Content-Type": "application/json",
         },
@@ -192,12 +192,12 @@ export async function viewDocument(
 ) {
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_API!;
   const accessToken = getAuthToken();
-  const tenantId = localStorage.getItem("tenantId");
+  const workspaceId = localStorage.getItem("workspaceId");
   const fileUrl = `${serverUrl}/${url.replace(/^\/+/, "")}`;
 
   const headers: Record<string, string> = { accept: "application/pdf" };
   if (accessToken) headers["access_token"] = accessToken;
-  if (tenantId) headers["x-tenant-id"] = tenantId;
+  if (workspaceId) headers["x-tenant-id"] = workspaceId;
 
   const response = await fetch(fileUrl, { headers });
   if (!response.ok) {

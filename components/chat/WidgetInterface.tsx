@@ -20,14 +20,14 @@ interface WidgetMessage {
 
 interface WidgetConfig {
   apiKey: string;
-  tenantId: string;
+  workspaceId: string;
 }
 
 // Simple widget API call function
 async function sendWidgetChatQuery(
   query: string,
   apiKey: string,
-  tenantId: string
+  workspaceId: string
 ): Promise<{ answer: string }> {
   // Use a fallback URL if API_BASE_URL is not defined
   const endpoint = `${API_BASE_URL}/rag/query-api`;
@@ -40,7 +40,7 @@ async function sendWidgetChatQuery(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-tenant-id": tenantId,
+        "x-tenant-id": workspaceId,
         "x-api-key": apiKey,
         Accept: "application/json",
         "Cache-Control": "no-cache",
@@ -93,7 +93,7 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [widgetConfig, setWidgetConfig] = useState<WidgetConfig>({
     apiKey: "",
-    tenantId: "",
+    workspaceId: "",
   });
   const [configError, setConfigError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<
@@ -138,7 +138,7 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
 
     setWidgetConfig({
       apiKey,
-      tenantId: userId,
+      workspaceId: userId,
     });
 
     setConfigError(null);
@@ -178,7 +178,7 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
       const response = await sendWidgetChatQuery(
         input.trim(),
         widgetConfig.apiKey,
-        widgetConfig.tenantId
+        widgetConfig.workspaceId
       );
 
       const assistantMessage: WidgetMessage = {
@@ -317,7 +317,7 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
           <div className="text-xs text-gray-400 text-center space-y-1">
             <p>Required URL parameters:</p>
             <p>• apiKey: {widgetConfig.apiKey ? "✓" : "✗"}</p>
-            <p>• user: {widgetConfig.tenantId ? "✓" : "✗"}</p>
+            <p>• user: {widgetConfig.workspaceId ? "✓" : "✗"}</p>
           </div>
         </div>
       </div>
