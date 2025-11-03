@@ -1,4 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import Link from "next/link";
 
 export default function SignUpSuccessPage() {
@@ -8,7 +14,11 @@ export default function SignUpSuccessPage() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="currentColor">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-6 h-6 text-white"
+                fill="currentColor"
+              >
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
@@ -18,12 +28,17 @@ export default function SignUpSuccessPage() {
 
         <Card className="border-0 shadow-lg">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-semibold">Thank you for signing up!</CardTitle>
-            <CardDescription className="text-gray-600">Procced to login page</CardDescription>
+            <CardTitle className="text-2xl font-semibold">
+              Thank you for signing up!
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              Proceed to login page
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600 text-center">
-              You&apos;ve successfully signed up. Please go back to the login page using this&nbsp;
+              You&apos;ve successfully signed up. Please go back to the login
+              page using this&nbsp;
               <Link
                 href="/auth/login"
                 className="inline-flex items-center font-medium text-blue-600 dark:text-blue-500 hover:underline"

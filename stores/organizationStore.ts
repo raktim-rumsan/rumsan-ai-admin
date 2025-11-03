@@ -94,15 +94,19 @@ export const useOrganizationStore = create<OrganizationContextState>()(
 
       // Actions
       setContext: (data) => {
+        console.log("Organization store setContext called with:", data);
+        console.log("Organizations structure:", data.organizations);
+        console.log("Workspaces structure:", data.workspaces);
+
         set(
           {
-            organizations: data.organizations.all,
-            workspaces: data.workspaces.accessible,
-            primaryOrganization: data.organizations.primary || null,
-            pendingInvitations: data.pendingInvitations,
-            nextActions: data.nextActions,
-            userState: data.userState,
-            redirectTo: data.redirectTo,
+            organizations: data.organizations?.all || [],
+            workspaces: data.workspaces?.accessible || [],
+            primaryOrganization: data.organizations?.primary || null,
+            pendingInvitations: data.pendingInvitations || [],
+            nextActions: data.nextActions || [],
+            userState: data.userState || null,
+            redirectTo: data.redirectTo || null,
             isLoaded: true,
             isLoading: false,
             error: null,
@@ -115,13 +119,13 @@ export const useOrganizationStore = create<OrganizationContextState>()(
         // Persist to localStorage
         if (typeof window !== "undefined") {
           const persistData = {
-            organizations: data.organizations.all,
-            workspaces: data.workspaces.accessible,
-            primaryOrganization: data.organizations.primary || null,
-            pendingInvitations: data.pendingInvitations,
-            nextActions: data.nextActions,
-            userState: data.userState,
-            redirectTo: data.redirectTo,
+            organizations: data.organizations?.all || [],
+            workspaces: data.workspaces?.accessible || [],
+            primaryOrganization: data.organizations?.primary || null,
+            pendingInvitations: data.pendingInvitations || [],
+            nextActions: data.nextActions || [],
+            userState: data.userState || null,
+            redirectTo: data.redirectTo || null,
             lastFetched: Date.now(),
           };
           localStorage.setItem(
