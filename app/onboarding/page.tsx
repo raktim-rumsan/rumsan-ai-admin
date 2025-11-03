@@ -7,7 +7,6 @@ import { OrganizationCheck } from "@/components/organization-creation/organizati
 import { OrganizationForm } from "@/components/organization-creation/organiztion-form";
 import { StepIndicator } from "@/components/organization-creation/step-indicator";
 import { useState, useEffect } from "react";
-import { useTenantQuery } from "@/queries/tenantQuery";
 import { useRouter } from "next/navigation";
 
 type OnboardingStep =
@@ -19,51 +18,15 @@ type OnboardingStep =
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { data: tenantData, isLoading, isError } = useTenantQuery();
-  const [step, setStep] = useState<OnboardingStep>("checking");
+  const [step, setStep] = useState<OnboardingStep>("organization");
   const [organizationName, setOrganizationName] = useState<string>("");
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 
   useEffect(() => {
-    // Check if user already has an organization and redirect to dashboard if they do
-    const checkOrganization = async () => {
-      // Wait for tenant data to load
-      if (isLoading) {
-        return;
-      }
-
-      // If there's an error, proceed with onboarding
-      if (isError || !tenantData?.data) {
-        setStep("organization");
-        return;
-      }
-
-      // Check if user has orgId in personal workspace or teams
-      let hasValidOrgId = false;
-
-      // Check personal workspace
-      if (tenantData.data.personal && tenantData.data.personal.orgId !== null) {
-        hasValidOrgId = true;
-      }
-
-      // If no personal orgId, check teams
-      if (!hasValidOrgId) {
-        hasValidOrgId = tenantData.data.teams.some(
-          (team) => team.orgId !== null
-        );
-      }
-
-      if (hasValidOrgId) {
-        // User already has organization, redirect to dashboard
-        router.push("/dashboard");
-      } else {
-        // User needs to complete onboarding
-        setStep("organization");
-      }
-    };
-
-    checkOrganization();
-  }, [isLoading, isError, tenantData, router]);
+    // Tenant functionality has been removed - skip directly to organization setup
+    // This could be modified to check organization status from a different source if needed
+    console.log("Tenant functionality removed - proceeding with onboarding");
+  }, []);
 
   const handleOrganizationCreated = (name: string) => {
     setOrganizationName(name);
@@ -104,7 +67,7 @@ export default function OnboardingPage() {
         <StepIndicator currentStep={step} completedSteps={completedSteps} />
       )}
 
-      {(step === "checking" || isLoading) && <OrganizationCheck />}
+      {step === "checking" && <OrganizationCheck />}
       {step === "organization" && (
         <OrganizationForm onSuccess={handleOrganizationCreated} />
       )}

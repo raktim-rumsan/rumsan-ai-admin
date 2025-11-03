@@ -3,7 +3,12 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { createClient } from "@/lib/supabase/client";
-import { UserProfileSchema, UserSchema, type UserProfile, type User } from "@/lib/schemas";
+import {
+  UserProfileSchema,
+  UserSchema,
+  type UserProfile,
+  type User,
+} from "@/lib/schemas";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface UserState {
@@ -22,7 +27,10 @@ interface UserState {
   updateUser: (userData: User | null) => void;
 
   // Internal actions for hydration
-  hydrate: (data: { user: User | null; userProfile: UserProfile | null }) => void;
+  hydrate: (data: {
+    user: User | null;
+    userProfile: UserProfile | null;
+  }) => void;
 }
 
 const createUserFromSupabase = (supabaseUser: SupabaseUser): User => {
@@ -36,13 +44,18 @@ const createUserFromSupabase = (supabaseUser: SupabaseUser): User => {
   });
 };
 
-const createUserProfileFromSupabase = (supabaseUser: SupabaseUser): UserProfile => {
+const createUserProfileFromSupabase = (
+  supabaseUser: SupabaseUser
+): UserProfile => {
   const avatarUrl = supabaseUser.user_metadata?.avatar_url;
 
   return UserProfileSchema.parse({
     id: supabaseUser.id,
     email: supabaseUser.email || "",
-    name: supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name || "",
+    name:
+      supabaseUser.user_metadata?.name ||
+      supabaseUser.user_metadata?.full_name ||
+      "",
     avatar_url: avatarUrl && avatarUrl.trim() !== "" ? avatarUrl : undefined,
     phone: supabaseUser.phone || "",
     created_at: supabaseUser.created_at,
@@ -101,9 +114,7 @@ export const useUserStore = create<UserState>()(
           localStorage.removeItem("userProfile");
         }
 
-        // Also clear tenant data when user is cleared
-        const { useTenantStore } = await import("@/stores/tenantStore");
-        useTenantStore.getState().clearTenant();
+        // Tenant store has been removed - no longer clearing tenant data
       },
 
       updateUserProfile: (profile) => {
@@ -155,13 +166,7 @@ export const useUserStore = create<UserState>()(
               "initializeAuth:session"
             );
 
-            // Fetch tenant data now that user is authenticated
-            // Only if tenant store is not already initialized or loading
-            const { useTenantStore } = await import("@/stores/tenantStore");
-            const tenantState = useTenantStore.getState();
-            if (!tenantState.isInitialized && !tenantState.isLoading) {
-              useTenantStore.getState().fetchTenantData();
-            }
+            // Tenant store has been removed - no longer fetching tenant data
           } else {
             set(
               {
@@ -191,13 +196,7 @@ export const useUserStore = create<UserState>()(
                 "authStateChange:signedIn"
               );
 
-              // Fetch tenant data now that user is authenticated
-              // Only if tenant store is not already initialized or loading
-              const { useTenantStore } = await import("@/stores/tenantStore");
-              const tenantState = useTenantStore.getState();
-              if (!tenantState.isInitialized && !tenantState.isLoading) {
-                useTenantStore.getState().fetchTenantData();
-              }
+              // Tenant store has been removed - no longer fetching tenant data
             } else if (event === "SIGNED_OUT") {
               await get().clearUser();
               // clearUser now handles tenant data clearing
@@ -242,14 +241,18 @@ export const useUserStore = create<UserState>()(
 export const useUser = () => useUserStore((state) => state.user);
 export const useUserProfile = () => useUserStore((state) => state.userProfile);
 export const useUserLoading = () => useUserStore((state) => state.isLoading);
-export const useUserInitialized = () => useUserStore((state) => state.isInitialized);
+export const useUserInitialized = () =>
+  useUserStore((state) => state.isInitialized);
 
 // Actions hooks - individual hooks to prevent re-render issues
 export const useSetUser = () => useUserStore((state) => state.setUser);
-export const useSetUserProfile = () => useUserStore((state) => state.setUserProfile);
+export const useSetUserProfile = () =>
+  useUserStore((state) => state.setUserProfile);
 export const useClearUser = () => useUserStore((state) => state.clearUser);
-export const useInitializeAuth = () => useUserStore((state) => state.initializeAuth);
-export const useUpdateUserProfile = () => useUserStore((state) => state.updateUserProfile);
+export const useInitializeAuth = () =>
+  useUserStore((state) => state.initializeAuth);
+export const useUpdateUserProfile = () =>
+  useUserStore((state) => state.updateUserProfile);
 export const useUpdateUser = () => useUserStore((state) => state.updateUser);
 
 // Legacy actions hook - kept for backward compatibility but avoid using in components

@@ -5,14 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Send, RotateCcw, User, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOrgSettings } from "@/queries/orgSettingsQuery";
 import { useUpdateSystemPrompt } from "@/queries/orgSettingsQuery";
 import { useChatMutation, ChatMessage } from "@/queries/chatQuery";
-import { useTenantId } from "@/stores/tenantStore";
 
 export default function AgentPreview() {
   const defaultPrompt = `## Task
@@ -40,10 +44,14 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Get current tenant for tenant-specific org settings
-  const tenantId = useTenantId();
+  const tenantId = localStorage.getItem("workspaceId");
 
   // Get organization settings and update mutation
-  const { data: orgSettings, isLoading: isOrgLoading, refetch } = useOrgSettings();
+  const {
+    data: orgSettings,
+    isLoading: isOrgLoading,
+    refetch,
+  } = useOrgSettings();
   const updateSystemPrompt = useUpdateSystemPrompt();
   const chatMutation = useChatMutation();
 
@@ -131,7 +139,8 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "Sorry, I encountered an error while processing your message. Please try again.",
+        content:
+          "Sorry, I encountered an error while processing your message. Please try again.",
         timestamp: new Date(),
       };
       setChatMessages((prev) => [...prev, errorMessage]);
@@ -157,8 +166,12 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
   return (
     <div className="flex flex-col bg-background h-full overflow-hidden">
       <div className="border-b border-border p-6 flex-shrink-0">
-        <h1 className="text-2xl font-semibold text-foreground">Agent Preview</h1>
-        <p className="text-muted-foreground mt-1">Test your AI before release</p>
+        <h1 className="text-2xl font-semibold text-foreground">
+          Agent Preview
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Test your AI before release
+        </p>
       </div>
 
       <div className="flex-1 p-6 overflow-hidden">
@@ -188,7 +201,9 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
                     value={promptContent}
                     onChange={(e) => setPromptContent(e.target.value)}
                     className="h-full font-mono text-sm resize-none border-0 p-0 focus-visible:ring-0 bg-transparent text-foreground placeholder:text-muted-foreground"
-                    placeholder={isOrgLoading ? "Loading prompt..." : defaultPrompt}
+                    placeholder={
+                      isOrgLoading ? "Loading prompt..." : defaultPrompt
+                    }
                     disabled={isOrgLoading}
                   />
                 </div>
@@ -222,9 +237,12 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
                     </h3>
                     <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                       <div>
-                        <p className="text-sm font-medium text-foreground">Enable Documents</p>
+                        <p className="text-sm font-medium text-foreground">
+                          Enable Documents
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                          Allow the agent to use uploaded documents as knowledge base
+                          Allow the agent to use uploaded documents as knowledge
+                          base
                         </p>
                       </div>
                       <Switch
@@ -238,10 +256,12 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
                     <div className="border border-border rounded-lg p-4">
                       <div className="flex items-center justify-between">
                         <div className="justify-between p-4 bg-muted/50 rounded-lg">
-                          <p className="text-sm font-medium text-foreground">Notes</p>
+                          <p className="text-sm font-medium text-foreground">
+                            Notes
+                          </p>
                           <p className="text-sm text-muted-foreground">
-                            Documents uploaded in one workspace wont be available in the another
-                            workspace
+                            Documents uploaded in one workspace wont be
+                            available in the another workspace
                           </p>
                         </div>
                       </div>
@@ -255,7 +275,9 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
           {/* Right Column - Chat Interface */}
           <div className="flex flex-col bg-muted/30 rounded-lg border border-border h-full min-h-0 overflow-hidden">
             <div className="flex justify-between items-center p-4 border-b border-border flex-shrink-0">
-              <div className="text-sm font-medium text-foreground">Preview Chat</div>
+              <div className="text-sm font-medium text-foreground">
+                Preview Chat
+              </div>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -312,16 +334,20 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
                         <div className="flex justify-start gap-2">
                           {message.processingTime && (
                             <Badge variant="secondary" className="text-xs">
-                              Time: {(message.processingTime / 1000).toFixed(2)}s
+                              Time: {(message.processingTime / 1000).toFixed(2)}
+                              s
                             </Badge>
                           )}
                         </div>
                         {/* Sources */}
                         {message.sources && message.sources.length > 0 && (
                           <div className="border-t border-border pt-2 mt-2">
-                            <div className="text-xs text-muted-foreground mb-1">Sources:</div>
+                            <div className="text-xs text-muted-foreground mb-1">
+                              Sources:
+                            </div>
                             <div className="space-y-1">
-                              {message.sources[0].payload.fileName || "Source not defined"}
+                              {message.sources[0].payload.fileName ||
+                                "Source not defined"}
                             </div>
                           </div>
                         )}

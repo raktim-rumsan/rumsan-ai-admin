@@ -1,35 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building, Users, MoreHorizontal, UserPlus } from "lucide-react";
+import { Building, Users, UserPlus } from "lucide-react";
 import { AddMemberModal } from "@/components/sections/organization/AddMemberModal";
-import { useTenant } from "@/stores/tenantStore";
-import { useOrgMembersQuery } from "@/queries/invitationQuery";
 
 export default function OrganizationPage() {
-  const { workspaceData, tenantId } = useTenant();
-  const workspaceType = workspaceData?.personal?.slug === tenantId ? "personal" : "team";
-
   const [activeTab, setActiveTab] = useState("settings");
 
-  useEffect(() => {
-    if (workspaceType === "personal" && activeTab === "members") {
-      setActiveTab("settings");
-    }
-  }, [workspaceType, activeTab]);
-
-  const {
-    data: membersData,
-    isLoading: membersLoading,
-    error: membersError,
-  } = useOrgMembersQuery();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -44,21 +33,24 @@ export default function OrganizationPage() {
     }
   };
 
-  const org =
-    workspaceType === "personal"
-      ? workspaceData?.personal
-      : workspaceData?.teams?.find((t) => t.slug === tenantId);
-
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Organization Management</h1>
-        <p className="text-gray-600">Manage your organization settings and team members</p>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Organization Management
+        </h1>
+        <p className="text-gray-600">
+          Manage your organization settings and team members
+        </p>
       </div>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList>
           <TabsTrigger value="settings">Organization Settings</TabsTrigger>
-          {workspaceType === "team" && <TabsTrigger value="members">Team Members</TabsTrigger>}
+          <TabsTrigger value="members">Team Members</TabsTrigger>
         </TabsList>
         <TabsContent value="settings" className="space-y-6">
           <Card>
@@ -67,87 +59,48 @@ export default function OrganizationPage() {
                 <Building className="h-5 w-5" />
                 Organization Details
               </CardTitle>
-              <CardDescription>Update your organization information</CardDescription>
+              <CardDescription>
+                Update your organization information
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="org-name">Organization Name</Label>
-                  <Input id="org-name" defaultValue={org?.name || ""} />
+                  <Input id="org-name" defaultValue={""} />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="org-description">Description</Label>
-                <Input id="org-description" defaultValue={org?.description || ""} />
+                <Input id="org-description" defaultValue={""} />
               </div>
               <Button>Save Changes</Button>
             </CardContent>
           </Card>
         </TabsContent>
-        {workspaceType === "team" && (
-          <TabsContent value="members" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                <h2 className="text-lg font-semibold">Team Members</h2>
-                <Badge variant="secondary">{membersData?.length || 0}</Badge>
-              </div>
-              <Button onClick={() => setIsInviteModalOpen(true)}>
-                <UserPlus className="h-4 w-4 mr-2" />
-                Invite Member
-              </Button>
+        <TabsContent value="members" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              <h2 className="text-lg font-semibold">Team Members</h2>
+              <Badge variant="secondary">{0}</Badge>
             </div>
+            <Button onClick={() => setIsInviteModalOpen(true)}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Invite Member
+            </Button>
+          </div>
 
-            <AddMemberModal
-              isOpen={isInviteModalOpen}
-              onClose={() => setIsInviteModalOpen(false)}
-              onInviteSuccess={() => setIsInviteModalOpen(false)}
-            />
+          <AddMemberModal
+            isOpen={isInviteModalOpen}
+            onClose={() => setIsInviteModalOpen(false)}
+            onInviteSuccess={() => setIsInviteModalOpen(false)}
+          />
 
-            <Card>
-              <CardContent className="p-0">
-                {membersLoading ? (
-                  <div className="p-4 text-center text-gray-500">Loading members...</div>
-                ) : membersError ? (
-                  <div className="p-4 text-center text-red-500">Failed to load members</div>
-                ) : (
-                  <div className="divide-y">
-                    {Array.isArray(membersData?.data) &&
-                      membersData.data.map((member: any) => (
-                        <div key={member.id} className="p-4 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarFallback className="bg-gray-100 text-gray-600">
-                                {member.name
-                                  ? member.name
-                                      .split(" ")
-                                      .map((n: string) => n[0])
-                                      .join("")
-                                  : member.email?.[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium text-gray-900">{member.user.name}</p>
-                              <p className="text-sm text-gray-500">{member.user.email}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Badge className={getRoleBadgeColor(member.role)}>{member.role}</Badge>
-                            <Badge variant={member.isActive ? "default" : "secondary"}>
-                              {member.isActive ? "Active" : "Inactive"}
-                            </Badge>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
+          <Card>
+            <CardContent className="p-0"></CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );

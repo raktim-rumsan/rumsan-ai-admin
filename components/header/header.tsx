@@ -4,13 +4,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, ChevronDown } from "lucide-react";
 import {
-  useTenantId,
-  useWorkspaceData,
-  useSetTenantId,
-} from "@/stores/tenantStore";
-import { useTenantQuery } from "@/queries/tenantQuery";
-import type { Team } from "@/lib/schemas";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -27,70 +20,24 @@ interface HeaderProps {
 
 export function MainHeader({ onMenuClick }: HeaderProps) {
   const pathname = usePathname();
-
-  const tenantId = useTenantId();
-  const workspaceData = useWorkspaceData();
-  const setTenantId = useSetTenantId();
-  const { data, isLoading } = useTenantQuery();
-
   const [createTeamDialogOpen, setCreateTeamDialogOpen] = useState(false);
-
   const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (isMounted && !isLoading && data?.data?.personal) {
-      const slug = data.data.personal.slug;
-      // Only set personal workspace as default if no tenantId is currently stored
-      // This prevents overriding user's team selection
-      if (slug && !tenantId && !localStorage.getItem("tenantId")) {
-        localStorage.setItem("tenantId", slug);
-        setTenantId(slug);
-      }
-    }
-  }, [isMounted, data, isLoading, tenantId, setTenantId]);
-
-  const handleWorkspaceChange = (value: string) => {
-    if (value === "personal") {
-      const slug = personalSlug;
-      if (slug) {
-        setTenantId(slug);
-        localStorage.setItem("tenantId", slug);
-        // Reload the entire website to refresh all data and state
-        window.location.reload();
-      }
-    } else {
-      const slug = value.replace("team-", "");
-      setTenantId(slug);
-      localStorage.setItem("tenantId", slug);
-      // Reload the entire website to refresh all data and state
-      window.location.reload();
-    }
-  };
 
   const handleTeamCreated = async (teamSlug: string) => {
     console.log("Team created with slug:", teamSlug);
   };
 
-  if (!isMounted || isLoading) return null;
-
-  // Use workspaceData from tenant context for better synchronization
-  const teams = workspaceData?.teams || data?.data?.teams || [];
-  const personalSlug =
-    workspaceData?.personal?.slug || data?.data?.personal?.slug;
-  const isPersonalWorkspace = tenantId === personalSlug;
-  const currentTeam = teams.find((team: Team) => team.slug === tenantId);
-
-  const currentValue = isPersonalWorkspace
-    ? "Demo Workspace"
-    : currentTeam
-    ? currentTeam.name
-    : "Select Workspace";
+  if (!isMounted) return null;
 
   // Check if we're in the admin dashboard
   const isAdminDashboard = pathname?.startsWith("/admin");
+
+  // Default workspace display
+  const currentValue = "Demo Workspace";
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-3 lg:px-6">
@@ -144,10 +91,7 @@ export function MainHeader({ onMenuClick }: HeaderProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="start">
-                <DropdownMenuItem
-                  onClick={() => handleWorkspaceChange("personal")}
-                  className={isPersonalWorkspace ? "bg-accent" : ""}
-                >
+                <DropdownMenuItem className="bg-accent">
                   Demo Workspace
                 </DropdownMenuItem>
               </DropdownMenuContent>

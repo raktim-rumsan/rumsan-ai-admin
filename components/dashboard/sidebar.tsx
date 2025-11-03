@@ -25,8 +25,6 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useUserProfile, useUserLoading } from "@/stores/userStore";
-import { useTenantId, useWorkspaceData } from "@/stores/tenantStore";
-import { get } from "http";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -67,19 +65,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const userProfile = useUserProfile();
   const isLoading = useUserLoading();
 
-  // Get workspace data to determine if this is a personal/demo workspace
-  const tenantId = useTenantId();
-  const workspaceData = useWorkspaceData();
-
-  // Check if current workspace is personal (demo workspace)
-  const isPersonalWorkspace = workspaceData?.personal?.slug === tenantId;
-
   // Filter navigation items based on workspace type
   const filteredNavigationItems = navigationItems.filter((item) => {
-    // Hide "Organization Management" for personal/demo workspaces
-    if (item.title === "Organization Management" && isPersonalWorkspace) {
-      return false;
-    }
     return true;
   });
 

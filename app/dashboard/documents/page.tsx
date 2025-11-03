@@ -23,7 +23,6 @@ import {
   useUnembeddingMutation,
 } from "@/queries/documentsQuery";
 import { useDocuments, useSetDocuments } from "@/stores/documentsStore";
-import { useTenantId, useWorkspaceData } from "@/stores/tenantStore";
 import { DocumentsResponseSchema } from "@/lib/schemas";
 
 interface Document {
@@ -41,14 +40,6 @@ export default function DocumentsPage() {
     null
   );
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  // Get workspace data to determine if this is a personal/demo workspace
-  const tenantId = useTenantId();
-  const workspaceData = useWorkspaceData();
-
-  // Check if current workspace is personal (demo workspace)
-  const isPersonalWorkspace = workspaceData?.personal?.slug === tenantId;
-  const MAX_DEMO_DOCUMENTS = 2;
 
   // Use both TanStack Query and Zustand store
   const { data, isLoading, refetch } = useDocsQuery();
@@ -165,18 +156,11 @@ export default function DocumentsPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-semibold">My Resources</h1>
-          {isPersonalWorkspace && (
-            <Badge variant="secondary" className="text-xs">
-              {currentDocumentCount}/{MAX_DEMO_DOCUMENTS} documents
-            </Badge>
-          )}
         </div>
         <Button
           className="bg-black hover:bg-gray-800"
           onClick={() => setIsUploadModalOpen(true)}
-          disabled={
-            isPersonalWorkspace && currentDocumentCount >= MAX_DEMO_DOCUMENTS
-          }>
+        >
           <Upload className="w-4 h-4 mr-2" />
           Upload File
         </Button>
@@ -234,7 +218,8 @@ export default function DocumentsPage() {
                               size="sm"
                               onClick={() => handleDelete(doc.id, doc.fileName)}
                               className="text-red-600 hover:text-red-700"
-                              disabled={deleteMutation.isPending}>
+                              disabled={deleteMutation.isPending}
+                            >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
@@ -263,16 +248,16 @@ export default function DocumentsPage() {
           // Manually refetch documents to ensure the list is updated
           refetch();
         }}
-        maxDocuments={isPersonalWorkspace ? MAX_DEMO_DOCUMENTS : undefined}
+        maxDocuments={undefined}
         currentDocumentCount={currentDocumentCount}
-        isPersonalWorkspace={isPersonalWorkspace}
       />
       {previewUrl && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-4 max-w-3xl w-full relative">
             <button
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-              onClick={() => setPreviewUrl(null)}>
+              onClick={() => setPreviewUrl(null)}
+            >
               Close
             </button>
           </div>

@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +21,6 @@ interface SimpleFileUploadModalProps {
   onUploadSuccess: () => void;
   maxDocuments?: number;
   currentDocumentCount?: number;
-  isPersonalWorkspace?: boolean;
 }
 
 export function SimpleFileUploadModal({
@@ -25,7 +29,6 @@ export function SimpleFileUploadModal({
   onUploadSuccess,
   maxDocuments,
   currentDocumentCount = 0,
-  isPersonalWorkspace = false,
 }: SimpleFileUploadModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -46,12 +49,15 @@ export function SimpleFileUploadModal({
 
   const handleUpload = () => {
     if (!selectedFile) {
-      toastUtils.generic.error("No file selected", "Please select a file to upload");
+      toastUtils.generic.error(
+        "No file selected",
+        "Please select a file to upload"
+      );
       return;
     }
 
     // Check document limit for demo workspaces
-    if (isPersonalWorkspace && maxDocuments !== undefined && currentDocumentCount >= maxDocuments) {
+    if (maxDocuments !== undefined && currentDocumentCount >= maxDocuments) {
       toastUtils.generic.error(
         "Document limit reached",
         `Demo workspaces are limited to ${maxDocuments} documents. Please upgrade to upload more files.`
@@ -86,10 +92,14 @@ export function SimpleFileUploadModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Upload File</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">
+            Upload File
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
-          <p className="text-gray-600">Select a file from your computer to upload.</p>
+          <p className="text-gray-600">
+            Select a file from your computer to upload.
+          </p>
           <div className="space-y-2">
             <Label htmlFor="file-upload">File</Label>
             <Input id="file-upload" type="file" onChange={handleFileChange} />
@@ -100,11 +110,12 @@ export function SimpleFileUploadModal({
               File size shouldn&apos;t exceed 10 MB.
             </AlertDescription>
           </Alert>
-          {isPersonalWorkspace && maxDocuments !== undefined && (
+          {maxDocuments !== undefined && (
             <Alert className="border-blue-200 bg-blue-50">
               <AlertTriangle className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-800">
-                Demo workspace: {currentDocumentCount}/{maxDocuments} documents used.
+                Demo workspace: {currentDocumentCount}/{maxDocuments} documents
+                used.
                 {currentDocumentCount >= maxDocuments
                   ? " Upgrade to upload more files."
                   : " Upgrade for unlimited documents."}
@@ -116,8 +127,7 @@ export function SimpleFileUploadModal({
             disabled={
               isUploading ||
               !selectedFile ||
-              (isPersonalWorkspace &&
-                maxDocuments !== undefined &&
+              (maxDocuments !== undefined &&
                 currentDocumentCount >= maxDocuments)
             }
             className="w-full bg-gray-600 hover:bg-gray-700"

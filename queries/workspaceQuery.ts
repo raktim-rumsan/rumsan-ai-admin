@@ -1,6 +1,5 @@
 import { ROUTES } from "@/constants";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTenantId } from "@/stores/tenantStore";
 import { getAuthToken } from "@/lib/utils";
 import { toastUtils } from "@/lib/toast-utils";
 
@@ -21,7 +20,7 @@ export interface WorkspacesResponse {
   data: Workspace[];
 }
 export function useWorkspaceQuery() {
-  const tenantId = useTenantId();
+  const tenantId = localStorage.getItem("workspaceId");
   console.log("tenantId:", tenantId);
   return useQuery({
     queryKey: ["workspaces", tenantId],

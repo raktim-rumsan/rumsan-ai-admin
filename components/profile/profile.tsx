@@ -11,14 +11,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { LogOut } from "lucide-react";
-import { useClearTenant, useUserLoading, useUserProfile } from "@/stores";
+import { useUserLoading, useUserProfile } from "@/stores";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 
 export function ProfileUserDashboard() {
   const userProfile = useUserProfile();
   const isLoading = useUserLoading();
-  const clearTenant = useClearTenant();
 
   const router = useRouter();
   const supabase = createBrowserClient(
@@ -58,7 +57,6 @@ export function ProfileUserDashboard() {
   };
 
   const handleLogout = async () => {
-    clearTenant();
     await supabase.auth.signOut();
     router.push("/auth/login");
   };

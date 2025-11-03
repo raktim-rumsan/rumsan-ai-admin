@@ -12,8 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCreateOrgMutation } from "@/queries/tenantQuery";
-import { useSetTenantId } from "@/stores/tenantStore";
 import { Loader2 } from "lucide-react";
 
 interface CreateTeamDialogProps {
@@ -22,42 +20,33 @@ interface CreateTeamDialogProps {
   onTeamCreated?: (teamSlug: string) => void;
 }
 
-export function CreateTeamDialog({ open, onOpenChange, onTeamCreated }: CreateTeamDialogProps) {
+export function CreateTeamDialog({
+  open,
+  onOpenChange,
+  onTeamCreated,
+}: CreateTeamDialogProps) {
   const [teamName, setTeamName] = useState("");
   const [teamDescription, setTeamDescription] = useState("");
-  const createOrgMutation = useCreateOrgMutation({
-    onSuccess: async (result: unknown) => {
-      const data = result as { data?: { slug?: string } };
-      const slug = data?.data?.slug;
-      if (slug) {
-        // Small delay to ensure query refetch completes
-        setTimeout(() => {
-          setTenantId(slug);
-          localStorage.setItem("tenantId", slug);
-          onTeamCreated?.(slug);
-          // Reload the entire website to refresh all data and state
-          window.location.reload();
-        }, 100);
-      }
-    },
-  });
-  const setTenantId = useSetTenantId();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!teamName.trim()) return;
 
-    try {
-      await createOrgMutation.mutateAsync({
-        name: teamName.trim(),
-        description: teamDescription.trim(),
-      });
+    setIsLoading(true);
+
+    // Simulate team creation (functionality removed - tenantQuery no longer available)
+    setTimeout(() => {
+      console.warn(
+        "Team creation functionality has been removed - tenantQuery is no longer available"
+      );
       setTeamName("");
       setTeamDescription("");
+      setIsLoading(false);
       onOpenChange(false);
-    } catch {
-      // Error is handled by the mutation's onError callback
-    }
+      // Call the callback with a mock slug
+      onTeamCreated?.(teamName.toLowerCase().replace(/\s+/g, "-"));
+    }, 1000);
   };
 
   const handleClose = () => {
@@ -87,7 +76,7 @@ export function CreateTeamDialog({ open, onOpenChange, onTeamCreated }: CreateTe
                 onChange={(e) => setTeamName(e.target.value)}
                 placeholder="Enter team name"
                 className="col-span-3"
-                disabled={createOrgMutation.isPending}
+                disabled={isLoading}
                 autoFocus
               />
             </div>
@@ -101,7 +90,7 @@ export function CreateTeamDialog({ open, onOpenChange, onTeamCreated }: CreateTe
                 onChange={(e) => setTeamDescription(e.target.value)}
                 placeholder="Enter team description"
                 className="col-span-3"
-                disabled={createOrgMutation.isPending}
+                disabled={isLoading}
                 autoFocus
               />
             </div>
@@ -111,12 +100,12 @@ export function CreateTeamDialog({ open, onOpenChange, onTeamCreated }: CreateTe
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={createOrgMutation.isPending}
+              disabled={isLoading}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!teamName.trim() || createOrgMutation.isPending}>
-              {createOrgMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" disabled={!teamName.trim() || isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Team
             </Button>
           </DialogFooter>

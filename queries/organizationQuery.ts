@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
-import { useTenantId } from "@/stores/tenantStore";
+import { useTenantId } from "@/lib/tenant-utils";
 
 import { ROUTES } from "@/constants";
 import { toastUtils } from "@/lib/toast-utils";
