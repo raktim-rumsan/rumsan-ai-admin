@@ -15,6 +15,10 @@ export interface Workspace {
   createdAt: string;
   updatedAt: string;
 }
+export type CreateInvitationPayload = {
+  email: string;
+  role: string;
+};
 
 export interface WorkspacesResponse {
   data: Workspace[];
@@ -44,6 +48,7 @@ export function useWorkspaceQuery() {
     },
   });
 }
+
 export function useCreateWorkspace() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -78,6 +83,46 @@ export function useCreateWorkspace() {
         "Error creating workspace",
         error.message || "Something went wrong. Please try again."
       );
+    },
+  });
+}
+
+export function useInvitationWorkspaceMutation() {
+  const queryClient = useQueryClient();
+  const workspaceId = localStorage.getItem("workspaceId");
+
+  return useMutation({
+    mutationFn: async (payload: CreateInvitationPayload) => {
+      console.log(payload, "---------");
+      const access_token = getAuthToken();
+      const res = await fetch(ROUTES.WORKSPACEINVITE, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-tenant-id": workspaceId || "",
+          access_token: access_token || "",
+          accept: "application/json",
+        },
+        body: JSON.stringify({
+          ...payload,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["invitations"],
+      });
+      toastUtils.invitations.sendSuccess(1);
+    },
+    onError: (error: Error) => {
+      toastUtils.invitations.sendError(error.message);
     },
   });
 }

@@ -12,6 +12,7 @@ export const ROUTES = {
   USERS: `${API_BASE_URL}/workspaces/users`,
   WORKSPACE_SETTING: `${API_BASE_URL}/workspaces/settings`,
   SETTING_SYSTEM_PROMT: `${API_BASE_URL}/workspaces/settings/systemPrompt`,
+  WORKSPACEINVITE: `${API_BASE_URL}/workspaces/invite`,
 
   //organization routes
   ORGANIZATIONS: `${API_BASE_URL}/organizations`,

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Trash2, Mail, User } from "lucide-react";
+import { useInvitationWorkspaceMutation } from "@/queries/workspaceQuery";
 import {
   Card,
   CardContent,
@@ -20,6 +21,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Member } from "@/types/workspace-types";
 
 interface Props {
@@ -31,6 +40,12 @@ export default function MembersTab({
   members: initialMembers,
   setMembers: externalSetMembers,
 }: Props) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("member");
+
+  const invitationMutation = useInvitationWorkspaceMutation();
+
   const [members, setMembers] = useState<Member[]>(
     initialMembers && initialMembers.length > 0
       ? initialMembers
@@ -72,6 +87,27 @@ export default function MembersTab({
     externalSetMembers?.(updatedMembers);
   };
 
+  const handleSendInvitation = async () => {
+    if (!email || !role) {
+      return;
+    }
+
+    try {
+      await invitationMutation.mutateAsync({
+        email,
+        role,
+      });
+
+      // Reset form and close dialog on success
+      setEmail("");
+      setRole("member");
+      setIsDialogOpen(false);
+    } catch (error) {
+      // Error handling is done in the mutation hook
+      console.error("Failed to send invitation:", error);
+    }
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -84,10 +120,59 @@ export default function MembersTab({
                   Manage who has access to this workspace
                 </CardDescription>
               </div>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Invite Member
-              </Button>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Invite Member
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Invite New Member</DialogTitle>
+                    <DialogDescription>
+                      Send an invitation to join this workspace
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="member@example.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="role">Role</Label>
+                        <Select value={role} onValueChange={setRole}>
+                          <SelectTrigger id="role">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="member">Member</SelectItem>
+                            <SelectItem value="viewer">Viewer</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <Button
+                      className="w-fit"
+                      onClick={handleSendInvitation}
+                      disabled={!email || !role || invitationMutation.isPending}
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      {invitationMutation.isPending
+                        ? "Sending..."
+                        : "Send Invitation"}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardHeader>
           <CardContent>
@@ -121,47 +206,6 @@ export default function MembersTab({
                   </div>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Invite Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Invite New Member</CardTitle>
-            <CardDescription>
-              Send an invitation to join this workspace
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="member@example.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Select defaultValue="member">
-                    <SelectTrigger id="role">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="member">Member</SelectItem>
-                      <SelectItem value="viewer">Viewer</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <Button className="w-fit">
-                <Mail className="h-4 w-4 mr-2" />
-                Send Invitation
-              </Button>
             </div>
           </CardContent>
         </Card>
