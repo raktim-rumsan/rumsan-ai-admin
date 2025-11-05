@@ -38,6 +38,9 @@ export const ROUTES = {
   //embeddings routes
   EMBEDDINGS: `${API_BASE_URL}/embeddings`,
   UNEMBEDDINGS: `${API_BASE_URL}/embeddings/unembed`,
+
+  //invitations routes
+  INVITATION_ACCEPT: `${API_BASE_URL}/invitations/accept`,
 };
 
 export default API_BASE_URL;
