@@ -134,6 +134,21 @@ export default function AuthOtp() {
           });
           initializeAuthAfterLogin();
           const token = getAuthToken();
+
+          // Check for pending redirect URL in localStorage
+          const redirectUrl =
+            typeof window !== "undefined"
+              ? localStorage.getItem("redirectUrl")
+              : null;
+
+          if (redirectUrl) {
+            // Clear the saved redirect URL
+            localStorage.removeItem("redirectUrl");
+            // Redirect to the invitation URL
+            router.push(redirectUrl);
+            return;
+          }
+
           // TODO: Fix the manually fetch organization context with the current token
           try {
             if (token) {

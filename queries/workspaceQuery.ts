@@ -90,7 +90,6 @@ export function useInvitationWorkspaceMutation() {
 
   return useMutation({
     mutationFn: async (payload: CreateInvitationPayload) => {
-      console.log(payload, "---------");
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.WORKSPACEINVITE, {
         method: "POST",
