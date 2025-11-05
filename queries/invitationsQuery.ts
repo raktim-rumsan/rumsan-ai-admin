@@ -41,7 +41,6 @@ import { toastUtils } from "@/lib/toast-utils";
 export function useAcceptInvitation() {
   const queryClient = useQueryClient();
   const access_token = getAuthToken();
-  console.log(access_token, "access_token---");
 
   return useMutation({
     mutationFn: async (token: string) => {
