@@ -51,11 +51,9 @@ export function useCreateWorkspace() {
       description?: string;
     }) => {
       const access_token = getAuthToken();
-      const workspaceId = localStorage.getItem("workspaceId");
-      const res = await fetch(ROUTES.ADMIN_WORKSPACE, {
+      const res = await fetch(ROUTES.CREATE_WORKSPACE, {
         method: "POST",
         headers: {
-          "x-tenant-id": workspaceId || "",
           access_token: access_token || "",
           "Content-Type": "application/json",
         },
