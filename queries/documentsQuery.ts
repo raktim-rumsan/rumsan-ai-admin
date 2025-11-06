@@ -102,6 +102,40 @@ export function useDocDeleteMutation(onSuccess?: () => void) {
   });
 }
 
+export function useKnowledgebaseQuery(selectedIndustries: string[] = []) {
+  return useQuery({
+    queryKey: ["documents", selectedIndustries],
+    queryFn: async () => {
+      const access_token = getAuthToken();
+
+      const queryString =
+        selectedIndustries.length > 0
+          ? `?industry=${selectedIndustries.join(",")}`
+          : "";
+
+      const res = await fetch(`${ROUTES.KNOWLEDGEBASE}${queryString}`, {
+        method: "GET",
+        headers: {
+          access_token: access_token || "",
+          accept: "application/json",
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      // 👇 Return the actual array instead of the wrapper object
+      return data.data || [];
+    },
+  });
+}
+
+
 export function useEmbeddingMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient();
 

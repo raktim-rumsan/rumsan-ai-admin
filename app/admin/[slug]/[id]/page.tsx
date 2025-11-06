@@ -53,7 +53,7 @@ export default function WorkspaceDetailPage({
                 <Bot className="h-4 w-4 mr-2" /> LLM Settings
               </TabsTrigger>
               <TabsTrigger value="knowledgebase">
-                <FileText className="h-4 w-4 mr-2" /> Knowledgebase
+                <FileText className="h-4 w-4 mr-2" /> Industry Knowledge
               </TabsTrigger>
             </TabsList>
             <Button
