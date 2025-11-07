@@ -76,10 +76,7 @@ export default function WorkspaceDetailPage({
             />
           </TabsContent>
           <TabsContent value="knowledgebase">
-            <KnowledgebaseTab
-              knowledgebase={knowledgebase}
-              setKnowledgebase={setKnowledgebase}
-            />
+            <KnowledgebaseTab/>
           </TabsContent>
         </Tabs>
       </div>
