@@ -13,6 +13,10 @@ export const ROUTES = {
   WORKSPACE_SETTING: `${API_BASE_URL}/workspaces/settings`,
   SETTING_SYSTEM_PROMT: `${API_BASE_URL}/workspaces/settings/systemPrompt`,
   WORKSPACEINVITE: `${API_BASE_URL}/workspaces/invite`,
+  WORKSPACE_MEMBER: (workspaceId: string) =>
+    `${API_BASE_URL}/workspaces/${workspaceId}/members`,
+  WORKSPACE_MEMBER_DELETE: (workspaceId: string) =>
+    `${API_BASE_URL}/workspaces/${workspaceId}/remove-user`,
 
   //organization routes
   ORGANIZATIONS: `${API_BASE_URL}/organizations`,
@@ -42,6 +46,9 @@ export const ROUTES = {
 
   //invitations routes
   INVITATION_ACCEPT: `${API_BASE_URL}/invitations/accept`,
+  INVITATION_DELETE: (invitationId: string) =>
+    `${API_BASE_URL}/invitations/${invitationId}`,
+  INVITATION_RESEND: `${API_BASE_URL}/invitations/resend`,
 };
 
 export default API_BASE_URL;
