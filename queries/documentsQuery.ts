@@ -102,15 +102,18 @@ export function useDocDeleteMutation(onSuccess?: () => void) {
   });
 }
 
-export function useKnowledgebaseQuery(selectedIndustries: string[] = []) {
+export function useKnowledgebaseQuery() {
   return useQuery({
-    queryKey: ["documents", selectedIndustries],
+    queryKey: ["documents"],
     queryFn: async () => {
       const access_token = getAuthToken();
 
+      const envIndustries =
+        process.env.NEXT_PUBLIC_INDUSTRY_VALUES?.split(",").map(i => i.trim()) || [];
+
       const queryString =
-        selectedIndustries.length > 0
-          ? `?industry=${selectedIndustries.join(",")}`
+        envIndustries.length > 0
+          ? `?industry=${envIndustries.join(",")}`
           : "";
 
       const res = await fetch(`${ROUTES.KNOWLEDGEBASE}${queryString}`, {
@@ -129,7 +132,6 @@ export function useKnowledgebaseQuery(selectedIndustries: string[] = []) {
         throw new Error(errorMessage);
       }
 
-      // 👇 Return the actual array instead of the wrapper object
       return data.data || [];
     },
   });
