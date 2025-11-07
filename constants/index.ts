@@ -34,6 +34,7 @@ export const ROUTES = {
   DOCUMENTS: `${API_BASE_URL}/docs`,
   UPLOAD_DOCUMENTS: `${API_BASE_URL}/docs/upload`,
   DELETE_DOCUMENT: (documentId: string) => `${API_BASE_URL}/docs/${documentId}`,
+  KNOWLEDGEBASE: `${API_BASE_URL}/docs/industry-docs`,
 
   //embeddings routes
   EMBEDDINGS: `${API_BASE_URL}/embeddings`,
