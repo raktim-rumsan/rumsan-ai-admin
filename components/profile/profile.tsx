@@ -25,7 +25,6 @@ export function ProfileUserDashboard() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
-
   // Extract user data with fallbacks
   const getUserDisplayData = () => {
     if (isLoading) {
@@ -64,6 +63,9 @@ export function ProfileUserDashboard() {
 
       // Clear all user and organization data
       await clearUser();
+
+      // Clear workspace and organization data
+      localStorage.clear();
 
       // Navigate to login page
       router.push("/auth/login");
