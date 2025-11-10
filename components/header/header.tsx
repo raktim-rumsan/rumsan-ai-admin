@@ -35,8 +35,12 @@ export function MainHeader({ onMenuClick }: HeaderProps) {
   const handleTeamCreated = async (teamSlug: string) => {
     console.log("Team created with slug:", teamSlug);
   };
-  const handleWorkspaceSelect = (workspace: { id: string; name: string }) => {
-    localStorage.setItem("workspaceId", workspace.id);
+  const handleWorkspaceSelect = (workspace: {
+    id: string;
+    name: string;
+    slug: string;
+  }) => {
+    localStorage.setItem("workspaceId", workspace.slug);
     localStorage.setItem("workspaceName", workspace.name);
     setCurrentValue(workspace.name);
   };

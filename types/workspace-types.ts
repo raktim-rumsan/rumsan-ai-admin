@@ -27,8 +27,11 @@ export interface LLMSettings {
 
 export interface Doc {
   id: string;
-  name?: string;
-  size?: string;
-  uploadedAt?: string;
-  enabled: boolean;
+  workspaceId: string | null;
+  industry: string;
+  fileName: string;
+  driveFileId: string | null;
+  url: string;
+  status: string;
+  createdAt: string;
 }
