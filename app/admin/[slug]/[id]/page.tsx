@@ -71,8 +71,8 @@ export default function WorkspaceDetailPage({
           </TabsContent>
           <TabsContent value="llm">
             <LLMSettingsTab
-              llmSettings={llmSettings}
-              setLlmSettings={setLlmSettings}
+            // llmSettings={llmSettings}
+            // setLlmSettings={setLlmSettings}
             />
           </TabsContent>
           <TabsContent value="knowledgebase">
