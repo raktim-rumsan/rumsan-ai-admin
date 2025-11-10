@@ -88,6 +88,9 @@ export default function WorkspacesPage() {
                   <Link
                     key={workspace.id}
                     href={`/admin/workspaces/${workspace.id}`}
+                    onClick={() =>
+                      localStorage.setItem("workspaceId", workspace.slug)
+                    }
                   >
                     <Card className="group h-full transition-all hover:shadow-lg hover:border-primary/50">
                       <CardHeader>
