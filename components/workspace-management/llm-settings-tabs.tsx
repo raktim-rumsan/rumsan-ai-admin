@@ -1,16 +1,6 @@
 "use client";
-
-import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -18,184 +8,240 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LLMSettings } from "@/types/workspace-types";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  useUpdateWorkspaceSetting,
+  useWorkspaceSettingQuery,
+} from "@/queries/workspaceSettingQuery";
+import LLMConfigurationSkeleton from "./llm-setting-loading";
 
-interface Props {
-  llmSettings: LLMSettings;
-  setLlmSettings: (settings: LLMSettings) => void;
-}
+export default function LLMConfigPage() {
+  const [provider, setProvider] = useState("ollama");
+  const [config, setConfig] = useState({
+    chatModel: "GPT-4",
+    embeddingModel: "text-embedding-3-small",
+    temperature: "0.7",
+    maxTokens: "400",
+  });
+  const { data: workspaceSettings, isPending } = useWorkspaceSettingQuery();
+  const updateWorkspaceSetting = useUpdateWorkspaceSetting();
 
-export default function LLMSettingsTab({ llmSettings, setLlmSettings }: Props) {
-  // const [llmSettings, setLlmSettings] = useState({});
+  useEffect(() => {
+    if (workspaceSettings) {
+      setConfig({
+        chatModel: workspaceSettings.data.llmModel,
+        embeddingModel: workspaceSettings.data.embeddingModel,
+        temperature: workspaceSettings.data.temperature?.toString(),
+        maxTokens: workspaceSettings.data.maxTokensPerQuery?.toString(),
+      });
+    }
+  }, [workspaceSettings]);
+
+  const handleSave = async () => {
+    updateWorkspaceSetting.mutate({
+      llmModel: config.chatModel,
+      embeddingModel: config.embeddingModel,
+      maxTokensPerQuery: Number(config.maxTokens),
+      temperature: parseFloat(config.temperature),
+    });
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>LLM Configuration</CardTitle>
-        <CardDescription className="mt-2">
-          Configure the AI model and settings for this workspace
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          {/* Provider Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="provider">AI Provider</Label>
-            <Select
-              value={llmSettings.provider}
-              onValueChange={(value) =>
-                setLlmSettings({ ...llmSettings, provider: value })
-              }
-            >
-              <SelectTrigger id="provider">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="openai">OpenAI</SelectItem>
-                <SelectItem value="ollama">Ollama</SelectItem>
-                <SelectItem value="grok">Grok</SelectItem>
-                <SelectItem value="gemini">Google Gemini</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Select the AI provider for this workspace
-            </p>
-          </div>
-
-          {/* Model Selection - Dynamic based on provider */}
-          <div className="space-y-2">
-            <Label htmlFor="model">Model</Label>
-            <Select
-              value={llmSettings.model}
-              onValueChange={(value) =>
-                setLlmSettings({ ...llmSettings, model: value })
-              }
-            >
-              <SelectTrigger id="model">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {llmSettings.provider === "openai" && (
-                  <>
-                    <SelectItem value="gpt-4">GPT-4</SelectItem>
-                    <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-                    <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-                  </>
-                )}
-                {llmSettings.provider === "ollama" && (
-                  <>
-                    <SelectItem value="llama2">Llama 2</SelectItem>
-                    <SelectItem value="mistral">Mistral</SelectItem>
-                    <SelectItem value="codellama">Code Llama</SelectItem>
-                  </>
-                )}
-                {llmSettings.provider === "grok" && (
-                  <>
-                    <SelectItem value="grok-1">Grok-1</SelectItem>
-                    <SelectItem value="grok-1.5">Grok-1.5</SelectItem>
-                  </>
-                )}
-                {llmSettings.provider === "gemini" && (
-                  <>
-                    <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
-                    <SelectItem value="gemini-ultra">Gemini Ultra</SelectItem>
-                  </>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* API Key */}
-          <div className="space-y-2">
-            <Label htmlFor="apiKey">API Key</Label>
-            <Input
-              id="apiKey"
-              type="password"
-              value={llmSettings.apiKey}
-              onChange={(e) =>
-                setLlmSettings({ ...llmSettings, apiKey: e.target.value })
-              }
-              placeholder="Enter your API key"
-            />
-            <p className="text-xs text-muted-foreground">
-              Your API key is encrypted and securely stored
-            </p>
-          </div>
-
-          {/* API Endpoint (for Ollama) */}
-          {llmSettings.provider === "ollama" && (
-            <div className="space-y-2">
-              <Label htmlFor="apiEndpoint">API Endpoint</Label>
-              <Input
-                id="apiEndpoint"
-                type="url"
-                value={llmSettings.apiEndpoint}
-                onChange={(e) =>
-                  setLlmSettings({
-                    ...llmSettings,
-                    apiEndpoint: e.target.value,
-                  })
-                }
-                placeholder="http://localhost:11434"
-              />
-              <p className="text-xs text-muted-foreground">
-                URL of your Ollama server
-              </p>
-            </div>
-          )}
-
-          {/* Advanced Settings */}
-          <div className="pt-4 border-t space-y-4">
-            <h3 className="text-sm font-semibold">Advanced Settings</h3>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="temperature">Temperature</Label>
-                <Input
-                  id="temperature"
-                  type="number"
-                  min="0"
-                  max="2"
-                  step="0.1"
-                  value={llmSettings.temperature}
-                  onChange={(e) =>
-                    setLlmSettings({
-                      ...llmSettings,
-                      temperature: e.target.value,
-                    })
-                  }
-                />
-                <p className="text-xs text-muted-foreground">
-                  Higher values make output more random (0-2)
+    <>
+      {isPending ? (
+        <LLMConfigurationSkeleton />
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>LLM Configuration</CardTitle>
+            <CardDescription className="mt-2">
+              Configure the AI model and settings for this workspace
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-8">
+              {/* AI Provider */}
+              <div className="space-y-3">
+                <Label htmlFor="provider" className="text-base font-semibold">
+                  AI Provider
+                </Label>
+                <Select value={provider} onValueChange={setProvider}>
+                  <SelectTrigger id="provider" className="h-12 w-full">
+                    <SelectValue placeholder="Select provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ollama">Ollama</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-gray-500">
+                  Select the AI provider for this workspace
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="maxTokens">Max Tokens</Label>
-                <Input
-                  id="maxTokens"
-                  type="number"
-                  value={llmSettings.maxTokens}
-                  onChange={(e) =>
-                    setLlmSettings({
-                      ...llmSettings,
-                      maxTokens: e.target.value,
-                    })
-                  }
-                />
-                <p className="text-xs text-muted-foreground">
-                  Maximum length of generated response
-                </p>
+              {/* Model Selection */}
+              <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Model Selection
+                </h2>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Chat Model */}
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="chat-model"
+                      className="text-base font-medium"
+                    >
+                      Chat Model
+                    </Label>
+                    <Select
+                      value={config.chatModel}
+                      onValueChange={(value) =>
+                        setConfig((prev) => ({ ...prev, chatModel: value }))
+                      }
+                    >
+                      <SelectTrigger id="chat-model" className="h-12 w-full">
+                        <SelectValue placeholder="Select chat model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={config.chatModel}>
+                          {config.chatModel}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Embedding Model */}
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="embedding-model"
+                      className="text-base font-medium"
+                    >
+                      Embedding Model
+                    </Label>
+                    <Select
+                      value={config.embeddingModel}
+                      onValueChange={(value) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          embeddingModel: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger
+                        id="embedding-model"
+                        className="h-12 w-full"
+                      >
+                        <SelectValue placeholder="Select embedding model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={config.embeddingModel}>
+                          {config.embeddingModel}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Advanced Settings */}
+              <div className="space-y-6 border-t pt-8">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Advanced Settings
+                </h2>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Temperature */}
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="temperature"
+                      className="text-base font-medium"
+                    >
+                      Temperature
+                    </Label>
+                    <Input
+                      id="temperature"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="2"
+                      value={config.temperature}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          temperature: e.target.value,
+                        }))
+                      }
+                      className="h-12"
+                    />
+                    <p className="text-sm text-gray-500">
+                      Higher values make output more random (0-2)
+                    </p>
+                  </div>
+
+                  {/* Max Tokens */}
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="max-tokens"
+                      className="text-base font-medium"
+                    >
+                      Max Tokens
+                    </Label>
+                    <Input
+                      id="max-tokens"
+                      type="number"
+                      value={config.maxTokens}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          maxTokens: e.target.value,
+                        }))
+                      }
+                      className="h-12"
+                    />
+                    <p className="text-sm text-gray-500">
+                      Maximum length of generated response
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 pt-4">
+                <Button
+                  onClick={handleSave}
+                  disabled={updateWorkspaceSetting.isPending}
+                  className="h-12 px-8"
+                  size="lg"
+                >
+                  {updateWorkspaceSetting.isPending
+                    ? "Saving..."
+                    : "Save Configuration"}
+                </Button>
+
+                {/* {provider === "OpenAI" ? (
+                  <Button
+                    onClick={handleTest}
+                    disabled={isTesting}
+                    variant="outline"
+                    className="h-12 px-8 bg-transparent"
+                    size="lg"
+                  >
+                    {isTesting ? "Testing..." : "Test Connection"}
+                  </Button>
+                ) : null} */}
               </div>
             </div>
-          </div>
-
-          <div className="flex gap-3">
-            <Button>Save Configuration</Button>
-            <Button variant="outline">Test Connection</Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      )}
+    </>
   );
 }
