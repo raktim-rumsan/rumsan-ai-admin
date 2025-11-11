@@ -1,14 +1,28 @@
 import { ROUTES } from "@/constants";
 import { getAuthToken } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+export interface WorkspaceSettings {
+  id: string;
+  systemPrompt: string;
+  temperature: number;
+  maxTokensPerQuery: number;
+  llmModel: string;
+  embeddingModel: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkspaceSettingsResponse {
+  data: WorkspaceSettings;
+}
 
 export function useWorkspaceSettingQuery() {
   const workspaceId = localStorage.getItem("workspaceId");
-  //   const workspaceId = "rumsan-workspace-1762766064116";
 
   return useQuery({
     queryKey: ["workspaceSettings"],
-    queryFn: async (): Promise<any> => {
+    queryFn: async (): Promise<WorkspaceSettingsResponse> => {
       const access_token = getAuthToken();
       const res = await fetch(`${ROUTES.WORKSPACE_SETTING}`, {
         method: "GET",
@@ -30,27 +44,38 @@ export function useWorkspaceSettingQuery() {
   });
 }
 export function useUpdateWorkspaceSetting() {
+  const queryClient = useQueryClient();
   const workspaceId = localStorage.getItem("workspaceId");
-  //   const workspaceId = "rumsan-workspace-1762766064116";
 
-  return async (settingsData: any) => {
-    const access_token = getAuthToken();
-    const res = await fetch(ROUTES.WORKSPACE_SETTING, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        access_token: access_token || "",
-        "x-tenant-id": workspaceId || "",
-        accept: "application/json",
-      },
-      body: JSON.stringify(settingsData),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      const errorMessage =
-        data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
-      throw new Error(errorMessage);
-    }
-    return data;
-  };
+  return useMutation({
+    mutationFn: async (payload: Partial<WorkspaceSettings>) => {
+      const access_token = getAuthToken();
+      const res = await fetch(`${ROUTES.WORKSPACE_SETTING}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          access_token: access_token || "",
+          "x-tenant-id": workspaceId || "",
+          accept: "application/json",
+        },
+        body: JSON.stringify({
+          ...payload,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workspaceSettings"] });
+      toast.success("Workspace settings updated successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
 }

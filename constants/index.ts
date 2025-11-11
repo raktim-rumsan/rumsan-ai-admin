@@ -10,7 +10,7 @@ export const ROUTES = {
   MEMBER: `${API_BASE_URL}/workspaces/members`,
   CREATE_WORKSPACE: `${API_BASE_URL}/workspaces`,
   USERS: `${API_BASE_URL}/workspaces/users`,
-  WORKSPACE_SETTING: `${API_BASE_URL}/workspace-settings`,
+  WORKSPACE_SETTING: `${API_BASE_URL}/workspaces/settings`,
   SETTING_SYSTEM_PROMT: `${API_BASE_URL}/workspaces/settings/systemPrompt`,
   WORKSPACEINVITE: `${API_BASE_URL}/workspaces/invite`,
   WORKSPACE_MEMBER: (workspaceId: string) =>
