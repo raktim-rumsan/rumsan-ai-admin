@@ -58,10 +58,6 @@ export default function OrganizationPage() {
                 <Input id="org-name" defaultValue="Rumsan Bank" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="org-domain">Domain</Label>
-                <Input id="org-domain" defaultValue="rumsanbank.com" />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="org-description">Description</Label>
                 <Input
                   id="org-description"
@@ -94,20 +90,31 @@ export default function OrganizationPage() {
                     <p className="font-medium">Admin Users</p>
                     <p className="text-sm text-muted-foreground">5 members</p>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" disabled>
+                    Manage
+                  </Button>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b">
+                  <div>
+                    <p className="font-medium">Member Users</p>
+                    <p className="text-sm text-muted-foreground">8 members</p>
+                  </div>
+                  <Button variant="outline" size="sm" disabled>
                     Manage
                   </Button>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b">
                   <div>
                     <p className="font-medium">Viewer Users</p>
-                    <p className="text-sm text-muted-foreground">23 members</p>
+                    <p className="text-sm text-muted-foreground">2 members</p>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" disabled>
                     Manage
                   </Button>
                 </div>
-                <Button className="w-full mt-4">Invite Team Member</Button>
+                <Button className="w-full mt-4" disabled>
+                  Invite Team Member
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -136,7 +143,7 @@ export default function OrganizationPage() {
                       2FA, SSO, and access controls
                     </p>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" disabled>
                     Configure
                   </Button>
                 </div>
@@ -147,9 +154,11 @@ export default function OrganizationPage() {
                       Manage API access
                     </p>
                   </div>
-                  <Button variant="outline" size="sm">
-                    View Keys
-                  </Button>
+                  <Link href={"/admin/api-keys"}>
+                    <Button variant="outline" size="sm">
+                      View Keys
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </CardContent>

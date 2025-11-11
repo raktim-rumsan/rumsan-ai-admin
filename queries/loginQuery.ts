@@ -17,7 +17,7 @@ export default function useLoginMutation() {
 
 export function useSignUpMutation() {
   return useMutation({
-    mutationFn: async (payload: { email: string; password: string }) => {
+    mutationFn: async (payload: { email: string; fullName: string }) => {
       // First, sign up the user
       const res = await fetch("/api/sign-up", {
         method: "POST",
@@ -40,7 +40,6 @@ export function useVerifyOtpMutation() {
       success: boolean;
       shouldRefetchContext?: boolean;
     }> => {
-      // Verify the OTP
       const res = await fetch("/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -48,9 +47,6 @@ export function useVerifyOtpMutation() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "OTP verification failed");
-
-      // Return success and indicate that organization context should be refetched
-      // The OrganizationContextProvider will handle the actual fetching
       return {
         success: true,
         shouldRefetchContext: true,

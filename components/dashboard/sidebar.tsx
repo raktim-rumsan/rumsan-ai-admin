@@ -43,16 +43,6 @@ const navigationItems = [
     href: "/dashboard/agent-preview",
   },
   {
-    title: "Organization Management",
-    icon: Building,
-    href: "/dashboard/organization",
-  },
-  {
-    title: "API Settings",
-    icon: Settings,
-    href: "/dashboard/settings",
-  },
-  {
     title: "Integrations",
     icon: Plug,
     href: "/dashboard/integrations",
@@ -60,7 +50,6 @@ const navigationItems = [
 ];
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const userProfile = useUserProfile();
   const isLoading = useUserLoading();

@@ -2,7 +2,6 @@ import type React from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProtectedStoreInitializer } from "@/components/layout/ProtectedStoreInitializer";
-import { AdminHeader } from "@/components/admin-dashboard/header";
 import { MainHeader } from "@/components/header/header";
 
 export default async function DashboardLayoutPage({

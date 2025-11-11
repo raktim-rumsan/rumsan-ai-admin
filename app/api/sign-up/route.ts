@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const { email, fullName } = await request.json();
     const supabase = await createClient();
 
     // Generate a random password
@@ -13,6 +13,11 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password: randomPassword,
+      options: {
+        data: {
+          fullName,
+        },
+      },
     });
 
     if (error) {

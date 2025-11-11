@@ -19,8 +19,7 @@ import { useSignUpMutation } from "@/queries/loginQuery";
 
 export default function AuthSignUp() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -31,17 +30,10 @@ export default function AuthSignUp() {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      setIsLoading(false);
-      return;
-    }
-
     try {
       await signUpMutation.mutateAsync({
+        fullName: name,
         email,
-        password,
       });
       if (error) throw error;
       router.push("/auth/sign-up-success");
@@ -61,7 +53,8 @@ export default function AuthSignUp() {
               <svg
                 viewBox="0 0 24 24"
                 className="w-6 h-6 text-white"
-                fill="currentColor">
+                fill="currentColor"
+              >
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
@@ -79,6 +72,19 @@ export default function AuthSignUp() {
           <CardContent>
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-medium">
+                  Full Name
+                </Label>
+                <Input
+                  id="name"
+                  placeholder="John Doe"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
                   Email
                 </Label>
@@ -92,45 +98,16 @@ export default function AuthSignUp() {
                   className="h-11"
                 />
               </div>
-
-              {/* <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">
-                  Password
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-11"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password" className="text-sm font-medium">
-                  Confirm Password
-                </Label>
-                <Input
-                  id="confirm-password"
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="h-11"
-                />
-              </div> */}
-
               {error && (
                 <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
                   {error}
                 </div>
               )}
-
               <Button
                 type="submit"
                 className="w-full h-11 bg-black hover:bg-gray-800"
-                disabled={isLoading}>
+                disabled={isLoading}
+              >
                 {isLoading ? "Creating account..." : "Sign Up"}
               </Button>
             </form>
@@ -139,7 +116,8 @@ export default function AuthSignUp() {
               Already have an account?{" "}
               <Link
                 href="/auth/login"
-                className="font-medium text-black hover:underline">
+                className="font-medium text-black hover:underline"
+              >
                 Login
               </Link>
             </div>
