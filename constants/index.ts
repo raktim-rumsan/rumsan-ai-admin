@@ -33,6 +33,8 @@ export const ROUTES = {
 
   //query routes
   QUERY: `${API_BASE_URL}/rag/query`,
+  RAG_HEALTH: `${API_BASE_URL}/rag/health`,
+  QUERY_WITH_API_KEY: `${API_BASE_URL}/rag/query-api`,
 
   //documents routes
   DOCUMENTS: `${API_BASE_URL}/docs`,
