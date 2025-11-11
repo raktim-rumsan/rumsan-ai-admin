@@ -102,6 +102,42 @@ export function useDocDeleteMutation(onSuccess?: () => void) {
   });
 }
 
+export function useKnowledgebaseQuery() {
+  return useQuery({
+    queryKey: ["documents"],
+    queryFn: async () => {
+      const access_token = getAuthToken();
+
+      const envIndustries =
+        process.env.NEXT_PUBLIC_INDUSTRY_VALUES?.split(",").map(i => i.trim()) || [];
+
+      const queryString =
+        envIndustries.length > 0
+          ? `?industry=${envIndustries.join(",")}`
+          : "";
+
+      const res = await fetch(`${ROUTES.KNOWLEDGEBASE}${queryString}`, {
+        method: "GET",
+        headers: {
+          access_token: access_token || "",
+          accept: "application/json",
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      return data.data || [];
+    },
+  });
+}
+
+
 export function useEmbeddingMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient();
 

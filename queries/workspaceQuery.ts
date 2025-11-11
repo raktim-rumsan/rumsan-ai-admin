@@ -16,6 +16,32 @@ export interface Workspace {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface WorkspaceMember {
+  id: string;
+  user: {
+    email: string;
+  };
+  role: string;
+  joinedAt: string;
+  isActive: boolean;
+}
+
+export interface WorkspaceInvitations {
+  id?: string;
+  email?: string;
+  workspaceId?: string;
+  role?: string;
+  invitedBy?: {
+    id?: string;
+    email?: string;
+  };
+  status?: string;
+  expiresAt?: string;
+  acceptedAt?: string | null;
+  createdAt?: string;
+}
+
 export type CreateInvitationPayload = {
   email: string;
   role: string;
@@ -26,6 +52,21 @@ export interface WorkspacesResponse {
     myWorkspaces: Workspace[];
   };
 }
+
+export interface WorkspacesMemberResponse {
+  data: {
+    members: WorkspaceMember[];
+    invitations: WorkspaceInvitations[];
+  };
+}
+
+interface DeleteMemberPayload {
+  workspaceId: string;
+  email: string;
+}
+
+type DeleteMemberResponse = void; // since the API returns nothing on success
+
 export function useWorkspaceQuery() {
   return useQuery({
     queryKey: ["workspaces"],
@@ -99,7 +140,7 @@ export function useCreateWorkspace() {
   });
 }
 
-export function useInvitationWorkspaceMutation() {
+export function useInvitationWorkspaceMutation(workspaceIdParam?: string) {
   const queryClient = useQueryClient();
   const workspaceId = localStorage.getItem("workspaceId");
 
@@ -130,10 +171,78 @@ export function useInvitationWorkspaceMutation() {
       queryClient.invalidateQueries({
         queryKey: ["invitations"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["workspaces", workspaceIdParam],
+      });
       toastUtils.invitations.sendSuccess(1);
     },
     onError: (error: Error) => {
       toastUtils.invitations.sendError(error.message);
+    },
+  });
+}
+
+export function useWorkspaceMemberQuery(workspaceId: string) {
+  return useQuery({
+    queryKey: ["workspaces", workspaceId],
+    queryFn: async (): Promise<WorkspacesMemberResponse> => {
+      const access_token = getAuthToken();
+      const res = await fetch(ROUTES.WORKSPACE_MEMBER(workspaceId), {
+        method: "GET",
+        headers: {
+          access_token: access_token || "",
+          accept: "application/json",
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+      return data;
+    },
+  });
+}
+
+export function useDeleteWorkspaceMemberMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<DeleteMemberResponse, Error, DeleteMemberPayload>({
+    mutationFn: async ({ workspaceId, email }) => {
+      const access_token = getAuthToken();
+      const res = await fetch(ROUTES.WORKSPACE_MEMBER_DELETE(workspaceId), {
+        method: "DELETE",
+        headers: {
+          access_token: access_token || "",
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      return; // void
+    },
+
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["workspaces", variables.workspaceId],
+      });
+      toastUtils.generic.success("Member removed successfully");
+    },
+
+    onError: (error) => {
+      toastUtils.generic.error(
+        "Error removing member",
+        error.message || "Something went wrong. Please try again."
+      );
     },
   });
 }
