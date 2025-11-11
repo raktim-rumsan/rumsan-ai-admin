@@ -5,7 +5,7 @@ import { Send, Bot, User, Copy, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import API_BASE_URL from "@/constants";
+import { ragHealthTest, sendWidgetChatQuery } from "@/queries/chatQuery";
 
 interface WidgetInterfaceProps {
   className?: string;
@@ -23,69 +23,6 @@ interface WidgetConfig {
   workspaceId: string;
 }
 
-// Simple widget API call function
-async function sendWidgetChatQuery(
-  query: string,
-  apiKey: string,
-  workspaceId: string
-): Promise<{ answer: string }> {
-  // Use a fallback URL if API_BASE_URL is not defined
-  const endpoint = `${API_BASE_URL}/rag/query-api`;
-
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-tenant-id": workspaceId,
-        "x-api-key": apiKey,
-        Accept: "application/json",
-        "Cache-Control": "no-cache",
-      },
-      body: JSON.stringify({ query }),
-      signal: controller.signal,
-      mode: "cors", // Explicitly set CORS mode
-      credentials: "omit", // Don't include credentials
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("API Error Response:", errorText);
-      throw new Error(`API Error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    return {
-      answer: data.answer || data.data?.answer || "No response received",
-    };
-  } catch (error) {
-    console.error("Fetch error details:", error);
-
-    if (error instanceof Error) {
-      if (error.name === "AbortError") {
-        throw new Error(
-          "Request timeout: The server took too long to respond."
-        );
-      }
-      if (error.message.includes("ERR_BLOCKED_BY_CLIENT")) {
-        throw new Error(
-          "Request blocked: Please disable ad blockers or try a different browser."
-        );
-      }
-      if (error.message.includes("Failed to fetch")) {
-        throw new Error(
-          "Network error: Unable to connect to the API server. Please check if the server is running and accessible."
-        );
-      }
-    }
-    throw error;
-  }
-}
 
 export function WidgetInterface({ className }: WidgetInterfaceProps) {
   const [messages, setMessages] = useState<WidgetMessage[]>([]);
@@ -105,24 +42,8 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
 
   // Test API connectivity
   const testApiConnection = async () => {
-    try {
-      const testEndpoint = `${API_BASE_URL}/rag/health`;
-      const response = await fetch(testEndpoint, {
-        method: "GET",
-        mode: "cors",
-        credentials: "omit",
-      });
-
-      if (response.ok) {
-        setConnectionStatus("connected");
-      } else {
-        setConnectionStatus("failed");
-        console.warn("API connection test failed:", response.status);
-      }
-    } catch (error) {
-      setConnectionStatus("failed");
-      console.error("API connection test error:", error);
-    }
+    const status = await ragHealthTest();
+    setConnectionStatus(status);
   };
 
   // Get widget configuration from URL parameters
