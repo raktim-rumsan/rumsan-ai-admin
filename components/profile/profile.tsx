@@ -14,8 +14,11 @@ import { LogOut } from "lucide-react";
 import { useUserLoading, useUserProfile, useClearUser } from "@/stores";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
+import { useOrganizationContext } from "@/hooks/useOrganizationContext";
 
 export function ProfileUserDashboard() {
+  const orgContext = useOrganizationContext();
+
   const userProfile = useUserProfile();
   const isLoading = useUserLoading();
   const clearUser = useClearUser();
@@ -76,6 +79,14 @@ export function ProfileUserDashboard() {
     }
   };
 
+  const handleRedirectUrl = () => {
+    router.push(
+      orgContext?.userState === "USER_WITH_ORG_ADMIN_ROLE"
+        ? "/admin"
+        : "/dashboard"
+    );
+  };
+
   const { name, email, initials } = getUserDisplayData();
 
   return (
@@ -95,10 +106,15 @@ export function ProfileUserDashboard() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className="flex items-center justify-between py-2">
+        <DropdownMenuLabel
+          onClick={handleRedirectUrl}
+          className="flex items-center justify-between py-2 cursor-pointer"
+        >
           <span className="text-sm font-normal">Account</span>
           <Badge variant="secondary" className="text-xs font-medium">
-            Admin
+            {orgContext?.userState === "USER_WITH_ORG_ADMIN_ROLE"
+              ? "Admin"
+              : "Member"}
           </Badge>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
