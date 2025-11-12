@@ -1,9 +1,11 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import { FileText } from "lucide-react";
-import { useKnowledgebaseQuery } from "@/queries/documentsQuery";
+import { useKnowledgebaseQuery, useToggleDocumentStatusMutation } from "@/queries/documentsQuery";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { toastUtils } from "@/lib/toast-utils";
 
 import KnowledgebaseStats from "./knowlege-stats";
 import { Doc } from "@/types/workspace-types";
@@ -16,49 +18,78 @@ export default function KnowledgebaseTab() {
     error: unknown;
   };
 
+  const toggleMutation = useToggleDocumentStatusMutation();
+  const [localStatuses, setLocalStatuses] = useState<Record<string, boolean>>({});
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const map: Record<string, boolean> = {};
+    fetchedDocs.forEach((d) => {
+      map[d.id] = (d.enabled )
+    });
+    setLocalStatuses(map);
+  }, [fetchedDocs]);
+
+  const handleToggle = async (documentId: string) => {
+    const prev = !!localStatuses[documentId];
+    // optimistic update
+    setLocalStatuses((s) => ({ ...s, [documentId]: !prev }));
+    setLoadingId(documentId);
+
+    try {
+      const response = await toggleMutation.mutateAsync(documentId);
+      toastUtils.generic.success("Success", response.data.message);
+    } catch (e: any) {
+      // revert on error
+      setLocalStatuses((s) => ({ ...s, [documentId]: prev }));
+      toastUtils.generic.error("Error", e?.message || "Failed to update document status");
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
   if (isLoading) {
-  return (
-    <Card className="p-6">
-      <CardHeader>
-        <CardTitle>Loading Knowledgebase</CardTitle>
-        <CardDescription>Please wait while we fetch the knowledgebase documents...</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-center gap-4">
-            <Skeleton className="h-10 w-10 rounded-md" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-4 w-[80%]" />
-              <Skeleton className="h-3 w-[60%]" />
+    return (
+      <Card className="p-6">
+        <CardHeader>
+          <CardTitle>Loading Knowledgebase</CardTitle>
+          <CardDescription>Please wait while we fetch the knowledgebase documents...</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-4">
+              <Skeleton className="h-10 w-10 rounded-md" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-[80%]" />
+                <Skeleton className="h-3 w-[60%]" />
+              </div>
             </div>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
-  );
-}
+          ))} 
+        </CardContent>
+      </Card>
+    );
+  }
 
-if (error) {
-  return (
-    <Card className="p-6 border-red-300 bg-red-50">
-      <CardHeader>
-        <CardTitle className="flex items-center text-red-600">
-          <FileText className="h-5 w-5 mr-2 text-red-500" />
-          Failed to load documents
-        </CardTitle>
-        <CardDescription>
-          Something went wrong while fetching the knowledgebase. Please try again later.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-red-500 font-medium">
-          {(error as Error).message}
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-
+  if (error) {
+    return (
+      <Card className="p-6 border-red-300 bg-red-50">
+        <CardHeader>
+          <CardTitle className="flex items-center text-red-600">
+            <FileText className="h-5 w-5 mr-2 text-red-500" />
+            Failed to load documents
+          </CardTitle>
+          <CardDescription>
+            Something went wrong while fetching the knowledgebase. Please try again later.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-red-500 font-medium">
+            {(error as Error).message}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -71,7 +102,6 @@ if (error) {
                 Manage industry knowledge that the AI can reference.
               </CardDescription>
             </div>
-          
           </div>
         </CardHeader>
         <CardContent>
@@ -95,19 +125,22 @@ if (error) {
                       <p className="font-medium">{doc.fileName}</p>
                       <div className="flex items-center gap-3 mt-1">
                         <p className="text-sm text-muted-foreground">
-                            {doc.industry.charAt(0).toUpperCase() + doc.industry.slice(1)}
-                          </p>
+                          {doc.industry.charAt(0).toUpperCase() + doc.industry.slice(1)}
+                        </p>
                         <span className="text-muted-foreground">•</span>
                         <p className="text-sm text-muted-foreground">
-                         Uploaded {new Date(doc.createdAt).toLocaleDateString()}
+                          Uploaded {new Date(doc.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <Switch />
-                      
+                      <Switch
+                        checked={!!localStatuses[doc.id]}
+                        onCheckedChange={() => handleToggle(doc.id)}
+                        disabled={loadingId === doc.id}
+                      />
                     </div>
                   </div>
                 </div>

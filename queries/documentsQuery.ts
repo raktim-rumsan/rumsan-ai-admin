@@ -103,8 +103,9 @@ export function useDocDeleteMutation(onSuccess?: () => void) {
 }
 
 export function useKnowledgebaseQuery() {
+   const workspaceId = localStorage.getItem("workspaceId");
   return useQuery({
-    queryKey: ["documents"],
+    queryKey: ["documents", workspaceId],
     queryFn: async () => {
       const access_token = getAuthToken();
 
@@ -119,6 +120,7 @@ export function useKnowledgebaseQuery() {
       const res = await fetch(`${ROUTES.KNOWLEDGEBASE}${queryString}`, {
         method: "GET",
         headers: {
+          "x-tenant-id": workspaceId || "",
           access_token: access_token || "",
           accept: "application/json",
         },
@@ -136,7 +138,6 @@ export function useKnowledgebaseQuery() {
     },
   });
 }
-
 
 export function useEmbeddingMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient();
@@ -216,6 +217,41 @@ export function useUnembeddingMutation(onSuccess?: () => void) {
     onSuccess: (data) => {
       toastUtils.generic.success(data?.data?.status, data?.data?.message);
       // Invalidate documents query to refetch the list and update status
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      onSuccess?.();
+    },
+  });
+}
+
+export function useToggleDocumentStatusMutation(onSuccess?: () => void) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (documentId: string) => {
+      const workspaceId = localStorage.getItem("workspaceId")
+
+      const access_token = getAuthToken();
+      // const url = `${ROUTES.DOCUMENTS}/${documentId}/workspaces/${workspaceId}/toggle`;
+
+      const res = await fetch(ROUTES.TOGGLE_DOCUMENT_STATUS(documentId), {
+        method: "PATCH",
+        headers: {
+          accept: "application/json",
+          "x-tenant-id": workspaceId || "",
+          access_token: access_token || "",
+        },
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const errorMessage = data?.message || data?.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      return data;
+    },
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["documents"] });
       onSuccess?.();
     },
