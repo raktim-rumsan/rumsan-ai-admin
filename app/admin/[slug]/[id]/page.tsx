@@ -11,6 +11,10 @@ import MembersTab from "@/components/workspace-management/members-tabs";
 import LLMSettingsTab from "@/components/workspace-management/llm-settings-tabs";
 import KnowledgebaseTab from "@/components/workspace-management/knowledegebase-tabs";
 import WorkspaceHeader from "@/components/workspace-management/workspace-header";
+import {
+  useWorkspaceQuery,
+  type Workspace as WorkspaceQueryType,
+} from "@/queries/workspaceQuery";
 
 export default function WorkspaceDetailPage({
   params,
@@ -29,12 +33,22 @@ export default function WorkspaceDetailPage({
     apiEndpoint: "",
   });
 
+  const { data: workspaceData, isLoading } = useWorkspaceQuery();
+
   const [knowledgebase, setKnowledgebase] = useState<Doc[]>([]);
+
+  let filterWorkspace: WorkspaceQueryType | undefined;
+
+  if (!isLoading && workspaceData) {
+    filterWorkspace = workspaceData?.data?.myWorkspaces.find(
+      (ws) => ws.id === workspaceId
+    );
+  }
 
   const workspace: Workspace = {
     id: workspaceId,
-    name: "Customer Support",
-    description: "AI assistant for customer inquiries and support tickets",
+    name: filterWorkspace?.name || "",
+    description: filterWorkspace?.description || "",
     status: "active",
     color: "bg-blue-500",
   };
@@ -76,7 +90,7 @@ export default function WorkspaceDetailPage({
             />
           </TabsContent>
           <TabsContent value="knowledgebase">
-            <KnowledgebaseTab/>
+            <KnowledgebaseTab />
           </TabsContent>
         </Tabs>
       </div>
