@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       password: randomPassword,
       options: {
         data: {
-          fullName,
+          full_name: fullName,
         },
       },
     });
