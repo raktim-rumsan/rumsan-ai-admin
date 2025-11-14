@@ -3,6 +3,7 @@ import { getAuthToken } from "@/lib/utils";
 
 import { ROUTES } from "@/constants";
 import { toastUtils } from "@/lib/toast-utils";
+import { Doc } from "@/types/workspace-types";
 
 export function useDocUploadMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient();
@@ -105,7 +106,7 @@ export function useDocDeleteMutation(onSuccess?: () => void) {
 export function useKnowledgebaseQuery() {
    const workspaceId = localStorage.getItem("workspaceId");
   return useQuery({
-    queryKey: ["documents", workspaceId],
+    queryKey: ["knowledgebase", workspaceId],
     queryFn: async () => {
       const access_token = getAuthToken();
 
@@ -223,7 +224,7 @@ export function useUnembeddingMutation(onSuccess?: () => void) {
   });
 }
 
-export function useToggleDocumentStatusMutation(onSuccess?: () => void) {
+export function useToggleDocumentStatusMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -231,7 +232,6 @@ export function useToggleDocumentStatusMutation(onSuccess?: () => void) {
       const workspaceId = localStorage.getItem("workspaceId")
 
       const access_token = getAuthToken();
-      // const url = `${ROUTES.DOCUMENTS}/${documentId}/workspaces/${workspaceId}/toggle`;
 
       const res = await fetch(ROUTES.TOGGLE_DOCUMENT_STATUS(documentId), {
         method: "PATCH",
@@ -242,21 +242,68 @@ export function useToggleDocumentStatusMutation(onSuccess?: () => void) {
         },
       });
 
-      const data = await res.json().catch(() => ({}));
+      const data = await res.json();
 
       if (!res.ok) {
-        const errorMessage = data?.message || data?.error || `HTTP ${res.status}: ${res.statusText}`;
-        throw new Error(errorMessage);
+        throw new Error(data?.message || "Failed to toggle");
       }
+      return  data 
+    },
 
-      return data;
+    onMutate: async (documentId) => {
+      const workspaceId = localStorage.getItem("workspaceId");
+
+      // Cancel any pending refetch so it doesn't overwrite optimistic
+        await queryClient.cancelQueries({
+      queryKey: ["knowledgebase", workspaceId],
+    });
+
+      // Snapshot previous value
+      const previousDocs = queryClient.getQueryData<Doc[]>([
+        "knowledgebase",
+        workspaceId,
+      ]);
+
+      // Apply optimistic update
+      queryClient.setQueryData<Doc[]>(
+        ["knowledgebase", workspaceId],
+        (oldDocs = []) =>
+          oldDocs.map((doc) =>
+            doc.id === documentId
+              ? { ...doc, enabled: !doc.enabled }
+              : doc
+          )
+      );
+
+      return { previousDocs };
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["documents"] });
-      onSuccess?.();
+
+    // rollback if fails
+    onError: (err, documentId, context) => {
+      const workspaceId = localStorage.getItem("workspaceId");
+
+      if (context?.previousDocs) {
+        queryClient.setQueryData(
+          ["knowledgebase", workspaceId],
+          context.previousDocs
+        );
+      }
+      toastUtils.generic.error("Error", err.message);
     },
+      onSuccess: (data) => {
+      toastUtils.generic.success( data.data.message);
+    },
+
+    // refetch once done (safe)
+    onSettled: () => {
+    const workspaceId = localStorage.getItem("workspaceId");
+    queryClient.invalidateQueries({
+      queryKey: ["knowledgebase", workspaceId],
+    });
+}
   });
 }
+
 
 export async function viewDocument(
   url: string,

@@ -19,34 +19,9 @@ export default function KnowledgebaseTab() {
   };
 
   const toggleMutation = useToggleDocumentStatusMutation();
-  const [localStatuses, setLocalStatuses] = useState<Record<string, boolean>>({});
-  const [loadingId, setLoadingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const map: Record<string, boolean> = {};
-    fetchedDocs.forEach((d) => {
-      map[d.id] = (d.enabled )
-    });
-    setLocalStatuses(map);
-  }, [fetchedDocs]);
-
-  const handleToggle = async (documentId: string) => {
-    const prev = !!localStatuses[documentId];
-    // optimistic update
-    setLocalStatuses((s) => ({ ...s, [documentId]: !prev }));
-    setLoadingId(documentId);
-
-    try {
-      const response = await toggleMutation.mutateAsync(documentId);
-      toastUtils.generic.success("Success", response.data.message);
-    } catch (e: any) {
-      // revert on error
-      setLocalStatuses((s) => ({ ...s, [documentId]: prev }));
-      toastUtils.generic.error("Error", e?.message || "Failed to update document status");
-    } finally {
-      setLoadingId(null);
-    }
-  };
+  const handleToggle = (documentId: string) => {
+  toggleMutation.mutate(documentId);
+};
 
   if (isLoading) {
     return (
@@ -136,10 +111,9 @@ export default function KnowledgebaseTab() {
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <Switch
-                        checked={!!localStatuses[doc.id]}
+                    <Switch
+                        checked={doc.enabled}
                         onCheckedChange={() => handleToggle(doc.id)}
-                        disabled={loadingId === doc.id}
                       />
                     </div>
                   </div>
