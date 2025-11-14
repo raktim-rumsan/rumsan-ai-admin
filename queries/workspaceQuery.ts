@@ -21,6 +21,7 @@ export interface WorkspaceMember {
   id: string;
   user: {
     email: string;
+    full_name: string;
   };
   role: string;
   joinedAt: string;
@@ -35,6 +36,7 @@ export interface WorkspaceInvitations {
   invitedBy?: {
     id?: string;
     email?: string;
+    full_name?: string;
   };
   status?: string;
   expiresAt?: string;
@@ -92,7 +94,7 @@ export function useWorkspaceQuery() {
 
 export function useCreateWorkspace() {
   const queryClient = useQueryClient();
-  const createApiKeyMutation = useCreateApiKey()
+  const createApiKeyMutation = useCreateApiKey();
   return useMutation({
     mutationFn: async (workspaceData: {
       name: string;
@@ -115,21 +117,21 @@ export function useCreateWorkspace() {
       }
       return data;
     },
-    onSuccess: async(data) => {
+    onSuccess: async (data) => {
       const { data: workspaceData } = data;
-      localStorage.setItem("workspaceId", workspaceData.slug); 
+      localStorage.setItem("workspaceId", workspaceData.slug);
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
-       try {
-         await createApiKeyMutation.mutateAsync({
-        name: `${workspaceData.name}-default-key`,
-      });
-        } catch (error) {
-          console.error("Failed to create default API key:", error);
-          toastUtils.generic.error(
-            "API key creation failed",
-            "Organization created successfully, but default API key could not be generated."
-          );
-        }
+      try {
+        await createApiKeyMutation.mutateAsync({
+          name: `${workspaceData.name}-default-key`,
+        });
+      } catch (error) {
+        console.error("Failed to create default API key:", error);
+        toastUtils.generic.error(
+          "API key creation failed",
+          "Organization created successfully, but default API key could not be generated."
+        );
+      }
     },
     onError: (error: Error) => {
       toastUtils.generic.error(
@@ -185,6 +187,8 @@ export function useInvitationWorkspaceMutation(workspaceIdParam?: string) {
 export function useWorkspaceMemberQuery(workspaceId: string) {
   return useQuery({
     queryKey: ["workspaces", workspaceId],
+    staleTime: 10_000,
+    refetchInterval: 10_000, // Automatically refetch every 5 seconds
     queryFn: async (): Promise<WorkspacesMemberResponse> => {
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.WORKSPACE_MEMBER(workspaceId), {
