@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CreateTeamDialog } from "../dashboard/CreateTeamDialog";
 import { ProfileUserDashboard } from "../profile/profile";
+import { NotificationIcon } from "./notification-icon";
 import { usePathname } from "next/navigation";
 import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 
@@ -128,9 +129,11 @@ export function MainHeader({ onMenuClick }: HeaderProps) {
           )}
         </div>
 
-        {/* Right side - Admin and logout */}
-
-        <ProfileUserDashboard />
+        {/* Right side - Notifications and Profile */}
+        <div className="flex items-center gap-3">
+          <NotificationIcon />
+          <ProfileUserDashboard />
+        </div>
       </div>
 
       <CreateTeamDialog

@@ -15,6 +15,7 @@ import { useUserLoading, useUserProfile, useClearUser } from "@/stores";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { useOrganizationContext } from "@/hooks/useOrganizationContext";
+import { init } from "next/dist/compiled/webpack/webpack";
 
 export function ProfileUserDashboard() {
   const orgContext = useOrganizationContext();

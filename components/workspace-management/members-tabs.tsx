@@ -195,7 +195,7 @@ export default function MembersTab({}: Props) {
                         <User className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div>
-                        <p className="font-medium">{member.id}</p>
+                        <p className="font-medium">{member?.user.full_name}</p>
                         <p className="text-sm text-muted-foreground">
                           {member.user.email}
                         </p>
@@ -241,7 +241,7 @@ export default function MembersTab({}: Props) {
                           </Badge>
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {invitations?.invitedBy?.email}
+                          {invitations?.invitedBy?.full_name}
                         </p>
                       </div>
                     </div>
