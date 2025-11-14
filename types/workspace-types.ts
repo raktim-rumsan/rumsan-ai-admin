@@ -34,4 +34,5 @@ export interface Doc {
   url: string;
   status: string;
   createdAt: string;
+  enabled: boolean;
 }

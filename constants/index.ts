@@ -41,6 +41,8 @@ export const ROUTES = {
   UPLOAD_DOCUMENTS: `${API_BASE_URL}/docs/upload`,
   DELETE_DOCUMENT: (documentId: string) => `${API_BASE_URL}/docs/${documentId}`,
   KNOWLEDGEBASE: `${API_BASE_URL}/docs/industry-docs`,
+  TOGGLE_DOCUMENT_STATUS: (documentId: string) =>
+    `${API_BASE_URL}/docs/${documentId}/toggle`,
 
   //embeddings routes
   EMBEDDINGS: `${API_BASE_URL}/embeddings`,
