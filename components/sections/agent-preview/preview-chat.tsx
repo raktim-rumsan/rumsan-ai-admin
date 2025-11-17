@@ -6,21 +6,37 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Bot, Minimize2, RotateCcw, Send, User } from "lucide-react";
+import {
+  Bot,
+  Maximize2,
+  Minimize2,
+  Minus,
+  RotateCcw,
+  Send,
+  User,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { ChatMessage, useChatMutation } from "@/queries/chatQuery";
 
-function PreviewChat() {
+function PreviewChat({
+  isFloating,
+  isMinimized,
+  setIsMinimized,
+}: {
+  isFloating?: boolean;
+  isMinimized?: boolean;
+  setIsMinimized?: (minimized: boolean) => void;
+}) {
   const [chatMessage, setChatMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isThinking, setIsThinking] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
   const chatMutation = useChatMutation();
-
+  console.log(isFloating, "isFloating");
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -90,9 +106,9 @@ function PreviewChat() {
 
   return (
     <div className="flex flex-col bg-muted/30 rounded-lg border border-border h-full min-h-0 overflow-hidden">
-      <div className="flex justify-between items-center p-4 border-b border-border flex-shrink-0">
+      {/* <div className="flex justify-between items-center p-4 border-b border-border flex-shrink-0">
         <div className="text-sm font-medium text-foreground">Preview Chat</div>
-        <TooltipProvider>
+         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -109,6 +125,47 @@ function PreviewChat() {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+      </div> */}
+      <div className="flex justify-between items-center p-4 border-b border-border flex-shrink-0">
+        <div className="text-sm font-medium text-foreground">Preview Chat</div>
+
+        <div className="flex items-center ">
+          {/* Refresh Icon with Tooltip */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={handleNewChat}
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>New Chat</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Minimize Icon (NO Tooltip) */}
+          {isFloating && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+              //   onClick={handleMinimize}
+              onClick={() => setIsMinimized?.(!isMinimized)}
+            >
+              {isMinimized ? (
+                <Maximize2 className="w-4 h-4" />
+              ) : (
+                <Minimize2 className="w-4 h-4" />
+              )}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Chat Messages */}

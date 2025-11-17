@@ -277,7 +277,7 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
           </div>
 
           {/* Right Column - Chat Interface */}
-          <PreviewChat />
+          <PreviewChat isFloating={false} />
         </div>
       </div>
     </div>

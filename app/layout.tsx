@@ -5,7 +5,6 @@ import QueryProvider from "@/providers/QueryProvider";
 import { StoreInitializer } from "@/lib/store-hydration";
 import { OrganizationContextProvider } from "@/providers/OrganizationContextProvider";
 import { Toaster } from "@/components/ui/sonner";
-import FloatingPreviewChat from "@/components/sections/agent-preview/floating-chat";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,7 +35,6 @@ export default function RootLayout({
           <StoreInitializer shouldInitializeAuth={false}>
             <OrganizationContextProvider>
               {children}
-              <FloatingPreviewChat />
             </OrganizationContextProvider>
           </StoreInitializer>
         </QueryProvider>
