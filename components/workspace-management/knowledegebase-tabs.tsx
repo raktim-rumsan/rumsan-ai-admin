@@ -115,7 +115,14 @@ export default function KnowledgebaseTab() {
                         checked={doc.enabled}
                         onCheckedChange={() => handleToggle(doc.id)}
                       />
-                    </div>
+                       <span
+                          className={`text-sm font-medium ${
+                            doc.enabled ? "text-green-600" : "text-red-600"
+                          }`}
+                        >
+                          {doc.enabled ? "Enabled" : "Disabled"}
+                        </span>
+                      </div>
                   </div>
                 </div>
               ))

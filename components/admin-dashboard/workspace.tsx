@@ -7,52 +7,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  useCreateWorkspace,
   useWorkspaceQuery,
 } from "@/queries/workspaceQuery";
-import { useState } from "react";
 import { WorkspacesLoadingGrid } from "./workspace-skeleton";
-import { Textarea } from "@/components/ui/textarea";
+import WorkspaceCreateDialog from "./workspace-create-dialog";
 
 export default function WorkspacesPage() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [workspaceName, setWorkspaceName] = useState("");
-  const [workspaceDescription, setWorkspaceDescription] = useState("");
 
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
-
-  const createWorkspace = useCreateWorkspace();
-
-  const handleCreateWorkspace = () => {
-    if (!workspaceName.trim()) return;
-    createWorkspace.mutate(
-      {
-        name: workspaceName.trim(),
-        description: workspaceDescription.trim(),
-      },
-      {
-        onSuccess: () => {
-          setIsDialogOpen(false);
-          setWorkspaceName("");
-          setWorkspaceDescription("");
-        },
-      }
-    );
-  };
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -73,6 +37,11 @@ export default function WorkspacesPage() {
                 Manage your AI workspaces and teams
               </p>
             </div>
+            <div className="flex-shrink-0">
+                {(workspaceData?.data?.myWorkspaces?.length ?? 0) > 0 && (
+                  <WorkspaceCreateDialog />
+                )}
+              </div>
           </div>
         </div>
       </div>
@@ -128,6 +97,7 @@ export default function WorkspacesPage() {
             )}
 
             {/* Empty State for New Workspace */}
+            {workspaceData?.data?.myWorkspaces.length === 0 && (
             <Card className="mt-6 border-dashed">
               <CardHeader className="text-center py-16">
                 <div className="mx-auto mb-6 rounded-full bg-muted p-6 w-fit">
@@ -143,64 +113,10 @@ export default function WorkspacesPage() {
                     ? "Get started by setting up a workspace where your team can collaborate and manage AI assistants together"
                     : "Set up a new workspace for your team to collaborate and manage AI assistants"}
                 </CardDescription>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="mt-6 mx-auto" size="lg">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Workspace
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Create New Workspace</DialogTitle>
-                      <DialogDescription>
-                        Enter details for your new workspace. You can change
-                        these later.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="workspace-name-2">Workspace Name</Label>
-                        <Input
-                          id="workspace-name-2"
-                          placeholder="e.g., Marketing Team"
-                          value={workspaceName}
-                          onChange={(e) => setWorkspaceName(e.target.value)}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="workspace-description-2">
-                          Description (Optional)
-                        </Label>
-                        <Textarea
-                          id="workspace-description-2"
-                          placeholder="Describe the purpose of this workspace..."
-                          value={workspaceDescription}
-                          onChange={(e) =>
-                            setWorkspaceDescription(e.target.value)
-                          }
-                          rows={3}
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsDialogOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={handleCreateWorkspace}
-                        disabled={!workspaceName.trim()}
-                      >
-                        Create Workspace
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                <WorkspaceCreateDialog/>
               </CardHeader>
             </Card>
+            )}
           </>
         )}
       </div>
