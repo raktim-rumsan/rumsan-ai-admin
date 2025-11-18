@@ -16,7 +16,7 @@ export default function FloatingPreviewChat() {
   return (
     <div
       className={`fixed bottom-4 right-4 w-[400px]  bg-background border border-border rounded-2xl shadow-lg overflow-hidden z-50 ${
-        isMinimized ? "h-16 w-[200px]" : "h-[500px]"
+        isMinimized ? "h-16 " : "h-[500px]"
       }`}
     >
       <PreviewChat

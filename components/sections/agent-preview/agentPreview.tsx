@@ -1,24 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
-import { Send, RotateCcw, User, Bot } from "lucide-react";
+
+import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOrgSettings } from "@/queries/orgSettingsQuery";
 import { useUpdateSystemPrompt } from "@/queries/orgSettingsQuery";
-import { useChatMutation, ChatMessage } from "@/queries/chatQuery";
 import PreviewChat from "./preview-chat";
-import { usePathname } from "next/navigation";
 
 export default function AgentPreview() {
   const defaultPrompt = `## Task
@@ -37,15 +28,9 @@ Q: What services do you offer?
 A: We specialize in AI Agent development, primarily through our platform Agentive. If you're interested in building AI agents for your business please provide some information on the project you have in mind.
 Alternatively, if you'd like to speak to our team for a consultation you can provide your name and email and we'll be in touch to book in a call.`;
   const [activeTab, setActiveTab] = useState("Prompt");
-  const [chatMessage, setChatMessage] = useState("");
   const [documentsEnabled, setDocumentsEnabled] = useState(true);
   const [promptContent, setPromptContent] = useState("");
   const [isMounted, setIsMounted] = useState(false);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [isThinking, setIsThinking] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const pathname = usePathname();
-  const isAgentPreview = pathname === "/dashboard/agent-preview";
 
   // Get current tenant for tenant-specific org settings
   const workspaceId = localStorage.getItem("workspaceId");
@@ -57,7 +42,6 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
     refetch,
   } = useOrgSettings();
   const updateSystemPrompt = useUpdateSystemPrompt();
-  const chatMutation = useChatMutation();
 
   // Handle mounting
   useEffect(() => {
@@ -83,13 +67,6 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
     }
   }, [orgSettings, isOrgLoading, isMounted, defaultPrompt]);
 
-  // Auto-scroll to bottom when new messages are added
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [chatMessages, isThinking]);
-
   // Handle save button click
   const handleSave = () => {
     updateSystemPrompt.mutate({
@@ -100,71 +77,6 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
   // Handle reset button click
   const handleReset = () => {
     setPromptContent("");
-  };
-
-  // Handle sending chat message
-  const handleSendMessage = async () => {
-    if (!chatMessage.trim()) return;
-
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: "user",
-      content: chatMessage.trim(),
-      timestamp: new Date(),
-    };
-
-    // Add user message to chat
-    setChatMessages((prev) => [...prev, userMessage]);
-    setChatMessage("");
-    setIsThinking(true);
-
-    try {
-      // Send message to API
-      const response = await chatMutation.mutateAsync({
-        query: chatMessage.trim(),
-      });
-
-      // Create assistant message
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: response.answer,
-        timestamp: new Date(),
-        sources: response.sources,
-        confidence: response.confidence,
-        processingTime: response.processingTime,
-      };
-
-      // Add assistant message to chat
-      setChatMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("Chat error:", error);
-      // Add error message
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content:
-          "Sorry, I encountered an error while processing your message. Please try again.",
-        timestamp: new Date(),
-      };
-      setChatMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsThinking(false);
-    }
-  };
-
-  // Handle new chat (reset)
-  const handleNewChat = () => {
-    setChatMessages([]);
-    setIsThinking(false);
-  };
-
-  // Handle Enter key press
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
   };
 
   return (
