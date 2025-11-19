@@ -10,7 +10,6 @@ import type { UserProfile, User, OrgSettings, Document } from "@/lib/schemas";
 import type {
   Organization,
   Workspace,
-  NextAction,
   PendingInvitation,
 } from "@/stores/organizationStore";
 
@@ -30,7 +29,6 @@ interface HydrationData {
     workspaces: Workspace[];
     primaryOrganization: Organization | null;
     pendingInvitations: PendingInvitation[];
-    nextActions: NextAction[];
     userState: string | null;
     lastFetched?: number;
   };

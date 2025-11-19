@@ -143,7 +143,6 @@ export function useOrganizationContext() {
     workspaces: organizationStore.workspaces,
     primaryOrganization: organizationStore.primaryOrganization,
     pendingInvitations: organizationStore.pendingInvitations,
-    nextActions: organizationStore.nextActions,
     userState: organizationStore.userState,
     redirectTo: organizationStore.redirectTo,
 
