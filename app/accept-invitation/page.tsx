@@ -73,6 +73,12 @@ export default function AcceptInvitationPage() {
       await acceptMutation.mutateAsync(token);
       // If mutation succeeds without throwing, set accepted state
       setIsAccepted(true);
+
+      // Refetch organization context to update workspace list
+      if (organizationData.refetch) {
+        await organizationData.refetch();
+      }
+
       // Clear the saved redirect URL after successful acceptance
       if (typeof window !== "undefined") {
         localStorage.removeItem("redirectUrl");
@@ -81,6 +87,12 @@ export default function AcceptInvitationPage() {
       // If error is 404, treat as already accepted
       if (err instanceof Error && err.message.includes("404")) {
         setIsAccepted(true);
+
+        // Refetch organization context even if already accepted
+        if (organizationData.refetch) {
+          await organizationData.refetch();
+        }
+
         if (typeof window !== "undefined") {
           localStorage.removeItem("redirectUrl");
         }

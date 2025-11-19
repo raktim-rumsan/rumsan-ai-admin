@@ -36,8 +36,13 @@ export function useAcceptInvitation() {
       return data;
     },
     onSuccess: () => {
+      // Invalidate all workspace-related queries to refetch the data
       queryClient.invalidateQueries({
-        queryKey: ["workspaces", "invitations"],
+        queryKey: ["workspaces"],
+      });
+      // Also invalidate organization context to update the workspace count
+      queryClient.invalidateQueries({
+        queryKey: ["organizationContext"],
       });
     },
     onError: (error: Error) => {

@@ -9,6 +9,36 @@ import type { OrganizationContextResponse } from "@/queries/organizationQuery";
 
 const CACHE_DURATION = 5 * 60 * 1000;
 
+// Utility function to sync organization context to cookies
+function syncOrganizationContextToCookie(
+  context: OrganizationContextResponse["data"] | Record<string, unknown>
+) {
+  if (typeof window === "undefined") return;
+
+  try {
+    const contextData = {
+      userState: "userState" in context ? context.userState : null,
+      primaryOrganization:
+        "primaryOrganization" in context ? context.primaryOrganization : null,
+      organizations: "organizations" in context ? context.organizations : null,
+    };
+
+    const contextString = JSON.stringify(contextData);
+    // Set cookie with 1 day expiration
+    document.cookie = `organizationContext=${encodeURIComponent(
+      contextString
+    )}; path=/; max-age=86400; SameSite=Lax`;
+  } catch (error) {
+    console.error("Error syncing organization context to cookie:", error);
+  }
+}
+
+// Utility function to clear organization context cookie
+function clearOrganizationContextCookie() {
+  if (typeof window === "undefined") return;
+  document.cookie = "organizationContext=; path=/; max-age=0";
+}
+
 export function useOrganizationContext() {
   const organizationStore = useOrganizationStore();
   const accessToken = getAuthToken();
@@ -63,6 +93,8 @@ export function useOrganizationContext() {
   useEffect(() => {
     if (isSuccess && data) {
       storeRef.current.setContext(data.data);
+      // Sync to cookie for middleware access
+      syncOrganizationContextToCookie(data.data);
     }
   }, [isSuccess, data]);
 
@@ -96,12 +128,16 @@ export function useOrganizationContext() {
             Date.now() - parsedContext.lastFetched > CACHE_DURATION;
           if (!isStale) {
             storeRef.current.hydrate(parsedContext);
+            // Sync to cookie for middleware access
+            syncOrganizationContextToCookie(parsedContext);
           } else {
             localStorage.removeItem("organizationContext");
+            clearOrganizationContextCookie();
           }
         } catch (error) {
           console.error("Failed to parse saved organization context:", error);
           localStorage.removeItem("organizationContext");
+          clearOrganizationContextCookie();
         }
       }
     }
@@ -134,6 +170,7 @@ export function useOrganizationContext() {
     }
     storeRef.current.clearContext();
     localStorage.removeItem("organizationContext");
+    clearOrganizationContextCookie();
     return refetchContext();
   }, [accessToken, refetchContext]);
 

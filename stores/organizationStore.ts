@@ -119,6 +119,17 @@ export const useOrganizationStore = create<OrganizationContextState>()(
             "organizationContext",
             JSON.stringify(persistData)
           );
+
+          // Also sync to cookie for middleware access
+          const cookieData = {
+            userState: data.userState || null,
+            primaryOrganization: data.organizations?.primary || null,
+            organizations: data.organizations?.all || [],
+          };
+          const contextString = JSON.stringify(cookieData);
+          document.cookie = `organizationContext=${encodeURIComponent(
+            contextString
+          )}; path=/; max-age=86400; SameSite=Lax`;
         }
       },
 
@@ -143,6 +154,8 @@ export const useOrganizationStore = create<OrganizationContextState>()(
         // Clear from localStorage
         if (typeof window !== "undefined") {
           localStorage.removeItem("organizationContext");
+          // Clear cookie as well
+          document.cookie = "organizationContext=; path=/; max-age=0";
         }
       },
 
