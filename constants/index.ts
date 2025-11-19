@@ -33,6 +33,7 @@ export const ROUTES = {
 
   //query routes
   QUERY: `${API_BASE_URL}/rag/query`,
+  SECTOR_QUERY: `${API_BASE_URL}/rag/industry`,
   RAG_HEALTH: `${API_BASE_URL}/rag/health`,
   QUERY_WITH_API_KEY: `${API_BASE_URL}/rag/query-api`,
 

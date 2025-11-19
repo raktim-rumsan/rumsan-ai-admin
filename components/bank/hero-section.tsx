@@ -14,8 +14,8 @@ export function HeroSection() {
           </p>
         </div>
 
-        <div className="flex items-center justify-center">
-          <ChatInterface />
+        <div className="flex items-center justify-center h-full">
+          <ChatInterface className="h-full" />
         </div>
       </div>
     </section>
