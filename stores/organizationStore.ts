@@ -28,14 +28,6 @@ export interface Workspace {
   isActive: boolean;
 }
 
-export interface NextAction {
-  action: string;
-  title: string;
-  description: string;
-  priority: string;
-  url: string;
-}
-
 export interface PendingInvitation {
   id: string;
   email: string;
@@ -51,7 +43,6 @@ interface OrganizationContextState {
   workspaces: Workspace[];
   primaryOrganization: Organization | null;
   pendingInvitations: PendingInvitation[];
-  nextActions: NextAction[];
   userState: string | null;
   redirectTo: string | null;
   isLoaded: boolean;
@@ -71,7 +62,6 @@ interface OrganizationContextState {
     workspaces: Workspace[];
     primaryOrganization: Organization | null;
     pendingInvitations: PendingInvitation[];
-    nextActions: NextAction[];
     userState: string | null;
     redirectTo: string | null;
   }) => void;
@@ -84,7 +74,6 @@ export const useOrganizationStore = create<OrganizationContextState>()(
       workspaces: [],
       primaryOrganization: null,
       pendingInvitations: [],
-      nextActions: [],
       userState: null,
       redirectTo: null,
       isLoaded: false,
@@ -104,7 +93,6 @@ export const useOrganizationStore = create<OrganizationContextState>()(
             workspaces: data.workspaces?.accessible || [],
             primaryOrganization: data.organizations?.primary || null,
             pendingInvitations: data.pendingInvitations || [],
-            nextActions: data.nextActions || [],
             userState: data.userState || null,
             redirectTo: data.redirectTo || null,
             isLoaded: true,
@@ -123,7 +111,6 @@ export const useOrganizationStore = create<OrganizationContextState>()(
             workspaces: data.workspaces?.accessible || [],
             primaryOrganization: data.organizations?.primary || null,
             pendingInvitations: data.pendingInvitations || [],
-            nextActions: data.nextActions || [],
             userState: data.userState || null,
             redirectTo: data.redirectTo || null,
             lastFetched: Date.now(),
@@ -142,7 +129,6 @@ export const useOrganizationStore = create<OrganizationContextState>()(
             workspaces: [],
             primaryOrganization: null,
             pendingInvitations: [],
-            nextActions: [],
             userState: null,
             redirectTo: null,
             isLoaded: false,

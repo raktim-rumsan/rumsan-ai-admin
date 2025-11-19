@@ -135,15 +135,6 @@ const OrganizationContextSchema = z.object({
         invitedAt: z.string(),
       })
     ),
-    nextActions: z.array(
-      z.object({
-        action: z.string(),
-        title: z.string(),
-        description: z.string(),
-        priority: z.string(),
-        url: z.string(),
-      })
-    ),
   }),
 });
 
