@@ -1,12 +1,11 @@
 "use client";
 
 import { use, useState } from "react";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Bot, FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Doc, Member, Workspace } from "@/types/workspace-types";
+import { Member, Workspace } from "@/types/workspace-types";
 import MembersTab from "@/components/workspace-management/members-tabs";
 import LLMSettingsTab from "@/components/workspace-management/llm-settings-tabs";
 import KnowledgebaseTab from "@/components/workspace-management/knowledegebase-tabs";
@@ -22,21 +21,8 @@ export default function WorkspaceDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id: workspaceId } = use(params);
-  const [members, setMembers] = useState<Member[]>([]); // fill initial data as needed
-  //   const [llmSettings, setLlmSettings] = useState<LLMSettings[]>([]);
-  const [llmSettings, setLlmSettings] = useState({
-    provider: "openai",
-    model: "gpt-4",
-    temperature: "0.7",
-    maxTokens: "2048",
-    apiKey: "sk-••••••••••••••••••••",
-    apiEndpoint: "",
-  });
-
+  const [members, setMembers] = useState<Member[]>([]);
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
-
-  const [knowledgebase, setKnowledgebase] = useState<Doc[]>([]);
-
   let filterWorkspace: WorkspaceQueryType | undefined;
 
   if (!isLoading && workspaceData) {
@@ -51,6 +37,7 @@ export default function WorkspaceDetailPage({
     description: filterWorkspace?.description || "",
     status: "active",
     color: "bg-blue-500",
+    slug: filterWorkspace?.slug || "",
   };
 
   return (
@@ -74,7 +61,7 @@ export default function WorkspaceDetailPage({
               asChild
               className="bg-green-600 hover:bg-green-700 text-white"
             >
-              <Link href={`/dashboard/viewer?workspace=${workspaceId}`}>
+              <Link href={`/dashboard?workspace=${workspace.slug}`}>
                 <ExternalLink className="h-4 w-4 mr-2" /> Open Workspace
               </Link>
             </Button>
@@ -84,10 +71,7 @@ export default function WorkspaceDetailPage({
             <MembersTab members={members} setMembers={setMembers} />
           </TabsContent>
           <TabsContent value="llm">
-            <LLMSettingsTab
-            // llmSettings={llmSettings}
-            // setLlmSettings={setLlmSettings}
-            />
+            <LLMSettingsTab />
           </TabsContent>
           <TabsContent value="knowledgebase">
             <KnowledgebaseTab />

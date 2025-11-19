@@ -6,6 +6,7 @@ export interface Workspace {
   description: string;
   status: string;
   color: string;
+  slug: string;
 }
 
 export interface Member {
