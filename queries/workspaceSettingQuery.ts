@@ -58,24 +58,53 @@ export function useUpdateWorkspaceSetting() {
           "x-tenant-id": workspaceId || "",
           accept: "application/json",
         },
-        body: JSON.stringify({
-          ...payload,
-        }),
+        body: JSON.stringify(payload),
       });
+
       const data = await res.json();
       if (!res.ok) {
         const errorMessage =
           data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
         throw new Error(errorMessage);
       }
+
       return data;
     },
+    // Optimistic update here
+    onMutate: async (newData: Partial<WorkspaceSettings>) => {
+      await queryClient.cancelQueries({ queryKey: ["workspaceSettings"] });
+
+      // Snapshot previous value
+      const previousSettings = queryClient.getQueryData<WorkspaceSettings>([
+        "workspaceSettings",
+        newData.id,
+      ]);
+
+      // Optimistically update cache
+      queryClient.setQueryData(["workspaceSettings", newData.id], newData);
+
+      return { previousSettings, newData };
+    },
+
+    // If the mutation fails → rollback optimistic update
+    onError: (err, newData, context) => {
+      queryClient.setQueryData(
+        ["workspaceSettings", context?.newData.id],
+        context?.previousSettings
+      );
+      toast.error(err.message);
+    },
+
+    // Success → refetch & show toast
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workspaceSettings"] });
       toast.success("Workspace settings updated successfully");
     },
-    onError: (error: Error) => {
-      toast.error(error.message);
+
+    // Always run after error or success
+    onSettled: (newData) => {
+      queryClient.invalidateQueries({
+        queryKey: ["workspaceSettings", newData.id],
+      });
     },
   });
 }
