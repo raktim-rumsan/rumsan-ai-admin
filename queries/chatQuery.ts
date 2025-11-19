@@ -209,3 +209,49 @@ export async function sendWidgetChatQuery(
     throw error;
   }
 }
+
+async function sendChatQueryIndustry(
+  request: ChatQueryRequest
+): Promise<ChatQueryResponse> {
+    const sector = process.env.NEXT_PUBLIC_DEFAULT_INDUSTRY;
+    const url = `${ROUTES.SECTOR_QUERY}?sector=${encodeURIComponent(sector || "")}`;
+  
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const errorMessage =
+      errorData.message ||
+      errorData.error ||
+      `HTTP error! status: ${response.status}`;
+    throw new Error(errorMessage);
+  }
+
+  const data = await response.json();
+
+  const responseData: ChatQueryResponse = data.data || data;
+  return {
+    answer: responseData.answer || "No response received",
+    confidence: responseData.confidence || 0,
+    processingTime: responseData.processingTime || 0,
+    sources: responseData.sources || [],
+  };
+}
+
+// Mutation hook for sending chat messages
+export function useChatIndustryMutation() {
+  return useMutation({
+    mutationFn: sendChatQueryIndustry,
+    onError: (error: Error) => {
+      console.error("Chat query error:", error);
+    },
+  });
+}
