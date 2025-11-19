@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import MembersTabsSkeleton from "./members-tabs-skeleton";
 import {
   Dialog,
   DialogContent,
@@ -49,6 +50,12 @@ export default function MembersTab({}: Props) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
+  const [resendingInvitationId, setResendingInvitationId] = useState<
+    string | null
+  >(null);
+  const [deletingInvitationId, setDeletingInvitationId] = useState<
+    string | null
+  >(null);
   const { id: workspaceId } = useParams();
 
   const orgId = useSearchParams().get("orgId") || "";
@@ -99,23 +106,35 @@ export default function MembersTab({}: Props) {
     orgId: string,
     workspaceId: string
   ) => {
-    await workspaceResendInvitation.mutateAsync({
-      invitationId,
-      email,
-      orgId,
-      workspaceId,
-    });
+    try {
+      setResendingInvitationId(invitationId);
+      await workspaceResendInvitation.mutateAsync({
+        invitationId,
+        email,
+        orgId,
+        workspaceId,
+      });
+    } catch (error) {
+      console.error("Failed to resend invitation:", error);
+    } finally {
+      setResendingInvitationId(null);
+    }
   };
 
   const removeWorkspaceInvitation = async (invitationId: string) => {
-    await deleteWorkspaceInvitation.mutateAsync(invitationId);
+    try {
+      setDeletingInvitationId(invitationId);
+      await deleteWorkspaceInvitation.mutateAsync(invitationId);
+    } catch (error) {
+      console.error("Failed to delete invitation:", error);
+    } finally {
+      setDeletingInvitationId(null);
+    }
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  return (
+  return isLoading ? (
+    <MembersTabsSkeleton />
+  ) : (
     <>
       <div className="space-y-6">
         <Card>
@@ -168,7 +187,9 @@ export default function MembersTab({}: Props) {
                       </div>
                     </div>
                     <Button
-                      className="w-fit"
+                      className={`w-fit ${
+                        invitationMutation.isPending ? "animate-pulse" : ""
+                      }`}
                       onClick={handleSendInvitation}
                       disabled={!email || !role || invitationMutation.isPending}
                     >
@@ -184,97 +205,136 @@ export default function MembersTab({}: Props) {
           </CardHeader>
           <CardContent className="p-4">
             <div className="space-y-4">
-              {WorkSpaceUsers &&
-                WorkSpaceUsers?.data?.members?.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5 text-muted-foreground" />
+              {WorkSpaceUsers && WorkSpaceUsers?.data?.members
+                ? WorkSpaceUsers.data.members.map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-medium">
+                            {member?.user.full_name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {member.user.email}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{member?.user.full_name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {member.user.email}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <Badge variant="outline">{member.role}</Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            removeMember(member.user.email);
+                          }}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline">{member.role}</Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          removeMember(member.user.email);
-                        }}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                : null}
             </div>
           </CardContent>
           <CardContent className="pt-0 pl-4 pr-4 pb-4">
             <div className="space-y-4">
-              {WorkSpaceUsers &&
-                WorkSpaceUsers?.data?.invitations?.map((invitations) => (
-                  <div
-                    key={invitations.id}
-                    className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5 text-muted-foreground" />
+              {WorkSpaceUsers && WorkSpaceUsers?.data?.invitations
+                ? WorkSpaceUsers.data.invitations.map((invitations) => (
+                    <div
+                      key={invitations.id}
+                      className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-medium">
+                            {invitations.email}
+                            <Badge
+                              className="ml-2 bg-yellow-400 text-white border-yellow-200"
+                              variant="outline"
+                            >
+                              {invitations.status}
+                            </Badge>
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {invitations?.invitedBy?.full_name}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">
-                          {invitations.email}
-                          <Badge
-                            className="ml-2 bg-yellow-400 text-white border-yellow-200"
-                            variant="outline"
-                          >
-                            {invitations.status}
-                          </Badge>
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {invitations?.invitedBy?.full_name}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <Badge variant="outline">{invitations.role}</Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            handleResendInvitation(
+                              invitations.id as string,
+                              invitations.email as string,
+                              orgId,
+                              workspaceId as string
+                            );
+                          }}
+                          className={`hover:bg-transparent cursor-pointer p-0 ${
+                            resendingInvitationId === invitations.id &&
+                            workspaceResendInvitation.isPending
+                              ? "opacity-70"
+                              : ""
+                          }`}
+                          disabled={
+                            resendingInvitationId === invitations.id &&
+                            workspaceResendInvitation.isPending
+                          }
+                          aria-label="Resend invitation"
+                        >
+                          <RefreshCcw
+                            color="#cdd016"
+                            className={`h-4 w-4 ${
+                              resendingInvitationId === invitations.id &&
+                              workspaceResendInvitation.isPending
+                                ? "animate-spin"
+                                : ""
+                            }`}
+                          />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            removeWorkspaceInvitation(invitations.id as string);
+                          }}
+                          className={`text-destructive hover:bg-transparent cursor-pointer p-0 ${
+                            deletingInvitationId === invitations.id &&
+                            deleteWorkspaceInvitation.isPending
+                              ? "opacity-70"
+                              : ""
+                          }`}
+                          disabled={
+                            deletingInvitationId === invitations.id &&
+                            deleteWorkspaceInvitation.isPending
+                          }
+                          aria-label="Delete invitation"
+                        >
+                          <Trash2
+                            className={`h-4 w-4 ${
+                              deletingInvitationId === invitations.id &&
+                              deleteWorkspaceInvitation.isPending
+                                ? "animate-spin"
+                                : ""
+                            }`}
+                          />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline">{invitations.role}</Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          handleResendInvitation(
-                            invitations.id as string,
-                            invitations.email as string,
-                            orgId,
-                            workspaceId as string
-                          );
-                        }}
-                        className="hover:bg-transparent cursor-pointer p-0"
-                      >
-                        <RefreshCcw color="#cdd016" className="h-4 w-4 " />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          removeWorkspaceInvitation(invitations.id as string);
-                        }}
-                        className="text-destructive hover:bg-transparent cursor-pointer p-0 "
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                : null}
             </div>
           </CardContent>
         </Card>

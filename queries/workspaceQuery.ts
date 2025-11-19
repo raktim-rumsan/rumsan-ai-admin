@@ -42,6 +42,7 @@ export interface WorkspaceInvitations {
   expiresAt?: string;
   acceptedAt?: string | null;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export type CreateInvitationPayload = {

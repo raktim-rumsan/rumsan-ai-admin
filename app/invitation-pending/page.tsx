@@ -13,7 +13,10 @@ import { toastUtils } from "@/lib/toast-utils";
 import { formatDistanceToNow } from "date-fns";
 
 interface InvitationWithToken
-  extends Omit<import("@/stores/organizationStore").PendingInvitation, "id"> {
+  extends Omit<
+    import("@/stores/organizationStore").PendingInvitation,
+    "id" | "token"
+  > {
   id: string;
   token?: string;
   organizationName?: string;
@@ -42,7 +45,10 @@ export default function NotificationsPage() {
 
     setAcceptingId(invitation.id);
     try {
-      await acceptMutation.mutateAsync(invitation.token);
+      await acceptMutation.mutateAsync({
+        token: invitation.token,
+        invitationId: invitation.id,
+      });
       toastUtils.generic.success(
         "Invitation Accepted",
         `You've successfully joined ${
@@ -164,7 +170,8 @@ export default function NotificationsPage() {
           {/* List Items */}
           <div className="divide-y divide-gray-200">
             {pendingInvitations.map((invitation, index) => {
-              const invitationWithToken = invitation as InvitationWithToken;
+              const invitationWithToken =
+                invitation as unknown as InvitationWithToken;
               const isAccepting = acceptingId === invitation.id;
               const isDeclining = decliningId === invitation.id;
               const isProcessing = isAccepting || isDeclining;

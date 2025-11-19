@@ -29,12 +29,19 @@ export interface Workspace {
 }
 
 export interface PendingInvitation {
+  token(token: any): void;
   id: string;
   email: string;
   role: string;
   organizationId: string;
   workspaceId?: string;
   invitedAt: string;
+  expiresAt?: string;
+  workspace?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
 }
 
 interface OrganizationContextState {
