@@ -3,8 +3,13 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { ProtectedStoreInitializer } from "@/components/layout/ProtectedStoreInitializer";
+import FloatingPreviewChat from "@/components/sections/agent-preview/floating-chat";
 
-export default async function DashboardLayoutPage({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayoutPage({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const supabase = await createClient();
 
   const { data, error } = await supabase.auth.getUser();
@@ -14,7 +19,10 @@ export default async function DashboardLayoutPage({ children }: { children: Reac
 
   return (
     <ProtectedStoreInitializer>
-      <DashboardLayout>{children}</DashboardLayout>
+      <DashboardLayout>
+        {children}
+        <FloatingPreviewChat />
+      </DashboardLayout>
     </ProtectedStoreInitializer>
   );
 }
