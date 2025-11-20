@@ -11,9 +11,21 @@ import {
 } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { managementCardItem } from "./management-cards";
+import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 
 export default function AdminDashboard() {
   const router = useRouter();
+ const { data: workspaceData, isLoading: workspaceLoading } = useWorkspaceQuery();
+
+  const workspaceCount = workspaceData?.data?.myWorkspaces.length || 0;
+
+  const getCardStats = (card: any) => {
+    if (card.slug === "workspaces") {
+      if (workspaceLoading) return "Loading...";
+      return `${workspaceCount} Active Workspace${workspaceCount !== 1 ? 's' : ''}`;
+    }
+    return card.stats;
+  };
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -73,7 +85,7 @@ export default function AdminDashboard() {
                         <CardTitle className="text-lg">{card.title}</CardTitle>
 
                         <p className="text-xs text-muted-foreground mt-1">
-                          {card.stats}
+                           {getCardStats(card)}
                         </p>
                       </div>
                     </div>

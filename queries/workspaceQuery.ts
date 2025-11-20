@@ -90,6 +90,7 @@ export function useWorkspaceQuery() {
       }
       return data;
     },
+    staleTime: 2 * 60 * 1000
   });
 }
 
