@@ -10,8 +10,8 @@ export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
 echo "🚀 Building Rumsan AI Admin Panel Docker Image..."
 
 # Check if .env file exists
-if [ ! -f .env ]; then
-    echo "⚠️  Warning: .env file not found. Creating from .env.example..."
+if [ ! -f .env.prod ]; then
+    echo "⚠️  Warning: .env.prod file not found. Creating from .env.example..."
     if [ -f env.example ]; then
         cp env.example .env
         echo "📝 Please edit .env file with your actual values before building"
@@ -20,8 +20,10 @@ if [ ! -f .env ]; then
 fi
 
 # Load environment variables
-if [ -f .env ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+if [ -f .env.prod ]; then
+    export $(cat .env.prod | grep -v '^#' | xargs)
+    echo "📋 Loaded environment variables:"
+    echo "  NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL"
 fi
 
 # Check required environment variables
@@ -43,12 +45,13 @@ fi
 
 # Build the image
 echo "🔨 Building Docker image for AMD64 platform..."
-docker build \
+docker buildx build \
     --platform linux/amd64 \
     --build-arg NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL" \
     --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="$NEXT_PUBLIC_SUPABASE_ANON_KEY" \
     --build-arg NEXT_PUBLIC_URL="$NEXT_PUBLIC_URL" \
     --build-arg NEXT_PUBLIC_SERVER_API="$NEXT_PUBLIC_SERVER_API" \
+    --build-arg NEXT_PUBLIC_INDUSTRY_VALUES="$NEXT_PUBLIC_INDUSTRY_VALUES" \
     -t rumsan/ai-admin:latest \
     .
 

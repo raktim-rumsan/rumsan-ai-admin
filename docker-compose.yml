@@ -1,7 +1,7 @@
 services:
   nextjs-app:
     image: rumsan/ai-admin:latest
-    container_name: nextjs-app
+    container_name: rumsan-ai-ui
     restart: unless-stopped
     ports:
       - "3000:3000"
