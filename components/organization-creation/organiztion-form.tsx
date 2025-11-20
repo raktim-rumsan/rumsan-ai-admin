@@ -8,6 +8,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toastUtils } from "@/lib/toast-utils";
 import { useOrganizationMutation } from "@/queries/organizationQuery";
 
@@ -17,6 +24,7 @@ interface OrganizationFormProps {
 
 export function OrganizationForm({ onSuccess }: OrganizationFormProps) {
   const [organizationName, setOrganizationName] = useState("");
+  const [sector, setSector] = useState<string>("");
 
   const organizationMutation = useOrganizationMutation(() => {
     onSuccess(organizationName);
@@ -38,8 +46,17 @@ export function OrganizationForm({ onSuccess }: OrganizationFormProps) {
       return;
     }
 
+    if (!sector) {
+      toastUtils.generic.error(
+        "Sector required",
+        "Please select a sector for your organization."
+      );
+      return;
+    }
+
     organizationMutation.mutate({
       name: organizationName,
+      sector: sector,
     });
   };
 
@@ -79,6 +96,28 @@ export function OrganizationForm({ onSuccess }: OrganizationFormProps) {
             </p>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="sector" className="text-foreground">
+              Sector
+            </Label>
+            <Select
+              value={sector}
+              onValueChange={setSector}
+              disabled={organizationMutation.isPending}
+            >
+              <SelectTrigger id="sector" className="h-11">
+                <SelectValue placeholder="Select a sector" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="banking">Banking</SelectItem>
+                <SelectItem value="dentistry">Dentistry</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Choose the sector your organization operates in.
+            </p>
+          </div>
+
           {/* Features list */}
           {/* <div className="bg-secondary/50 rounded-lg p-4 space-y-3">
             <p className="text-sm font-medium text-foreground">
@@ -106,7 +145,9 @@ export function OrganizationForm({ onSuccess }: OrganizationFormProps) {
             type="submit"
             className="w-full h-11 text-base"
             disabled={
-              organizationMutation.isPending || !organizationName.trim()
+              organizationMutation.isPending ||
+              !organizationName.trim() ||
+              !sector
             }
           >
             {organizationMutation.isPending ? (

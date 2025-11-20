@@ -35,7 +35,11 @@ export function useOrganizationMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (organizationData: { name: string; slug?: string }) => {
+    mutationFn: async (organizationData: {
+      name: string;
+      slug?: string;
+      sector?: string;
+    }) => {
       const access_token = getAuthToken();
       const workspaceId = localStorage.getItem("workspaceId");
       const res = await fetch(ROUTES.ORGANIZATIONS, {
