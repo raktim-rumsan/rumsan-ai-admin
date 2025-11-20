@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Card,
@@ -15,40 +15,39 @@ import { InvitationSuccess } from "@/components/accept-invitation/InvitationSucc
 import { InvitationError } from "@/components/accept-invitation/InvitationError";
 import { useOrganizationContext } from "@/hooks/useOrganizationContext";
 
-export default function AcceptInvitationPage() {
+function AcceptInvitationContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
   const [isAccepted, setIsAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasAttempted, setHasAttempted] = useState(false);
+  const [, setHasAttempted] = useState(false);
   const hasInitiatedRef = useRef(false);
   const organizationData = useOrganizationContext();
 
   const acceptMutation = useAcceptInvitation();
 
   useEffect(() => {
-    // Prevent duplicate calls (React Strict Mode runs effects twice in development)
     if (hasInitiatedRef.current) {
       return;
     }
 
-    // Save the full invitation URL to localStorage when page loads
-    if (typeof window !== "undefined" && window.location.href) {
-      localStorage.setItem("redirectUrl", window.location.href);
+    const access_token = getAuthToken();
+
+    if (!access_token) {
+      // User not logged in - middleware will redirect to login with redirectUrl param
+      hasInitiatedRef.current = true;
+      router.push("/auth/login");
+      return;
     }
 
-    // Only attempt once when we have a token and user is authenticated
+    // User is logged in - proceed with invitation acceptance
     if (organizationData && token) {
       hasInitiatedRef.current = true;
       handleAcceptInvitation();
-    } else if (!organizationData) {
-      // User not authenticated - redirect to login (only once)
-      hasInitiatedRef.current = true;
-      router.push("/auth/login");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [organizationData, token]);
 
   const handleAcceptInvitation = async () => {
     if (!token) {
@@ -60,8 +59,6 @@ export default function AcceptInvitationPage() {
     // Check if user is authenticated
     const access_token = getAuthToken();
     if (!access_token) {
-      // User not authenticated - redirect to login
-      // URL is already saved in localStorage from useEffect
       router.push("/auth/login");
       return;
     }
@@ -71,28 +68,19 @@ export default function AcceptInvitationPage() {
 
     try {
       await acceptMutation.mutateAsync(token);
-      // If mutation succeeds without throwing, set accepted state
       setIsAccepted(true);
-
-      // Refetch organization context to update workspace list
       if (organizationData.refetch) {
         await organizationData.refetch();
       }
-
-      // Clear the saved redirect URL after successful acceptance
       if (typeof window !== "undefined") {
         localStorage.removeItem("redirectUrl");
       }
     } catch (err) {
-      // If error is 404, treat as already accepted
       if (err instanceof Error && err.message.includes("404")) {
         setIsAccepted(true);
-
-        // Refetch organization context even if already accepted
         if (organizationData.refetch) {
           await organizationData.refetch();
         }
-
         if (typeof window !== "undefined") {
           localStorage.removeItem("redirectUrl");
         }
@@ -102,7 +90,6 @@ export default function AcceptInvitationPage() {
             ? err.message
             : "Failed to accept invitation. Please try again."
         );
-        // Reset hasAttempted on error so user can retry
         setHasAttempted(false);
       }
     }
@@ -116,7 +103,6 @@ export default function AcceptInvitationPage() {
   };
 
   const handleGoToDashboard = () => {
-    // Clear redirect URL before going to dashboard
     if (typeof window !== "undefined") {
       localStorage.removeItem("redirectUrl");
     }
@@ -124,7 +110,6 @@ export default function AcceptInvitationPage() {
   };
 
   const handleGoToLogin = () => {
-    // URL is already saved in localStorage from useEffect
     router.push("/auth/login");
   };
 
@@ -194,5 +179,19 @@ export default function AcceptInvitationPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function AcceptInvitationPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        </div>
+      }
+    >
+      <AcceptInvitationContent />
+    </Suspense>
   );
 }

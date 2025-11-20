@@ -6,8 +6,20 @@ import { getAuthToken } from "@/lib/utils";
 import { useOrganizationStore } from "@/stores/organizationStore";
 import { ROUTES } from "@/constants";
 import type { OrganizationContextResponse } from "@/queries/organizationQuery";
+import { usePathname } from "next/navigation";
 
 const CACHE_DURATION = 5 * 60 * 1000;
+
+// Routes where organization context should NOT be fetched
+const EXCLUDED_ROUTES = [
+  "/",
+  "/auth/login",
+  "/auth/sign-up",
+  "/auth/verify-otp",
+  "/auth/sign-up-success",
+  "/widget",
+  "/bank",
+];
 
 // Utility function to sync organization context to cookies
 function syncOrganizationContextToCookie(
@@ -42,6 +54,7 @@ function clearOrganizationContextCookie() {
 export function useOrganizationContext() {
   const organizationStore = useOrganizationStore();
   const accessToken = getAuthToken();
+  const pathname = usePathname();
 
   const storeRef = useRef(organizationStore);
   storeRef.current = organizationStore;
@@ -51,10 +64,20 @@ export function useOrganizationContext() {
     return Date.now() - organizationStore.lastFetched > CACHE_DURATION;
   }, [organizationStore.lastFetched]);
 
-  const shouldFetch = Boolean(
-    accessToken && (!organizationStore.isLoaded || isCacheStale())
-  );
+  // Check if current route is excluded
+  // Use exact match for "/" to avoid matching all routes
+  const isExcludedRoute = EXCLUDED_ROUTES.some((route) => {
+    if (route === "/") {
+      return pathname === "/";
+    }
+    return pathname?.startsWith(route);
+  });
 
+  const shouldFetch = Boolean(
+    accessToken &&
+      !isExcludedRoute &&
+      (!organizationStore.isLoaded || isCacheStale())
+  );
   const { data, error, isLoading, refetch, isSuccess } = useQuery({
     queryKey: ["organizationContext", accessToken],
     queryFn: async (): Promise<OrganizationContextResponse> => {

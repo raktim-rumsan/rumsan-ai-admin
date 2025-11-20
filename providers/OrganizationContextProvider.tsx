@@ -27,8 +27,6 @@ export function OrganizationContextProvider({
       !organizationContext.isLoaded &&
       !organizationContext.isLoading
     ) {
-      // Context will be automatically fetched by the useOrganizationContext hook
-      console.log("Organization context provider initialized");
     }
   }, [
     accessToken,
@@ -41,7 +39,6 @@ export function OrganizationContextProvider({
     if (!accessToken && organizationContext.isLoaded) {
       // User logged out, clear the context
       organizationContext.clearContext();
-      console.log("Organization context cleared due to logout");
     }
   }, [accessToken, organizationContext]);
 
@@ -55,7 +52,6 @@ export function OrganizationContextProvider({
 export function useInitializeOrganizationContext() {
   const context = useOrganizationContext();
   const accessToken = getAuthToken();
-
   useEffect(() => {
     if (accessToken && !context.isLoaded && !context.isLoading) {
       // The hook will automatically fetch if needed

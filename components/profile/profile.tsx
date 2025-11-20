@@ -15,15 +15,12 @@ import { useUserLoading, useUserProfile, useClearUser } from "@/stores";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { useOrganizationContext } from "@/hooks/useOrganizationContext";
-import { init } from "next/dist/compiled/webpack/webpack";
 
 export function ProfileUserDashboard() {
   const orgContext = useOrganizationContext();
-
   const userProfile = useUserProfile();
   const isLoading = useUserLoading();
   const clearUser = useClearUser();
-
   const router = useRouter();
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -62,20 +59,12 @@ export function ProfileUserDashboard() {
 
   const handleLogout = async () => {
     try {
-      // First sign out from Supabase
       await supabase.auth.signOut();
-
-      // Clear all user and organization data
       await clearUser();
-
-      // Clear workspace and organization data
       localStorage.clear();
-
-      // Navigate to login page
       router.push("/auth/login");
     } catch (error) {
       console.error("Logout error:", error);
-      // Still navigate to login even if there's an error
       router.push("/auth/login");
     }
   };

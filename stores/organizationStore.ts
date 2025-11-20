@@ -90,18 +90,26 @@ export const useOrganizationStore = create<OrganizationContextState>()(
 
       // Actions
       setContext: (data) => {
-        console.log("Organization store setContext called with:", data);
-        console.log("Organizations structure:", data.organizations);
-        console.log("Workspaces structure:", data.workspaces);
-
+        // Handle both nested and flat data structures
+        const organizations =
+          data?.organizations?.all || data?.organizations || [];
+        const workspaces =
+          data?.workspaces?.accessible || data?.workspaces || [];
+        const primaryOrganization =
+          data?.organizations?.primary || data?.primaryOrganization || null;
+        const pendingInvitations = data?.pendingInvitations || [];
+        const userState = data?.userState || null;
+        const redirectTo = data?.redirectTo || null;
         set(
           {
-            organizations: data.organizations?.all || [],
-            workspaces: data.workspaces?.accessible || [],
-            primaryOrganization: data.organizations?.primary || null,
-            pendingInvitations: data.pendingInvitations || [],
-            userState: data.userState || null,
-            redirectTo: data.redirectTo || null,
+            organizations: Array.isArray(organizations) ? organizations : [],
+            workspaces: Array.isArray(workspaces) ? workspaces : [],
+            primaryOrganization,
+            pendingInvitations: Array.isArray(pendingInvitations)
+              ? pendingInvitations
+              : [],
+            userState,
+            redirectTo,
             isLoaded: true,
             isLoading: false,
             error: null,
@@ -114,12 +122,14 @@ export const useOrganizationStore = create<OrganizationContextState>()(
         // Persist to localStorage
         if (typeof window !== "undefined") {
           const persistData = {
-            organizations: data.organizations?.all || [],
-            workspaces: data.workspaces?.accessible || [],
-            primaryOrganization: data.organizations?.primary || null,
-            pendingInvitations: data.pendingInvitations || [],
-            userState: data.userState || null,
-            redirectTo: data.redirectTo || null,
+            organizations: Array.isArray(organizations) ? organizations : [],
+            workspaces: Array.isArray(workspaces) ? workspaces : [],
+            primaryOrganization,
+            pendingInvitations: Array.isArray(pendingInvitations)
+              ? pendingInvitations
+              : [],
+            userState,
+            redirectTo,
             lastFetched: Date.now(),
           };
           localStorage.setItem(
@@ -129,9 +139,9 @@ export const useOrganizationStore = create<OrganizationContextState>()(
 
           // Also sync to cookie for middleware access
           const cookieData = {
-            userState: data.userState || null,
-            primaryOrganization: data.organizations?.primary || null,
-            organizations: data.organizations?.all || [],
+            userState,
+            primaryOrganization,
+            organizations: Array.isArray(organizations) ? organizations : [],
           };
           const contextString = JSON.stringify(cookieData);
           document.cookie = `organizationContext=${encodeURIComponent(

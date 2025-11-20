@@ -6,8 +6,10 @@ import { OnboardingSuccess } from "@/components/organization-creation/onboarding
 import { OrganizationCheck } from "@/components/organization-creation/organization-check";
 import { OrganizationForm } from "@/components/organization-creation/organiztion-form";
 import { StepIndicator } from "@/components/organization-creation/step-indicator";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useOrganizationContext } from "@/hooks/useOrganizationContext";
+import { getRedirectPath } from "@/stores/organizationStore";
 
 type OnboardingStep =
   | "checking"
@@ -18,15 +20,11 @@ type OnboardingStep =
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const organizationContext = useOrganizationContext();
   const [step, setStep] = useState<OnboardingStep>("organization");
   const [organizationName, setOrganizationName] = useState<string>("");
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
-
-  useEffect(() => {
-    // Tenant functionality has been removed - skip directly to organization setup
-    // This could be modified to check organization status from a different source if needed
-    console.log("Tenant functionality removed - proceeding with onboarding");
-  }, []);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleOrganizationCreated = (name: string) => {
     setOrganizationName(name);
@@ -44,9 +42,44 @@ export default function OnboardingPage() {
     setStep("complete");
   };
 
-  const handleOnboardingComplete = () => {
-    // After onboarding is complete, redirect to admin dashboard
-    router.push("/admin");
+  const handleOnboardingComplete = async () => {
+    setIsRedirecting(true);
+
+    try {
+      // Refetch organization context to get updated redirectTo value
+      let redirectTo = "dashboard";
+      let contextData = null;
+
+      if (organizationContext.refetch) {
+        const result = await organizationContext.refetch();
+        // Get redirectTo from the refetch result
+        if (result && result.data) {
+          redirectTo = result.data.redirectTo || "dashboard";
+          contextData = result.data;
+        }
+      }
+
+      // Manually set the cookie to ensure middleware sees it
+      if (contextData) {
+        const cookieData = {
+          userState: contextData.userState || null,
+          primaryOrganization: contextData.organizations?.primary || null,
+          organizations: contextData.organizations?.all || [],
+        };
+        const contextString = JSON.stringify(cookieData);
+        document.cookie = `organizationContext=${encodeURIComponent(
+          contextString
+        )}; path=/; max-age=86400; SameSite=Lax`;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      const redirectPath = getRedirectPath(redirectTo);
+      window.location.href = redirectPath;
+    } catch (error) {
+      console.error("Error during onboarding completion:", error);
+      window.location.href = "/dashboard";
+    } finally {
+      setIsRedirecting(false);
+    }
   };
 
   const handleBack = () => {
@@ -89,6 +122,7 @@ export default function OnboardingPage() {
         <OnboardingSuccess
           organizationName={organizationName}
           onComplete={handleOnboardingComplete}
+          isRedirecting={isRedirecting}
         />
       )}
     </div>

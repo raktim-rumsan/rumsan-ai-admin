@@ -172,21 +172,14 @@ export function useWorkspaceSwitcher() {
  * Call this after user verification/login is complete
  */
 export function initializeAuthAfterLogin() {
-  // Import stores dynamically to avoid hydration issues
   import("@/stores/userStore").then(({ useUserStore }) => {
     const userStore = useUserStore.getState();
-
-    // Initialize auth if not already done
     if (!userStore.isInitialized) {
       userStore.initializeAuth();
     }
   });
 }
 
-/**
- * Function to load organization context from localStorage on app start
- * Call this during app initialization to restore organization state
- */
 export function initializeOrganizationContext() {
   if (typeof window === "undefined") return;
 
@@ -199,19 +192,14 @@ export function initializeOrganizationContext() {
       if (savedContext) {
         try {
           const parsedContext = JSON.parse(savedContext);
-
-          // Check if data is stale (older than 5 minutes)
           const CACHE_DURATION = 5 * 60 * 1000;
           const isStale =
             !parsedContext.lastFetched ||
             Date.now() - parsedContext.lastFetched > CACHE_DURATION;
-
           if (!isStale) {
             orgStore.hydrate(parsedContext);
           } else {
-            // Remove stale data
             localStorage.removeItem("organizationContext");
-            console.log("Removed stale organization context from localStorage");
           }
         } catch (error) {
           console.error("Failed to parse saved organization context:", error);

@@ -20,7 +20,6 @@ export function InvitationError({
   onRetry,
   onGoToLogin,
 }: InvitationErrorProps) {
-  // Error State (when there's an error message)
   if (error) {
     return (
       <>

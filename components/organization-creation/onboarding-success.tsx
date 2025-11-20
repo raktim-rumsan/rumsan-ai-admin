@@ -1,17 +1,19 @@
 "use client";
 
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 interface OnboardingSuccessProps {
   organizationName: string;
   onComplete?: () => void;
+  isRedirecting?: boolean;
 }
 
 export function OnboardingSuccess({
   organizationName,
   onComplete,
+  isRedirecting = false,
 }: OnboardingSuccessProps) {
   return (
     <Card className="w-full max-w-lg p-8">
@@ -40,21 +42,20 @@ export function OnboardingSuccess({
             className="w-full h-12 text-base"
             size="lg"
             onClick={onComplete}
+            disabled={isRedirecting}
           >
-            Go to dashboard
-            <ArrowRight className="ml-2 h-5 w-5" />
+            {isRedirecting ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Redirecting...
+              </>
+            ) : (
+              <>
+                Go to dashboard
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </>
+            )}
           </Button>
-
-          {/* <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" className="h-11 bg-transparent">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Button>
-            <Button variant="outline" className="h-11 bg-transparent">
-              <Users className="mr-2 h-4 w-4" />
-              Team
-            </Button>
-          </div> */}
         </div>
 
         {/* Next steps */}
@@ -64,10 +65,9 @@ export function OnboardingSuccess({
           </p>
           <ul className="space-y-2">
             {[
-              "Complete your organization profile",
+              "Create your first workspace",
+              "Invite new members to the workspace",
               "Set up integrations and tools",
-              "Create your first project",
-              "Explore the documentation",
             ].map((step, index) => (
               <li
                 key={index}

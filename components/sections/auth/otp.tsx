@@ -149,7 +149,7 @@ export default function AuthOtp() {
             return;
           }
 
-          // TODO: Fix the manually fetch organization context with the current token
+          // Fetch organization context and set cookie before navigation
           try {
             if (token) {
               const response = await fetch(ROUTES.ORGANIZATION_CONTEXT, {
@@ -161,19 +161,36 @@ export default function AuthOtp() {
               });
               if (response.ok) {
                 const contextData = await response.json();
+
+                // Manually set the cookie to ensure middleware sees it
+                if (contextData?.data) {
+                  const cookieData = {
+                    userState: contextData.data.userState || null,
+                    primaryOrganization:
+                      contextData.data.organizations?.primary || null,
+                    organizations: contextData.data.organizations?.all || [],
+                  };
+                  const contextString = JSON.stringify(cookieData);
+                  document.cookie = `organizationContext=${encodeURIComponent(
+                    contextString
+                  )}; path=/; max-age=86400; SameSite=Lax`;
+                }
+
                 const redirectPath = getRedirectPath(
                   contextData?.data?.redirectTo
                 );
-                router.push(redirectPath);
+
+                // Use window.location.href for full page reload to ensure middleware sees the cookie
+                window.location.href = redirectPath;
               } else {
                 console.warn(
                   "Failed to fetch organization context, using fallback"
                 );
-                router.push("/dashboard");
+                window.location.href = "/dashboard";
               }
             } else {
               console.warn("No token available, using fallback");
-              router.push("/dashboard");
+              window.location.href = "/dashboard";
             }
           } catch (contextError) {
             console.error(
@@ -181,7 +198,7 @@ export default function AuthOtp() {
               contextError
             );
             // Fallback to dashboard if context fetch fails
-            router.push("/dashboard");
+            window.location.href = "/dashboard";
           }
         }
       } catch (error: unknown) {

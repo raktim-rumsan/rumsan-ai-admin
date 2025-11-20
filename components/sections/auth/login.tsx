@@ -2,12 +2,18 @@
 
 import type React from "react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import useLoginMutation from "@/queries/loginQuery";
 
@@ -16,8 +22,17 @@ export default function AuthLogin() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const loginMutation = useLoginMutation();
+
+  // Save redirectUrl from query parameter to localStorage
+  useEffect(() => {
+    const redirectUrl = searchParams.get("redirectUrl");
+    if (redirectUrl && typeof window !== "undefined") {
+      localStorage.setItem("redirectUrl", redirectUrl);
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +57,11 @@ export default function AuthLogin() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="currentColor">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-6 h-6 text-white"
+                fill="currentColor"
+              >
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
@@ -75,7 +94,9 @@ export default function AuthLogin() {
               </div>
 
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</div>
+                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+                  {error}
+                </div>
               )}
 
               <Button
@@ -89,7 +110,10 @@ export default function AuthLogin() {
 
             <div className="mt-6 text-center text-sm text-gray-600">
               Don&apos;t have an account?{" "}
-              <Link href="/auth/sign-up" className="font-medium text-black hover:underline">
+              <Link
+                href="/auth/sign-up"
+                className="font-medium text-black hover:underline"
+              >
                 Sign up
               </Link>
             </div>

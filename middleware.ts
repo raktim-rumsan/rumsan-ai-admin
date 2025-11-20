@@ -20,7 +20,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/widget") ||
     pathname.startsWith("/bank") ||
     pathname.startsWith("/accept-invitation") ||
-    pathname.startsWith("/invitation-pending")
+    pathname.startsWith("/invitation-pending") ||
+    pathname.startsWith("/onboarding")
   ) {
     return supabaseResponse;
   }

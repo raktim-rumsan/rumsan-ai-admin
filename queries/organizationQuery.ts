@@ -60,6 +60,8 @@ export function useOrganizationMutation(onSuccess?: () => void) {
       const { data: orgData } = data;
       // Invalidate organizations query to refetch the list
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      // Also invalidate organization context to update user state and redirectTo
+      queryClient.invalidateQueries({ queryKey: ["organizationContext"] });
       toastUtils.generic.success(
         "Organization created!",
         `${orgData.name || "Organization"} has been successfully created.`
