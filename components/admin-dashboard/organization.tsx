@@ -18,27 +18,22 @@ export default function OrganizationPage() {
 
   const { data: organizationDataById } = useOrganizationById();
   const updateOrganization = useOrganizationMutationUpdate()
-  console.log(organizationDataById, 'organizationDataById');
 
     const [name, setName] = useState("");
-  // const [description, setDescription] = useState("");
-  const [sector, setSector] = useState("");
+    const [sector, setSector] = useState("");
 
   // Load values when API returns data
   useEffect(() => {
     if (organizationDataById?.data) {
       const org = organizationDataById.data;
       setName(org.name || "");
-      // setDescription(org.description || "");
       setSector(org.sector || "");
     }
   }, [organizationDataById]);
 
-  // TEMP SAVE HANDLER (later replace with mutation)
  const handleSave = () => {
   updateOrganization.mutate({
     name,
-    // description,
     sector,
   });
 };
@@ -94,15 +89,6 @@ export default function OrganizationPage() {
             className="h-12"
           />
               </div>
-              {/* <div className="space-y-2">
-                <Label htmlFor="org-description">Description</Label>
-                 <Input
-            id="org-description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="h-12"
-          />
-              </div> */}
               <div className="space-y-2">
               <Label htmlFor="sector">Sector</Label>
 

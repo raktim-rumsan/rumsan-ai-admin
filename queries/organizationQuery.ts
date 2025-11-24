@@ -118,15 +118,12 @@ export function useOrganizationMutationUpdate(onSuccess?: () => void) {
   return useMutation({
     mutationFn: async (organizationData: {
       name: string;
-      description?: string;
       sector?: string;
     }) => {
       const access_token = getAuthToken();
-      // const workspaceId = localStorage.getItem("workspaceId");
       const res = await fetch(ROUTES.ORGANIZATION_UPDATE(orgId), {
         method: "PATCH",
         headers: {
-          // "x-tenant-id": workspaceId || "",
           access_token: access_token || "",
           "Content-Type": "application/json",
         },
