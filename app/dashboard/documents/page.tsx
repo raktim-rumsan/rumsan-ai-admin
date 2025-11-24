@@ -21,6 +21,7 @@ import {
   useDocDeleteMutation,
   useEmbeddingMutation,
   useUnembeddingMutation,
+  viewDocument,
 } from "@/queries/documentsQuery";
 import { useDocuments, useSetDocuments } from "@/stores/documentsStore";
 import { DocumentsResponseSchema } from "@/lib/schemas";
@@ -188,7 +189,14 @@ export default function DocumentsPage() {
                         <TableCell>{formatDate(doc.createdAt)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            {doc.fileName.replaceAll("_", " ")}
+                            <button
+                              type="button"
+                              onClick={() => viewDocument(doc.url)}
+                              title={doc.fileName}
+                              className="text-sm text-primary hover:underline max-w-[320px] truncate text-left"
+                            >
+                              {doc.fileName.replaceAll("_", " ")}
+                            </button>
                           </div>
                         </TableCell>
                         {/* <TableCell>{doc.status}</TableCell> */}
@@ -251,18 +259,6 @@ export default function DocumentsPage() {
         maxDocuments={undefined}
         currentDocumentCount={currentDocumentCount}
       />
-      {previewUrl && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-4 max-w-3xl w-full relative">
-            <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-              onClick={() => setPreviewUrl(null)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -307,18 +307,17 @@ export function useToggleDocumentStatusMutation() {
 
 export async function viewDocument(
   url: string,
-  setPreviewUrl: (url: string | null) => void
 ) {
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_API!;
-  const accessToken = getAuthToken();
+  const access_token = getAuthToken();
   const workspaceId = localStorage.getItem("workspaceId");
   const fileUrl = `${serverUrl}/${url.replace(/^\/+/, "")}`;
 
   const headers: Record<string, string> = { accept: "application/pdf" };
-  if (accessToken) headers["access_token"] = accessToken;
-  if (workspaceId) headers["x-tenant-id"] = workspaceId;
 
-  const response = await fetch(fileUrl, { headers });
+    const response = await fetch(fileUrl, {
+    headers: { access_token: access_token  || '' },
+  });
   if (!response.ok) {
     try {
       const errorData = await response.json();
@@ -336,8 +335,8 @@ export async function viewDocument(
     }
   }
 
-  const blob = await response.blob();
+const blob = await response.blob();
   const blobUrl = URL.createObjectURL(blob);
 
-  setPreviewUrl(blobUrl);
+  window.open(blobUrl, "_blank"); 
 }
