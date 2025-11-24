@@ -10,8 +10,40 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useOrganizationById, useOrganizationMutationUpdate } from "@/queries/organizationQuery";
+import { useEffect, useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 export default function OrganizationPage() {
+
+  const { data: organizationDataById } = useOrganizationById();
+  const updateOrganization = useOrganizationMutationUpdate()
+  console.log(organizationDataById, 'organizationDataById');
+
+    const [name, setName] = useState("");
+  // const [description, setDescription] = useState("");
+  const [sector, setSector] = useState("");
+
+  // Load values when API returns data
+  useEffect(() => {
+    if (organizationDataById?.data) {
+      const org = organizationDataById.data;
+      setName(org.name || "");
+      // setDescription(org.description || "");
+      setSector(org.sector || "");
+    }
+  }, [organizationDataById]);
+
+  // TEMP SAVE HANDLER (later replace with mutation)
+ const handleSave = () => {
+  updateOrganization.mutate({
+    name,
+    // description,
+    sector,
+  });
+};
+
+
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="border-b bg-background">
@@ -55,16 +87,39 @@ export default function OrganizationPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="org-name">Organization Name</Label>
-                <Input id="org-name" defaultValue="Rumsan Bank" />
+                 <Input
+            id="org-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="h-12"
+          />
               </div>
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="org-description">Description</Label>
-                <Input
-                  id="org-description"
-                  defaultValue="Leading digital banking solutions"
-                />
-              </div>
-              <Button>Save Changes</Button>
+                 <Input
+            id="org-description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="h-12"
+          />
+              </div> */}
+              <div className="space-y-2">
+              <Label htmlFor="sector">Sector</Label>
+
+              <Select value={sector} onValueChange={(value) => setSector(value)}>
+                <SelectTrigger className="h-12 w-full">
+                  <SelectValue placeholder="Select sector" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="banking">Banking</SelectItem>
+                  <SelectItem value="vetenary">Vetenary</SelectItem>
+                
+                </SelectContent>
+              </Select>
+            </div>
+
+              <Button onClick={handleSave}>Save Changes</Button>
             </CardContent>
           </Card>
 

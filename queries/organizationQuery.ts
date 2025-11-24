@@ -31,6 +31,35 @@ export function useOrganizationQuery() {
   });
 }
 
+export function useOrganizationById() {
+  const workspaceId = localStorage.getItem("workspaceId");
+  const orgId = localStorage.getItem("orgId") || "";
+  return useQuery({
+    queryKey: ["organizations", workspaceId, orgId],
+    queryFn: async () => {
+      const access_token = getAuthToken();
+      const res = await fetch(ROUTES.ORGANIZATION_ID(orgId), {
+        method: "GET",
+        headers: {
+          "x-tenant-id": workspaceId || "",
+          access_token: access_token || "",
+          accept: "application/json",
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        // Handle API error responses properly
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+      return data;
+    },
+  });
+}
+
+
+
 export function useOrganizationMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient();
 
@@ -76,6 +105,57 @@ export function useOrganizationMutation(onSuccess?: () => void) {
     onError: (error: Error) => {
       toastUtils.generic.error(
         "Error creating organization",
+        error.message || "Something went wrong. Please try again."
+      );
+    },
+  });
+}
+
+export function useOrganizationMutationUpdate(onSuccess?: () => void) {
+  const queryClient = useQueryClient();
+  const orgId = localStorage.getItem("orgId") || "";
+
+  return useMutation({
+    mutationFn: async (organizationData: {
+      name: string;
+      description?: string;
+      sector?: string;
+    }) => {
+      const access_token = getAuthToken();
+      // const workspaceId = localStorage.getItem("workspaceId");
+      const res = await fetch(ROUTES.ORGANIZATION_UPDATE(orgId), {
+        method: "PATCH",
+        headers: {
+          // "x-tenant-id": workspaceId || "",
+          access_token: access_token || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(organizationData),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        // Handle API error responses properly
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+      return data;
+    },
+    onSuccess: (data) => {
+      const { data: orgData } = data;
+      // Invalidate organizations query to refetch the list
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      // Also invalidate organization context to update user state and redirectTo
+      queryClient.invalidateQueries({ queryKey: ["organizationContext"] });
+      toastUtils.generic.success(
+        "Organization updated!",
+        `${orgData.name || "Organization"} has been successfully updated.`
+      );
+      onSuccess?.();
+    },
+    onError: (error: Error) => {
+      toastUtils.generic.error(
+        "Error updating organization",
         error.message || "Something went wrong. Please try again."
       );
     },
