@@ -160,50 +160,6 @@ export default function OrganizationPage() {
             </CardContent>
           </Card>
 
-          {/* Settings */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-secondary/10 p-3 text-secondary">
-                  <Settings className="h-6 w-6" />
-                </div>
-                <div>
-                  <CardTitle>General Settings</CardTitle>
-                  <CardDescription>
-                    Configure organization-wide settings
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between py-3 border-b">
-                  <div>
-                    <p className="font-medium">Security Settings</p>
-                    <p className="text-sm text-muted-foreground">
-                      2FA, SSO, and access controls
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm" disabled>
-                    Configure
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b">
-                  <div>
-                    <p className="font-medium">API Keys</p>
-                    <p className="text-sm text-muted-foreground">
-                      Manage API access
-                    </p>
-                  </div>
-                  <Link href={"/admin/api-keys"}>
-                    <Button variant="outline" size="sm">
-                      View Keys
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
