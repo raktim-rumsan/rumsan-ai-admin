@@ -5,6 +5,7 @@ import type React from "react";
 import { useState } from "react";
 import { Sidebar } from "./sidebar";
 import { MainHeader } from "../header/header";
+import ChatbotPreview from "../chatbot-preview/chatbot-preview";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -20,7 +21,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
         <MainHeader onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+        <ChatbotPreview>
+          <main className="h-full overflow-auto p-6">{children}</main>
+        </ChatbotPreview>
       </div>
     </div>
   );
