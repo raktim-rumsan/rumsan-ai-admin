@@ -96,7 +96,7 @@ function PreviewChat({
   };
 
   return (
-    <div className="flex flex-col bg-muted/30 rounded-lg border border-border h-full min-h-0 overflow-hidden">
+    <div className="flex flex-col bg-muted/30 rounded-lg border border-border h-full overflow-hidden">
       <div className="flex justify-between items-center p-4 border-b border-border flex-shrink-0">
         <div className="text-sm font-medium text-foreground">Preview Chat</div>
 
