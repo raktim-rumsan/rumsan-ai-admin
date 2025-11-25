@@ -121,6 +121,10 @@ export function saveChatHistory(messages: ChatMessage[]) {
   localStorage.setItem("chatHistory", JSON.stringify(messages));
 }
 
+export function clearChatHistory() {
+  localStorage.removeItem("chatHistory");
+}
+
 // Query hook for chat history
 export function useChatHistory() {
   return useQuery({
@@ -156,7 +160,6 @@ export async function sendWidgetChatQuery(
   apiKey: string,
   workspaceId: string
 ): Promise<{ answer: string }> {
-
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
@@ -193,7 +196,9 @@ export async function sendWidgetChatQuery(
 
     if (error instanceof Error) {
       if (error.name === "AbortError") {
-        throw new Error("Request timeout: The server took too long to respond.");
+        throw new Error(
+          "Request timeout: The server took too long to respond."
+        );
       }
       if (error.message.includes("ERR_BLOCKED_BY_CLIENT")) {
         throw new Error(
@@ -213,9 +218,10 @@ export async function sendWidgetChatQuery(
 async function sendChatQueryIndustry(
   request: ChatQueryRequest
 ): Promise<ChatQueryResponse> {
-    const sector = process.env.NEXT_PUBLIC_DEFAULT_INDUSTRY;
-    const url = `${ROUTES.SECTOR_QUERY}?sector=${encodeURIComponent(sector || "")}`;
-  
+  const sector = process.env.NEXT_PUBLIC_DEFAULT_INDUSTRY;
+  const url = `${ROUTES.SECTOR_QUERY}?sector=${encodeURIComponent(
+    sector || ""
+  )}`;
 
   const response = await fetch(url, {
     method: "POST",
