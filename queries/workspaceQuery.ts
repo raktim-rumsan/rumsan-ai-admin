@@ -1,6 +1,6 @@
 import { ROUTES } from "@/constants";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAuthToken } from "@/lib/utils";
+import { getAuthToken, getWorkspaceId } from "@/lib/utils";
 import { toastUtils } from "@/lib/toast-utils";
 import { useCreateApiKey } from "./apiKeysQuery";
 
@@ -146,48 +146,6 @@ export function useCreateWorkspace() {
   });
 }
 
-
-// export function useUpdateWorkspace() {
-//   const queryClient = useQueryClient();
-
-//   return useMutation({
-//     mutationFn: async (params: {
-//       id: string;
-//       payload: {
-//         name?: string;
-//         description?: string;
-//         sector?: string;
-//         botName?: string;
-//       };
-//     }) => {
-//       const access_token = getAuthToken();
-//       if (!access_token) throw new Error("Missing auth token");
-//       const res = await fetch(ROUTES.UPDATE_WORKSPACE(params.id), {
-//         method: "PATCH",
-//         headers: {
-//           "Content-Type": "application/json",
-//           access_token: access_token || "",
-//           "x-tenant-id": localStorage.getItem("workspaceId") || "",
-//         },
-//         body: JSON.stringify(params.payload),
-//       });
-//       const data = await res.json().catch(() => ({}));
-//       if (!res.ok) {
-//         throw new Error(data.message || data.error || res.statusText);
-//       }
-//       return data;
-//     },
-//     onSuccess: (_data, variables) => {
-//       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
-//       queryClient.invalidateQueries({ queryKey: ["workspaces", variables.id] });
-//       toastUtils.generic.success("Workspace updated successfully");
-//     },
-//     onError: (err: Error) => {
-//       toastUtils.generic.error(err.message || "Failed to update workspace");
-//     },
-//   });
-// }
-
 export function useUpdateWorkspace() {
   const queryClient = useQueryClient();
 
@@ -203,13 +161,14 @@ export function useUpdateWorkspace() {
     }) => {
       const access_token = getAuthToken();
       if (!access_token) throw new Error("Missing auth token");
+      const workspaceId = getWorkspaceId();
 
       const res = await fetch(ROUTES.UPDATE_WORKSPACE(params.id), {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           access_token: access_token || "",
-          "x-tenant-id": localStorage.getItem("workspaceId") || "",
+          "x-tenant-id": workspaceId || "",
         },
         body: JSON.stringify(params.payload),
       });

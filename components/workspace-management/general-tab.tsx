@@ -29,7 +29,6 @@ export default function GeneralTab() {
 
   // Find the workspace from the query
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find((w: any) => w.id === workspaceId);
-console.log(currentWorkspace, 'currentWorkspace');
   // Local state only tracks user edits
   const [name, setName] = useState<string>();
   const [description, setDescription] = useState<string>();
