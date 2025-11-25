@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { ProtectedStoreInitializer } from "@/components/layout/ProtectedStoreInitializer";
 import FloatingPreviewChat from "@/components/sections/agent-preview/floating-chat";
+import ChatbotPreview from "@/components/chatbot-preview/chatbot-preview";
 
 export default async function DashboardLayoutPage({
   children,
@@ -21,7 +22,7 @@ export default async function DashboardLayoutPage({
     <ProtectedStoreInitializer>
       <DashboardLayout>
         {children}
-        <FloatingPreviewChat />
+        {/* <FloatingPreviewChat /> */}
       </DashboardLayout>
     </ProtectedStoreInitializer>
   );
