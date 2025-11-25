@@ -10,6 +10,8 @@ export interface Workspace {
   name: string;
   slug: string;
   description: string | null;
+  sector: string | null;
+  botName: string | null;
   isActive: boolean;
   isPersonal: boolean;
   ownerId: string;
@@ -143,6 +145,141 @@ export function useCreateWorkspace() {
     },
   });
 }
+
+
+// export function useUpdateWorkspace() {
+//   const queryClient = useQueryClient();
+
+//   return useMutation({
+//     mutationFn: async (params: {
+//       id: string;
+//       payload: {
+//         name?: string;
+//         description?: string;
+//         sector?: string;
+//         botName?: string;
+//       };
+//     }) => {
+//       const access_token = getAuthToken();
+//       if (!access_token) throw new Error("Missing auth token");
+//       const res = await fetch(ROUTES.UPDATE_WORKSPACE(params.id), {
+//         method: "PATCH",
+//         headers: {
+//           "Content-Type": "application/json",
+//           access_token: access_token || "",
+//           "x-tenant-id": localStorage.getItem("workspaceId") || "",
+//         },
+//         body: JSON.stringify(params.payload),
+//       });
+//       const data = await res.json().catch(() => ({}));
+//       if (!res.ok) {
+//         throw new Error(data.message || data.error || res.statusText);
+//       }
+//       return data;
+//     },
+//     onSuccess: (_data, variables) => {
+//       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+//       queryClient.invalidateQueries({ queryKey: ["workspaces", variables.id] });
+//       toastUtils.generic.success("Workspace updated successfully");
+//     },
+//     onError: (err: Error) => {
+//       toastUtils.generic.error(err.message || "Failed to update workspace");
+//     },
+//   });
+// }
+
+export function useUpdateWorkspace() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      id: string;
+      payload: {
+        name?: string;
+        description?: string;
+        sector?: string;
+        botName?: string;
+      };
+    }) => {
+      const access_token = getAuthToken();
+      if (!access_token) throw new Error("Missing auth token");
+
+      const res = await fetch(ROUTES.UPDATE_WORKSPACE(params.id), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          access_token: access_token || "",
+          "x-tenant-id": localStorage.getItem("workspaceId") || "",
+        },
+        body: JSON.stringify(params.payload),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || data.error || res.statusText);
+      }
+
+      return data;
+    },
+
+    // Optimistic update
+    onMutate: async (params) => {
+      await queryClient.cancelQueries({ queryKey: ["workspaces"] });
+      await queryClient.cancelQueries({ queryKey: ["workspaces", params.id] });
+
+      // Snapshot previous value
+      const previousWorkspaces = queryClient.getQueryData<any>(["workspaces"]);
+      const previousWorkspace = queryClient.getQueryData<any>(["workspaces", params.id]);
+
+      // Optimistically update the workspace
+      queryClient.setQueryData(["workspaces", params.id], (old: any) => ({
+        ...old,
+        data: {
+          ...old?.data,
+          ...params.payload,
+        },
+      }));
+
+      queryClient.setQueryData(["workspaces"], (old: any) => {
+        if (!old) return old;
+        const updated = old.data?.myWorkspaces?.map((w: any) =>
+          w.id === params.id ? { ...w, ...params.payload } : w
+        );
+        return { ...old, data: { ...old.data, myWorkspaces: updated } };
+      });
+
+      return { previousWorkspaces, previousWorkspace };
+    },
+    onSuccess: (data, variables) => {
+      const newSlug = data?.data?.slug ?? data?.slug;
+      if (newSlug) {
+        localStorage.setItem("workspaceId", newSlug);
+        if (variables?.payload?.name) {
+          localStorage.setItem("workspaceName", variables.payload.name);
+        }
+      }
+      toastUtils.generic.success("Workspace updated successfully");
+
+    },
+
+    onError: (err, _variables, context: any) => {
+      toastUtils.generic.error(err.message || "Failed to update workspace");
+      // Rollback cache
+      if (context?.previousWorkspace) {
+        queryClient.setQueryData(["workspaces", context.previousWorkspace.id], context.previousWorkspace);
+      }
+      if (context?.previousWorkspaces) {
+        queryClient.setQueryData(["workspaces"], context.previousWorkspaces);
+      }
+    },
+
+    onSettled: (_data, _error, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      queryClient.invalidateQueries({ queryKey: ["workspaces", variables.id] });
+    },
+  });
+}
+
 
 export function useInvitationWorkspaceMutation(workspaceIdParam?: string) {
   const queryClient = useQueryClient();

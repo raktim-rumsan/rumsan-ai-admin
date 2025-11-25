@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,76 +14,55 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useWorkspaceQuery } from "@/queries/workspaceQuery";
-import {
-  useWorkspaceSettingQuery,
-  useUpdateWorkspaceSetting,
-} from "@/queries/workspaceSettingQuery";
-import { toastUtils } from "@/lib/toast-utils";
-import { useApiKeys } from "@/queries/apiKeysQuery";
+import { useUpdateWorkspace, useWorkspaceQuery } from "@/queries/workspaceQuery";
+import Link from "next/link";
+import { Settings } from "lucide-react";
+import GeneralTabSkeleton from "./general-tab-loading";
 
-const SECTORS = ["banking", "dentistry", "marketing", "education", "healthcare"];
+const SECTORS = ["banking", "veterinary", "dentistry"];
 
 export default function GeneralTab() {
   const { id: workspaceId } = useParams();
 
-  const { data: workspaceData, isLoading: workspaceLoading } = useWorkspaceQuery();
-  console.log(workspaceData, 'workspaceData');
-  const { data: workspaceSettings, isPending: settingsLoading } = useWorkspaceSettingQuery();
-  const { data: apiKeys } = useApiKeys();
-console.log(apiKeys, 'apiKeys');
-  const updateWorkspaceSetting = useUpdateWorkspaceSetting();
-console.log(workspaceSettings, 'workspaceSettings');
-  const filterWorkspace = workspaceData?.data?.myWorkspaces?.find((w: any) => w.id === workspaceId);
-const defaultApiKey = apiKeys
-  ?.slice()
-  .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())[0]
-  ?.apiKey || "";
-//   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [botName, setBotName] = useState("");
-  const [sector, setSector] = useState("");
-  const [apiKey, setApiKey] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
-  
+  const { data: workspaceData, isLoading } = useWorkspaceQuery();
+  const updateWorkspace = useUpdateWorkspace();
 
-//   const handleSave = async () => {
-//     setIsSaving(true);
-//     try {
-//       // Update workspace settings on server (botName / sector / apiKey)
-//       updateWorkspaceSetting.mutate(
-//         {
-//           id: workspaceId,
-//           botName,
-//           sector,
-//           apiKey,
-//         } as any,
-//         {
-//           onSuccess: () => {
-//             toastUtils.generic.success("Saved", "Workspace general settings updated");
-//             // update workspaceName used in header
-//             try {
-//               if (workspace) localStorage.setItem("workspaceName", name);
-//             } catch (e) {}
-//             // Clear local draft after successful save
-//             try {
-//               localStorage.removeItem(`workspace_general_${workspaceId}`);
-//             } catch (e) {}
-//           },
-//           onError: (err: any) => {
-//             toastUtils.generic.error("Error", err?.message || "Failed to save settings");
-//           },
-//           onSettled: () => setIsSaving(false),
-//         }
-//       );
-//     } catch (e) {
-//       setIsSaving(false);
-//       toastUtils.generic.error("Error", (e as any)?.message || "Failed to save");
-//     }
-//   };
+  // Find the workspace from the query
+  const currentWorkspace = workspaceData?.data?.myWorkspaces?.find((w: any) => w.id === workspaceId);
+console.log(currentWorkspace, 'currentWorkspace');
+  // Local state only tracks user edits
+  const [name, setName] = useState<string>();
+  const [description, setDescription] = useState<string>();
+  const [botName, setBotName] = useState<string>();
+  const [sector, setSector] = useState<string>();
+
+  // Compute values for inputs: prefer edited value, fallback to query, fallback to empty
+  const workspaceName = name ?? currentWorkspace?.name ?? "";
+  const workspaceDescription = description ?? currentWorkspace?.description ?? "";
+  const workspaceBotName = botName ?? currentWorkspace?.botName ?? "";
+  const workspaceSector = sector ?? currentWorkspace?.sector ?? "";
+
+  const handleSave = () => {
+    if (!workspaceId) return;
+
+    updateWorkspace.mutate({
+      id: workspaceId as string,
+      payload: {
+        name: workspaceName,
+        description: workspaceDescription,
+        botName: workspaceBotName,
+        sector: workspaceSector,
+      },
+    });
+  };
 
   return (
     <>
+      {isLoading ? (
+          <GeneralTabSkeleton />
+        ) : (
+    <div className="space-y-6">
+      {/* General Workspace Card */}
       <Card>
         <CardHeader>
           <div>
@@ -94,107 +73,134 @@ const defaultApiKey = apiKeys
           </div>
         </CardHeader>
         <CardContent>
-        <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2">
             {/* Workspace Name */}
             <div className="space-y-3 col-span-2">
-            <Label htmlFor="workspace-name" className="text-base font-medium">
+              <Label htmlFor="workspace-name" className="text-base font-medium">
                 Workspace Name
-            </Label>
-                <Input
+              </Label>
+              <Input
                 id="workspace-name"
-                value={filterWorkspace?.name || ""}
-                readOnly
-                className="h-12 w-full bg-gray-100"
-                />
-            <p className="text-sm text-gray-500">
+                value={workspaceName}
+                onChange={(e) => setName(e.target.value)}
+                className="h-12 w-full"
+              />
+              <p className="text-sm text-gray-500">
                 This is the visible name used across the app.
-            </p>
+              </p>
             </div>
 
             {/* Bot Name */}
             <div className="space-y-3">
-            <Label htmlFor="bot-name" className="text-base font-medium">
+              <Label htmlFor="bot-name" className="text-base font-medium">
                 Bot Name
-            </Label>
-            <Input
+              </Label>
+              <Input
                 id="bot-name"
-                value={workspaceSettings?.data?.llmModel || ""}
-                readOnly
-                className="h-12 w-full bg-gray-100"
-            />
-            <p className="text-sm text-gray-500">
+                value={workspaceBotName}
+                onChange={(e) => setBotName(e.target.value)}
+                className="h-12 w-full"
+              />
+              <p className="text-sm text-gray-500">
                 Name used by the assistant/chatbot in this workspace.
-            </p>
+              </p>
             </div>
 
             {/* Workspace Sector */}
             <div className="space-y-3">
-            <Label htmlFor="sector" className="text-base font-medium">
+              <Label htmlFor="sector" className="text-base font-medium">
                 Workspace Sector
-            </Label>
-            <Select value={sector} onValueChange={(v) => setSector(v)}>
+              </Label>
+              <Select value={workspaceSector} onValueChange={(v) => setSector(v)}>
                 <SelectTrigger id="sector" className="h-12 w-full">
-                <SelectValue placeholder="Select a sector" />
+                  <SelectValue placeholder="Select a sector" />
                 </SelectTrigger>
                 <SelectContent>
-                {SECTORS.map((s) => (
+                  {SECTORS.map((s) => (
                     <SelectItem key={s} value={s}>
-                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                      {s.charAt(0).toUpperCase() + s.slice(1)}
                     </SelectItem>
-                ))}
+                  ))}
                 </SelectContent>
-            </Select>
-            <p className="text-sm text-gray-500">
+              </Select>
+              <p className="text-sm text-gray-500">
                 Choose the sector to help tailor defaults and datasets.
-            </p>
-            </div>
-
-            {/* API Key */}
-            <div className="space-y-3 col-span-2">
-            <Label htmlFor="api-key" className="text-base font-medium">
-                API Key
-            </Label>
-            <Input
-                id="api-key"
-                value={defaultApiKey}
-                // onChange={(e) => setApiKey(e.target.value)}
-                className="h-12 w-full bg-gray-100"
-            />
-            <p className="text-sm text-gray-500">
-                Optional: provide an API key for widget/chat integrations.
-            </p>
+              </p>
             </div>
 
             {/* Workspace Description */}
             <div className="space-y-3 col-span-2">
-            <Label htmlFor="workspace-description" className="text-base font-medium">
+              <Label htmlFor="workspace-description" className="text-base font-medium">
                 Workspace Description
-            </Label>
-            <Textarea
+              </Label>
+              <Textarea
                 id="workspace-description"
-                value={filterWorkspace?.description || ""}
+                value={workspaceDescription}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 className="w-full"
-            />
-            <p className="text-sm text-gray-500">
+              />
+              <p className="text-sm text-gray-500">
                 Short description of the workspace purpose (optional).
-            </p>
+              </p>
             </div>
-        </div>
+          </div>
 
-        {/* Save Button */}
-        <div className="flex gap-4 pt-6">
-            <Button
-            // onClick={handleSave}
-            disabled={isSaving || updateWorkspaceSetting.isPending}
-            className="h-12 px-8"
-            >
-            {isSaving || updateWorkspaceSetting.isPending ? "Saving..." : "Save Changes"}
+          {/* Save Button */}
+          <div className="flex gap-4 pt-6">
+            <Button onClick={handleSave} className="h-12 px-8">
+              Save Changes
             </Button>
-        </div>
+          </div>
         </CardContent>
-            </Card>
-        </>
-);
+      </Card>
+
+      {/* Organization-wide Settings Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-secondary/10 p-3 text-secondary">
+              <Settings />
+            </div>
+            <div>
+              <CardTitle>General Settings</CardTitle>
+              <CardDescription>
+                Configure organization-wide settings
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between py-3 border-b">
+              <div>
+                <p className="font-medium">Security Settings</p>
+                <p className="text-sm text-muted-foreground">
+                  2FA, SSO, and access controls
+                </p>
+              </div>
+              <Button variant="outline" size="sm" disabled>
+                Configure
+              </Button>
+            </div>
+            <div className="flex items-center justify-between py-3 border-b">
+              <div>
+                <p className="font-medium">API Keys</p>
+                <p className="text-sm text-muted-foreground">
+                  Manage API access
+                </p>
+              </div>
+              <Link href={`/admin/api-keys?workspaceId=${workspaceId}`}>
+                <Button variant="outline" size="sm">
+                  View Keys
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+    )}
+</>
+  );
 }

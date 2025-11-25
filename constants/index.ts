@@ -13,6 +13,7 @@ export const ROUTES = {
   WORKSPACE_SETTING: `${API_BASE_URL}/workspaces/settings`,
   SETTING_SYSTEM_PROMT: `${API_BASE_URL}/workspaces/settings/systemPrompt`,
   WORKSPACEINVITE: `${API_BASE_URL}/workspaces/invite`,
+  UPDATE_WORKSPACE: (workspaceId: string) => `${API_BASE_URL}/workspaces/${workspaceId}`,
   WORKSPACE_MEMBER: (workspaceId: string) =>
     `${API_BASE_URL}/workspaces/${workspaceId}/members`,
   WORKSPACE_MEMBER_DELETE: (workspaceId: string) =>

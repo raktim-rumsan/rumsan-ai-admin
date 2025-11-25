@@ -36,11 +36,14 @@ import {
   useCreateApiKey,
   useDeleteApiKey,
 } from "@/queries/apiKeysQuery";
+import { useSearchParams } from "next/navigation";
 
 export default function SettingsPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [isMounted, setIsMounted] = useState(false);
+  const searchParams = useSearchParams();
+  const workspaceId = searchParams.get('workspaceId');
 
   // API hooks
   const { data: apiKeys = [], isLoading, error } = useApiKeys();
@@ -93,16 +96,16 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <Link
-                href="/admin/organization"
+               href={`/admin/workspaces/${workspaceId}`}
                 className="text-sm text-muted-foreground hover:text-foreground mb-2 inline-block"
               >
-                ← Back to Organization
+                ← Back to Workspace
               </Link>
               <h1 className="text-2xl font-bold text-foreground">
-                Organization Management
+                Workspace Management
               </h1>
               <p className="text-sm text-muted-foreground">
-                Manage your organization settings and configuration
+                Manage your workspace settings and configuration
               </p>
             </div>
           </div>
