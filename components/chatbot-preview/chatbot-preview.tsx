@@ -10,7 +10,6 @@ import { ResizableChatPanel } from "./chat-resizeable-panel";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import type React from "react";
-import PreviewChat from "../sections/agent-preview/preview-chat";
 
 interface ChatbotPreviewProps {
   children?: React.ReactNode;
@@ -49,13 +48,10 @@ export default function ChatbotPreview({ children }: ChatbotPreviewProps) {
 
       {/* Floating button to reopen chat when closed */}
       {!chatOpen && (
-        <Button
+        <BotMessageSquare
           onClick={() => setChatOpen(true)}
-          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 text-white pointer-events-auto animate-blink-pulse"
-          size="icon"
-        >
-          <BotMessageSquare />
-        </Button>
+          className="h-16 w-16 fixed right-6 top-1/2 -translate-y-1/2 z-50 p-2 transition-transform hover:scale-110"
+        />
       )}
     </div>
   );

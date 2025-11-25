@@ -1,55 +1,119 @@
 "use client";
 
-import { useState } from "react";
-import { Send, Bot, User, Sparkles, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Send, Bot, User, Sparkles, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import {
+  ChatMessage,
+  clearChatHistory,
+  saveChatHistory,
+  useChatHistory,
+  useChatMutation,
+} from "@/queries/chatQuery";
 
-interface ResizableChatPanelProps {
-  onClose?: () => void;
-}
-
-interface Message {
-  id: number;
-  role: "user" | "assistant";
-  content: string;
-}
-
-export function ResizableChatPanel({ onClose }: ResizableChatPanelProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      role: "assistant",
-      content:
-        "Hello! I'm your SecureBank AI Assistant. How can I help you with your banking needs today?",
-    },
+export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
+  const createWelcomeMessage = (): ChatMessage => ({
+    id: "welcome",
+    role: "assistant",
+    content: "Hello! I'm your SecureBank AI Assistant.",
+    timestamp: new Date(),
+  });
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    createWelcomeMessage(),
   ]);
   const [input, setInput] = useState("");
+  const [isThinking, setIsThinking] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasHydratedFromStorage = useRef(false);
+  const chatMutation = useChatMutation();
+  const { data: storedMessages } = useChatHistory();
+  const queryClient = useQueryClient();
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  useEffect(() => {
+    if (
+      storedMessages &&
+      storedMessages.length > 0 &&
+      !hasHydratedFromStorage.current
+    ) {
+      setMessages(storedMessages);
+      hasHydratedFromStorage.current = true;
+    }
+  }, [storedMessages]);
 
-    const userMessage: Message = {
-      id: messages.length + 1,
+  useEffect(() => {
+    saveChatHistory(messages);
+    queryClient.setQueryData(["chatHistory"], messages);
+  }, [messages, queryClient]);
+
+  const handleClearHistory = () => {
+    const welcomeMessage = createWelcomeMessage();
+    setMessages([welcomeMessage]);
+    clearChatHistory();
+    queryClient.setQueryData(["chatHistory"], [welcomeMessage]);
+  };
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isThinking]);
+
+  const handleSend = async () => {
+    const trimmedMessage = input.trim();
+    if (!trimmedMessage) return;
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
       role: "user",
-      content: input,
+      content: trimmedMessage,
+      timestamp: new Date(),
     };
 
-    setMessages([...messages, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
+    setIsThinking(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: messages.length + 2,
+    try {
+      const response = await chatMutation.mutateAsync({
+        query: trimmedMessage,
+      });
+
+      const aiMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: response.answer,
+        timestamp: new Date(),
+        sources: response.sources,
+        confidence: response.confidence,
+        processingTime: response.processingTime,
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
         role: "assistant",
         content:
-          "I understand your inquiry. Let me help you with that. For security purposes, please verify your account details.",
+          "Sorry, I encountered an error while processing your message. Please try again.",
+        timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, aiMessage]);
-    }, 1000);
+
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsThinking(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      void handleSend();
+    }
   };
 
   return (
@@ -68,16 +132,31 @@ export function ResizableChatPanel({ onClose }: ResizableChatPanelProps) {
             <span className="text-xs text-muted-foreground">Online</span>
           </div>
         </div>
-        {onClose && (
+        <div className="flex items-center gap-2">
           <Button
-            onClick={onClose}
+            onClick={handleClearHistory}
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+            title="Clear chat history"
           >
-            <X className="h-4 w-4" />
+            <Trash2 className="h-4 w-4" />
           </Button>
-        )}
+          {onClose && (
+            <Button
+              onClick={() => {
+                saveChatHistory(messages);
+                queryClient.setQueryData(["chatHistory"], messages);
+                onClose();
+              }}
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
@@ -92,7 +171,7 @@ export function ResizableChatPanel({ onClose }: ResizableChatPanelProps) {
               )}
             >
               {message.role === "assistant" && (
-                <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
                   <Sparkles className="h-4 w-4 text-white" />
                 </div>
               )}
@@ -105,14 +184,42 @@ export function ResizableChatPanel({ onClose }: ResizableChatPanelProps) {
                 )}
               >
                 <p className="text-sm leading-relaxed">{message.content}</p>
+                {message.role === "assistant" && (
+                  <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+                    {message.processingTime !== undefined && (
+                      <div>
+                        Response time:{" "}
+                        {(message.processingTime / 1000).toFixed(2)}s
+                      </div>
+                    )}
+                    {message.sources && message.sources.length > 0 && (
+                      <div className="border-t border-border pt-2 mt-2">
+                        <p>
+                          Source: {message.sources[0].payload.fileName || "N/A"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               {message.role === "user" && (
-                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
                   <User className="h-4 w-4 text-foreground" />
                 </div>
               )}
             </div>
           ))}
+          {isThinking && (
+            <div className="flex gap-3 justify-start">
+              <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              <div className="bg-muted text-foreground rounded-lg px-4 py-2 text-sm">
+                AI is thinking...
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 
@@ -122,14 +229,16 @@ export function ResizableChatPanel({ onClose }: ResizableChatPanelProps) {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            onKeyDown={handleKeyDown}
             placeholder="Ask about your account, transfers, or more..."
             className="flex-1"
+            disabled={isThinking}
           />
           <Button
-            onClick={handleSend}
+            onClick={() => void handleSend()}
             size="icon"
             className="bg-blue-500 hover:bg-blue-600"
+            disabled={isThinking || !input.trim()}
           >
             <Send className="h-4 w-4" />
           </Button>
