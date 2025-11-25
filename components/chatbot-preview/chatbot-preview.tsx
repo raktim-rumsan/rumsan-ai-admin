@@ -40,7 +40,6 @@ export default function ChatbotPreview({ children }: ChatbotPreviewProps) {
             </ResizableHandle>
             <ResizablePanel defaultSize={30} minSize={20} maxSize={50}>
               <ResizableChatPanel onClose={() => setChatOpen(false)} />
-              {/* <PreviewChat /> */}
             </ResizablePanel>
           </>
         )}
@@ -48,10 +47,13 @@ export default function ChatbotPreview({ children }: ChatbotPreviewProps) {
 
       {/* Floating button to reopen chat when closed */}
       {!chatOpen && (
-        <BotMessageSquare
+        <Button
           onClick={() => setChatOpen(true)}
-          className="h-16 w-16 fixed right-6 top-1/2 -translate-y-1/2 z-50 p-2 transition-transform hover:scale-110"
-        />
+          className="fixed right-6 top-1/2 -translate-y-1/2  z-50 h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 text-white pointer-events-auto animate-blink-pulse"
+          size="icon"
+        >
+          <BotMessageSquare />
+        </Button>
       )}
     </div>
   );
