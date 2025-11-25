@@ -1,5 +1,5 @@
 import { ROUTES } from "@/constants";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
 import { toastUtils } from "@/lib/toast-utils";
 import type { OrganizationContextResponse } from "@/queries/organizationQuery";
@@ -300,5 +300,30 @@ export function useResendInvitation(workspaceId: string) {
         queryKey: ["workspaces", workspaceId],
       });
     },
+  });
+}
+
+export function useCheckInvitation() {
+  const access_token = getAuthToken();
+
+  return useQuery({
+    queryKey: ["invitation", "check"],
+    queryFn: async () => {
+      const res = await fetch(ROUTES.INVITATION_CHECK, {
+        method: "GET",
+        headers: {
+          access_token: access_token || "",
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+      return data;
+    },
+    enabled: !!access_token,
+    retry: false,
   });
 }
