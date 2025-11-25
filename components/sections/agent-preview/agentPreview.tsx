@@ -90,17 +90,17 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
         </p>
       </div>
 
-      <div className="flex-1 p-6 overflow-hidden m-auto w-full max-w-7xl">
+      <div className="flex-1 p-6 overflow-hidden max-w-6xl ">
         <div className="h-full  overflow-hidden">
-          {/* Left Column - Agent Configuration */}
+          {/* Agent Configuration Section */}
           <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex space-x-1 mb-6 bg-muted p-1 rounded-lg w-1/2 flex-shrink-0">
+            <div className="flex space-x-1 mb-6 bg-muted p-1 rounded-lg w-fit flex-shrink-0">
               {["Prompt", "Knowledge"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={cn(
-                    "px-6 py-3 text-sm font-medium rounded-md transition-colors w-1/2",
+                    "px-6 py-3 text-sm font-medium rounded-md transition-colors ",
                     activeTab === tab
                       ? "bg-background text-foreground border border-border shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
@@ -124,18 +124,18 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
                   />
                 </div>
 
-                <div className="mt-6 flex items-center justify-between flex-shrink-0">
+                <div className="mt-6 flex items-center justify-end flex-shrink-0">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-muted-foreground hover:text-foreground w-1/2"
+                    className="text-muted-foreground hover:text-foreground w-3xs"
                     onClick={handleReset}
                   >
                     <RotateCcw className="w-4 h-4" />
                     Reset
                   </Button>
                   <Button
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-2 flex-1 ml-4 w-1/2"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-2  ml-4 w-3xs"
                     onClick={handleSave}
                     disabled={updateSystemPrompt.isPending}
                   >
@@ -188,9 +188,6 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
               </div>
             )}
           </div>
-
-          {/* Right Column - Chat Interface */}
-          {/* <PreviewChat isFloating={false} /> */}
         </div>
       </div>
     </div>
