@@ -38,7 +38,7 @@ const navigationItems = [
     href: "/dashboard/documents",
   },
   {
-    title: "Agent Preview",
+    title: "Prompt Management",
     icon: Bot,
     href: "/dashboard/agent-preview",
   },
