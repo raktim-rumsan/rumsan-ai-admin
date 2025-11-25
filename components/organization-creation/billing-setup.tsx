@@ -9,15 +9,10 @@ import { Label } from "@/components/ui/label";
 
 interface BillingSetupProps {
   onComplete: () => void;
-  onSkip: () => void;
   onBack: () => void;
 }
 
-export function BillingSetup({
-  onComplete,
-  onSkip,
-  onBack,
-}: BillingSetupProps) {
+export function BillingSetup({ onComplete, onBack }: BillingSetupProps) {
   const [selectedPlan, setSelectedPlan] = useState<
     "free" | "pro" | "enterprise"
   >("free");
@@ -76,7 +71,8 @@ export function BillingSetup({
             variant="ghost"
             onClick={onBack}
             disabled={isLoading}
-            className="pl-0 hover:bg-transparent cursor-pointer gap-0">
+            className="pl-0 hover:bg-transparent cursor-pointer gap-0"
+          >
             <MoveLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
@@ -115,7 +111,8 @@ export function BillingSetup({
                     ? "border-border bg-muted/50 opacity-60 cursor-not-allowed"
                     : "border-border hover:border-primary/50 bg-card"
                 }
-              `}>
+              `}
+            >
               {plan.disabled && (
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-muted-foreground text-background text-xs font-medium rounded-full">
                   Coming Soon
@@ -183,18 +180,12 @@ export function BillingSetup({
           </div>
         )}
 
-        <div className="flex items-center gap-3 pt-4">
-          <Button
-            variant="outline"
-            onClick={onSkip}
-            className="flex-1 bg-transparent"
-            disabled={isLoading}>
-            Skip for now
-          </Button>
+        <div className="flex items-center gap-3 pt-4 ">
           <Button
             onClick={handleContinue}
             className="flex-1"
-            disabled={isLoading}>
+            disabled={isLoading}
+          >
             {isLoading ? (
               <>
                 <span className="animate-spin mr-2">⏳</span>
