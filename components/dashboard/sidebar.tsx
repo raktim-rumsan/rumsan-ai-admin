@@ -43,6 +43,11 @@ const navigationItems = [
     href: "/dashboard/agent-preview",
   },
   {
+    title: "Team Management",
+    icon: User,
+    href: "/dashboard/team-management",
+  },
+  {
     title: "Integrations",
     icon: Plug,
     href: "/dashboard/integrations",
