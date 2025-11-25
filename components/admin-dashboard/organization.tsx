@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, Users, Settings } from "lucide-react";
+import { Building2, Settings } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -65,57 +65,6 @@ export default function OrganizationPage() {
                 />
               </div>
               <Button>Save Changes</Button>
-            </CardContent>
-          </Card>
-
-          {/* Team Management */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-accent/10 p-3 text-accent">
-                  <Users className="h-6 w-6" />
-                </div>
-                <div>
-                  <CardTitle>Team Management</CardTitle>
-                  <CardDescription>
-                    Manage team members and their roles
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between py-3 border-b">
-                  <div>
-                    <p className="font-medium">Admin Users</p>
-                    <p className="text-sm text-muted-foreground">5 members</p>
-                  </div>
-                  <Button variant="outline" size="sm" disabled>
-                    Manage
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b">
-                  <div>
-                    <p className="font-medium">Member Users</p>
-                    <p className="text-sm text-muted-foreground">8 members</p>
-                  </div>
-                  <Button variant="outline" size="sm" disabled>
-                    Manage
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b">
-                  <div>
-                    <p className="font-medium">Viewer Users</p>
-                    <p className="text-sm text-muted-foreground">2 members</p>
-                  </div>
-                  <Button variant="outline" size="sm" disabled>
-                    Manage
-                  </Button>
-                </div>
-                <Button className="w-full mt-4" disabled>
-                  Invite Team Member
-                </Button>
-              </div>
             </CardContent>
           </Card>
 

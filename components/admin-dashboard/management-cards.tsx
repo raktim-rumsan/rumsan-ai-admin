@@ -5,6 +5,18 @@ import BillingPage from "./billing";
 import OrganizationPage from "./organization";
 
 export const managementCardItem = [
+   {
+    title: "Workspace Management",
+    description:
+      "Create and manage workspaces for different teams and projects",
+    icon: FolderKanban,
+    href: "/admin/workspaces",
+    slug: "workspaces",
+    stats: "3 Active Workspaces",
+    color: "text-accent",
+    isAvailable: true,
+    component: <WorkspacesPage />,
+  },
   {
     title: "Organization Management",
     description:
@@ -17,18 +29,7 @@ export const managementCardItem = [
     isAvailable: true,
     component: <OrganizationPage />,
   },
-  {
-    title: "Workspace Management",
-    description:
-      "Create and manage workspaces for different teams and projects",
-    icon: FolderKanban,
-    href: "/admin/workspaces",
-    slug: "workspaces",
-    stats: "3 Active Workspaces",
-    color: "text-accent",
-    isAvailable: true,
-    component: <WorkspacesPage />,
-  },
+ 
   {
     title: "Billing & Subscription",
     description:
