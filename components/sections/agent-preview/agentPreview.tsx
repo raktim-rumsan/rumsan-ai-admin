@@ -80,27 +80,27 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
   };
 
   return (
-    <div className="flex flex-col bg-background h-full overflow-hidden">
+    <div className="flex flex-col bg-background h-full overflow-hidden ">
       <div className="border-b border-border p-6 flex-shrink-0">
         <h1 className="text-2xl font-semibold text-foreground">
-          Agent Preview
+          Prompt Management
         </h1>
         <p className="text-muted-foreground mt-1">
           Test your AI before release
         </p>
       </div>
 
-      <div className="flex-1 p-6 overflow-hidden">
-        <div className="h-full grid grid-cols-2 gap-6 overflow-hidden">
+      <div className="flex-1 p-6 overflow-hidden m-auto w-full max-w-7xl">
+        <div className="h-full  overflow-hidden">
           {/* Left Column - Agent Configuration */}
           <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex space-x-1 mb-6 bg-muted p-1 rounded-lg w-fit flex-shrink-0">
+            <div className="flex space-x-1 mb-6 bg-muted p-1 rounded-lg w-1/2 flex-shrink-0">
               {["Prompt", "Knowledge"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={cn(
-                    "px-6 py-3 text-sm font-medium rounded-md transition-colors",
+                    "px-6 py-3 text-sm font-medium rounded-md transition-colors w-1/2",
                     activeTab === tab
                       ? "bg-background text-foreground border border-border shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
@@ -112,7 +112,7 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
             </div>
             {activeTab === "Prompt" && (
               <>
-                <div className="bg-muted/50 rounded-lg border border-border p-1 flex-1 min-h-0 overflow-hidden">
+                <div className="bg-muted/50 rounded-lg border border-border p-4 flex-1 min-h-0 overflow-hidden flex-shrink-0">
                   <Textarea
                     value={promptContent}
                     onChange={(e) => setPromptContent(e.target.value)}
@@ -126,15 +126,16 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
 
                 <div className="mt-6 flex items-center justify-between flex-shrink-0">
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-muted-foreground hover:text-foreground w-1/2"
                     onClick={handleReset}
                   >
                     <RotateCcw className="w-4 h-4" />
+                    Reset
                   </Button>
                   <Button
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-2 flex-1 ml-4"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-2 flex-1 ml-4 w-1/2"
                     onClick={handleSave}
                     disabled={updateSystemPrompt.isPending}
                   >
@@ -189,7 +190,7 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
           </div>
 
           {/* Right Column - Chat Interface */}
-          <PreviewChat isFloating={false} />
+          {/* <PreviewChat isFloating={false} /> */}
         </div>
       </div>
     </div>
