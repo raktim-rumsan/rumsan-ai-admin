@@ -46,7 +46,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="container mx-auto px-6 py-8">
-        {workspaceCount === 0 && (
+        {!workspaceLoading && workspaceCount === 0 && (
           <div
             onClick={() => router.push("/admin/workspaces")}
             className="mb-6 rounded-lg bg-background border border-border p-5 cursor-pointer hover:bg-muted/10 transition shadow-sm"
@@ -56,46 +56,6 @@ export default function AdminDashboard() {
             </p>
           </div>
         )}
-        {/* Quick Actions Section (moved to top) */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium">
-                  Create Workspace
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Link
-                  href="/admin/workspaces"
-                  className="text-sm text-primary hover:underline"
-                >
-                  + New Workspace
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="relative opacity-60 cursor-not-allowed">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    View Analytics
-                  </CardTitle>
-                  <Badge variant="secondary" className="shrink-0 text-xs">
-                    Coming Soon
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <span className="text-sm text-muted-foreground pointer-events-none">
-                  View Reports
-                </span>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
           {managementCardItem.map((card) => {
             const Icon = card.icon;
@@ -152,6 +112,46 @@ export default function AdminDashboard() {
               </Card>
             );
           })}
+        </div>
+
+        {/* Quick Actions Section (moved to top) */}
+        <div className="gap-6 my-2 md:grid-cols-2 lg:grid-cols-2">
+          <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">
+                  Create Workspace
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Link
+                  href="/admin/workspaces"
+                  className="text-sm text-primary hover:underline"
+                >
+                  + New Workspace
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card className="relative opacity-60 cursor-not-allowed">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    View Analytics
+                  </CardTitle>
+                  <Badge variant="secondary" className="shrink-0 text-xs">
+                    Coming Soon
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <span className="text-sm text-muted-foreground pointer-events-none">
+                  View Reports
+                </span>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
