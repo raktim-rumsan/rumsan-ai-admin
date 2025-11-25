@@ -43,6 +43,16 @@ export default function AdminDashboard() {
       </div>
 
       <div className="container mx-auto px-6 py-8">
+          {workspaceCount === 0 && (
+            <div
+              onClick={() => router.push("/admin/workspaces")}
+              className="mb-6 rounded-lg bg-background border border-border p-5 cursor-pointer hover:bg-muted/10 transition shadow-sm"
+            >
+              <p className="text-foreground font-semibold text-base text-center">
+                Get started by creating a workspace →
+              </p>
+            </div>
+          )}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
           {managementCardItem.map((card) => {
             const Icon = card.icon;
