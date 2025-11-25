@@ -15,14 +15,17 @@ import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 
 export default function AdminDashboard() {
   const router = useRouter();
- const { data: workspaceData, isLoading: workspaceLoading } = useWorkspaceQuery();
+  const { data: workspaceData, isLoading: workspaceLoading } =
+    useWorkspaceQuery();
 
   const workspaceCount = workspaceData?.data?.myWorkspaces.length || 0;
 
   const getCardStats = (card: any) => {
     if (card.slug === "workspaces") {
       if (workspaceLoading) return "Loading...";
-      return `${workspaceCount} Active Workspace${workspaceCount !== 1 ? 's' : ''}`;
+      return `${workspaceCount} Active Workspace${
+        workspaceCount !== 1 ? "s" : ""
+      }`;
     }
     return card.stats;
   };
@@ -43,16 +46,56 @@ export default function AdminDashboard() {
       </div>
 
       <div className="container mx-auto px-6 py-8">
-          {workspaceCount === 0 && (
-            <div
-              onClick={() => router.push("/admin/workspaces")}
-              className="mb-6 rounded-lg bg-background border border-border p-5 cursor-pointer hover:bg-muted/10 transition shadow-sm"
-            >
-              <p className="text-foreground font-semibold text-base text-center">
-                Get started by creating a workspace →
-              </p>
-            </div>
-          )}
+        {workspaceCount === 0 && (
+          <div
+            onClick={() => router.push("/admin/workspaces")}
+            className="mb-6 rounded-lg bg-background border border-border p-5 cursor-pointer hover:bg-muted/10 transition shadow-sm"
+          >
+            <p className="text-foreground font-semibold text-base text-center">
+              Get started by creating a workspace →
+            </p>
+          </div>
+        )}
+        {/* Quick Actions Section (moved to top) */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">
+                  Create Workspace
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Link
+                  href="/admin/workspaces"
+                  className="text-sm text-primary hover:underline"
+                >
+                  + New Workspace
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card className="relative opacity-60 cursor-not-allowed">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    View Analytics
+                  </CardTitle>
+                  <Badge variant="secondary" className="shrink-0 text-xs">
+                    Coming Soon
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <span className="text-sm text-muted-foreground pointer-events-none">
+                  View Reports
+                </span>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
           {managementCardItem.map((card) => {
             const Icon = card.icon;
@@ -95,7 +138,7 @@ export default function AdminDashboard() {
                         <CardTitle className="text-lg">{card.title}</CardTitle>
 
                         <p className="text-xs text-muted-foreground mt-1">
-                           {getCardStats(card)}
+                          {getCardStats(card)}
                         </p>
                       </div>
                     </div>
@@ -109,64 +152,6 @@ export default function AdminDashboard() {
               </Card>
             );
           })}
-        </div>
-
-        {/* Quick Actions Section */}
-        <div className="mt-8">
-          <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium">
-                  Create Workspace
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Link
-                  href="/admin/workspaces"
-                  className="text-sm text-primary hover:underline"
-                >
-                  + New Workspace
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="relative opacity-60 cursor-not-allowed">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Invite Team Member
-                  </CardTitle>
-                  <Badge variant="secondary" className="shrink-0 text-xs">
-                    Coming Soon
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <span className="text-sm text-muted-foreground pointer-events-none">
-                  + Invite User
-                </span>
-              </CardContent>
-            </Card>
-
-            <Card className="relative opacity-60 cursor-not-allowed">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    View Analytics
-                  </CardTitle>
-                  <Badge variant="secondary" className="shrink-0 text-xs">
-                    Coming Soon
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <span className="text-sm text-muted-foreground pointer-events-none">
-                  View Reports
-                </span>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </div>
