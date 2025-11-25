@@ -32,7 +32,7 @@ export function useOrganizationQuery() {
 }
 
 export function useOrganizationById() {
-  const workspaceId = localStorage.getItem("workspaceId");
+  const workspaceId = localStorage.getItem("workspaceId") || "";
   const orgId = localStorage.getItem("orgId") || "";
   return useQuery({
     queryKey: ["organizations", workspaceId, orgId],
@@ -57,8 +57,6 @@ export function useOrganizationById() {
     },
   });
 }
-
-
 
 export function useOrganizationMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient();
@@ -116,10 +114,7 @@ export function useOrganizationMutationUpdate(onSuccess?: () => void) {
   const orgId = localStorage.getItem("orgId") || "";
 
   return useMutation({
-    mutationFn: async (organizationData: {
-      name: string;
-      sector?: string;
-    }) => {
+    mutationFn: async (organizationData: { name: string; sector?: string }) => {
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.ORGANIZATION_UPDATE(orgId), {
         method: "PATCH",

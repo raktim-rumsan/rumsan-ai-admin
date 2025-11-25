@@ -57,6 +57,7 @@ export const ROUTES = {
   INVITATION_DELETE: (invitationId: string) =>
     `${API_BASE_URL}/invitations/${invitationId}`,
   INVITATION_RESEND: `${API_BASE_URL}/invitations/resend`,
+  INVITATION_CHECK: `${API_BASE_URL}/invitations/check`,
 };
 
 export default API_BASE_URL;

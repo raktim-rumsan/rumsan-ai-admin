@@ -1,25 +1,17 @@
 "use client";
 
 import { BillingSetup } from "@/components/organization-creation/billing-setup";
-import { InviteTeammates } from "@/components/organization-creation/invite-teammates";
 import { OnboardingSuccess } from "@/components/organization-creation/onboarding-success";
 import { OrganizationCheck } from "@/components/organization-creation/organization-check";
 import { OrganizationForm } from "@/components/organization-creation/organiztion-form";
 import { StepIndicator } from "@/components/organization-creation/step-indicator";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useOrganizationContext } from "@/hooks/useOrganizationContext";
 import { getRedirectPath } from "@/stores/organizationStore";
 
-type OnboardingStep =
-  | "checking"
-  | "organization"
-  | "billing"
-  | "invite"
-  | "complete";
+type OnboardingStep = "checking" | "organization" | "billing" | "complete";
 
 export default function OnboardingPage() {
-  const router = useRouter();
   const organizationContext = useOrganizationContext();
   const [step, setStep] = useState<OnboardingStep>("organization");
   const [organizationName, setOrganizationName] = useState<string>("");
@@ -34,11 +26,6 @@ export default function OnboardingPage() {
 
   const handleBillingComplete = () => {
     setCompletedSteps((prev) => [...prev, "billing"]);
-    setStep("invite");
-  };
-
-  const handleInviteComplete = () => {
-    setCompletedSteps((prev) => [...prev, "invite"]);
     setStep("complete");
   };
 
@@ -86,9 +73,6 @@ export default function OnboardingPage() {
     if (step === "billing") {
       setCompletedSteps((prev) => prev.filter((s) => s !== "organization"));
       setStep("organization");
-    } else if (step === "invite") {
-      setCompletedSteps((prev) => prev.filter((s) => s !== "billing"));
-      setStep("billing");
     }
   };
 
@@ -105,19 +89,9 @@ export default function OnboardingPage() {
         <OrganizationForm onSuccess={handleOrganizationCreated} />
       )}
       {step === "billing" && (
-        <BillingSetup
-          onComplete={handleBillingComplete}
-          onSkip={handleBillingComplete}
-          onBack={handleBack}
-        />
+        <BillingSetup onComplete={handleBillingComplete} onBack={handleBack} />
       )}
-      {step === "invite" && (
-        <InviteTeammates
-          onComplete={handleInviteComplete}
-          onSkip={handleInviteComplete}
-          onBack={handleBack}
-        />
-      )}
+
       {step === "complete" && (
         <OnboardingSuccess
           organizationName={organizationName}

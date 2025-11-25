@@ -8,7 +8,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Bell, CheckCircle2, XCircle, GitBranch } from "lucide-react";
 import { useOrganizationContext } from "@/hooks/useOrganizationContext";
-import { useAcceptInvitation } from "@/queries/invitationsQuery";
+import {
+  useAcceptInvitation,
+  useCheckInvitation,
+} from "@/queries/invitationsQuery";
 import { toastUtils } from "@/lib/toast-utils";
 import { formatDistanceToNow } from "date-fns";
 
@@ -21,11 +24,17 @@ interface InvitationWithToken
   token?: string;
   organizationName?: string;
   workspaceName?: string;
+  organization?: {
+    id: string;
+    name: string;
+    slug?: string;
+  };
 }
 
 export default function NotificationsPage() {
   const { pendingInvitations, isLoading, isLoaded, refetch } =
     useOrganizationContext();
+  const pendingInvitationStatus = useCheckInvitation();
   const acceptMutation = useAcceptInvitation();
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [decliningId, setDecliningId] = useState<string | null>(null);
@@ -189,7 +198,7 @@ export default function NotificationsPage() {
                   onMouseLeave={() => setHoveredId(null)}
                 >
                   {/* Icon */}
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="w-5 h-5 rounded bg-purple-600 flex items-center justify-center">
                       <GitBranch className="w-3 h-3 text-white" />
                     </div>
@@ -213,15 +222,15 @@ export default function NotificationsPage() {
                       </span>{" "}
                       in{" "}
                       <span className="font-medium capitalize">
-                        {" "}
-                        {invitation.organization.name}
+                        {invitationWithToken.organization?.name ||
+                          invitation.organizationId}
                       </span>{" "}
                       Organization.
                     </p>
                   </div>
 
                   {/* Right Side */}
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-3 shrink-0">
                     {/* Status Badge */}
                     <Badge
                       variant="outline"

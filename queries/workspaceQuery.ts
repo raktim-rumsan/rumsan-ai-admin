@@ -90,7 +90,7 @@ export function useWorkspaceQuery() {
       }
       return data;
     },
-    staleTime: 2 * 60 * 1000
+    staleTime: 2 * 60 * 1000,
   });
 }
 
@@ -124,7 +124,7 @@ export function useCreateWorkspace() {
       localStorage.setItem("workspaceId", workspaceData.slug);
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       try {
-        await createApiKeyMutation.mutateAsync({
+        createApiKeyMutation.mutate({
           name: `${workspaceData.name}-default-key`,
         });
       } catch (error) {

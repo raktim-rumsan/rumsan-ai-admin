@@ -14,8 +14,10 @@ import { Button } from "@/components/ui/button";
 import { useCreateWorkspace } from "@/queries/workspaceQuery";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { useRouter } from "next/navigation";
 
 export default function WorkspaceCreateDialog() {
+  const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [workspaceName, setWorkspaceName] = useState("");
   const [workspaceDescription, setWorkspaceDescription] = useState("");
@@ -31,10 +33,11 @@ export default function WorkspaceCreateDialog() {
         description: workspaceDescription.trim(),
       },
       {
-        onSuccess: () => {
+        onSuccess: ({ data }) => {
           setIsDialogOpen(false);
           setWorkspaceName("");
           setWorkspaceDescription("");
+          router.push(`/admin/workspaces/${data.id}`);
         },
       }
     );
@@ -66,7 +69,9 @@ export default function WorkspaceCreateDialog() {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="workspace-description-2">Description (Optional)</Label>
+            <Label htmlFor="workspace-description-2">
+              Description (Optional)
+            </Label>
             <Textarea
               id="workspace-description-2"
               placeholder="Describe the purpose of this workspace..."
@@ -80,7 +85,10 @@ export default function WorkspaceCreateDialog() {
           <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleCreateWorkspace} disabled={!workspaceName.trim()}>
+          <Button
+            onClick={handleCreateWorkspace}
+            disabled={!workspaceName.trim()}
+          >
             Create Workspace
           </Button>
         </DialogFooter>

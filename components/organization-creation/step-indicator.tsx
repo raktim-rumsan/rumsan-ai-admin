@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, CreditCard, Users } from "lucide-react";
+import { Building2, CreditCard } from "lucide-react";
 
 interface StepIndicatorProps {
   currentStep: "organization" | "billing" | "invite";
@@ -14,13 +14,16 @@ export function StepIndicator({
   const steps = [
     { id: "organization", label: "Organization", icon: Building2, number: 1 },
     { id: "billing", label: "Billing", icon: CreditCard, number: 2 },
-    { id: "invite", label: "Invite Team", icon: Users, number: 3 },
   ];
 
   const currentStepIndex = steps.findIndex((step) => step.id === currentStep);
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4">
+    <div
+      className={`w-full mx-auto px-4 ${
+        currentStep === "billing" ? "max-w-xl" : "max-w-96"
+      }`}
+    >
       <div className="relative">
         {/* Background line connecting all steps */}
         <div
@@ -51,10 +54,13 @@ export function StepIndicator({
             return (
               <div
                 key={step.id}
-                className="flex flex-col items-center gap-3 relative z-10">
+                className="flex flex-col items-center gap-3 relative z-10"
+              >
                 <div
                   className={`
-                    w-10 h-10 rounded-full flex items-center justify-center 
+                   ${
+                     currentStep === "billing" ? "w-12 h-12" : "w-10 h-10"
+                   } rounded-full flex items-center justify-center 
                     transition-all duration-500 border-2
                     ${
                       isCompleted
@@ -71,8 +77,13 @@ export function StepIndicator({
                         ? "bg-background border-muted text-muted-foreground"
                         : ""
                     }
-                  `}>
-                  <Icon className="w-5 h-5" />
+                  `}
+                >
+                  <Icon
+                    className={`${
+                      currentStep === "billing" ? "w-8 h-8" : "w-5 h-5 "
+                    }`}
+                  />
                 </div>
 
                 <div className="flex flex-col items-center gap-1">
@@ -82,7 +93,8 @@ export function StepIndicator({
                       ${isCompleted ? "text-primary" : ""}
                       ${isCurrent ? "text-foreground" : ""}
                       ${isPending ? "text-muted-foreground" : ""}
-                    `}>
+                    `}
+                  >
                     {step.label}
                   </span>
                 </div>

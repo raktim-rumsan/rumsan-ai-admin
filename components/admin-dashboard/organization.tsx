@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, Users, Settings } from "lucide-react";
+import { Building2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -8,36 +8,48 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useOrganizationById, useOrganizationMutationUpdate } from "@/queries/organizationQuery";
-import { useEffect, useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import {
+  useOrganizationById,
+  useOrganizationMutationUpdate,
+} from "@/queries/organizationQuery";
+import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+
+const SECTORS = [
+  { value: "banking", label: "Banking" },
+  { value: "veterinary", label: "Veterinary" },
+] as const;
 
 export default function OrganizationPage() {
+  const { data: organizationDataById, isLoading } = useOrganizationById();
+  const updateOrganization = useOrganizationMutationUpdate();
 
-  const { data: organizationDataById } = useOrganizationById();
-  const updateOrganization = useOrganizationMutationUpdate()
+  // Derive initial values directly from API data without useEffect
+  const organizationData = organizationDataById?.data;
+  const initialSector = organizationData?.sector || "";
 
-    const [name, setName] = useState("");
-    const [sector, setSector] = useState("");
+  const [sector, setSector] = useState(initialSector);
 
-  // Load values when API returns data
-  useEffect(() => {
-    if (organizationDataById?.data) {
-      const org = organizationDataById.data;
-      setName(org.name || "");
-      setSector(org.sector || "");
-    }
-  }, [organizationDataById]);
+  // Sync state when data changes (only when sector becomes available from API)
+  const currentSector = sector || initialSector;
 
- const handleSave = () => {
-  updateOrganization.mutate({
-    name,
-    sector,
-  });
-};
+  const handleSave = () => {
+    if (!currentSector) return;
 
+    updateOrganization.mutate({
+      name: organizationData?.name || "",
+      sector: currentSector,
+    });
+  };
+
+  const hasChanges = currentSector !== initialSector;
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -63,104 +75,105 @@ export default function OrganizationPage() {
       </div>
 
       <div className="container mx-auto px-6 py-8 max-w-4xl">
-        <div className="space-y-6">
-          {/* Organization Details */}
+        {isLoading ? (
           <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-primary/10 p-3 text-primary">
-                  <Building2 className="h-6 w-6" />
+            <CardContent className="py-8">
+              <div className="flex items-center justify-center">
+                <div className="animate-pulse text-muted-foreground">
+                  Loading organization details...
                 </div>
-                <div>
-                  <CardTitle>Organization Details</CardTitle>
-                  <CardDescription>
-                    Basic information about your organization
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="org-name">Organization Name</Label>
-                 <Input
-            id="org-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="h-12"
-          />
-              </div>
-              <div className="space-y-2">
-              <Label htmlFor="sector">Sector</Label>
-
-              <Select value={sector} onValueChange={(value) => setSector(value)}>
-                <SelectTrigger className="h-12 w-full">
-                  <SelectValue placeholder="Select sector" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="banking">Banking</SelectItem>
-                  <SelectItem value="vetenary">Vetenary</SelectItem>
-                
-                </SelectContent>
-              </Select>
-            </div>
-
-              <Button onClick={handleSave}>Save Changes</Button>
-            </CardContent>
-          </Card>
-
-          {/* Team Management */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-accent/10 p-3 text-accent">
-                  <Users className="h-6 w-6" />
-                </div>
-                <div>
-                  <CardTitle>Team Management</CardTitle>
-                  <CardDescription>
-                    Manage team members and their roles
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between py-3 border-b">
-                  <div>
-                    <p className="font-medium">Admin Users</p>
-                    <p className="text-sm text-muted-foreground">5 members</p>
-                  </div>
-                  <Button variant="outline" size="sm" disabled>
-                    Manage
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b">
-                  <div>
-                    <p className="font-medium">Member Users</p>
-                    <p className="text-sm text-muted-foreground">8 members</p>
-                  </div>
-                  <Button variant="outline" size="sm" disabled>
-                    Manage
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b">
-                  <div>
-                    <p className="font-medium">Viewer Users</p>
-                    <p className="text-sm text-muted-foreground">2 members</p>
-                  </div>
-                  <Button variant="outline" size="sm" disabled>
-                    Manage
-                  </Button>
-                </div>
-                <Button className="w-full mt-4" disabled>
-                  Invite Team Member
-                </Button>
               </div>
             </CardContent>
           </Card>
+        ) : (
+          <div className="space-y-6">
+            {/* Organization Details */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-primary/10 p-3 text-primary">
+                    <Building2 className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <CardTitle>Organization Details</CardTitle>
+                    <CardDescription>
+                      Basic information about your organization
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="org-name">Organization Name</Label>
+                  <div className="rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground">
+                    {organizationData?.name || "N/A"}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Organization name cannot be changed
+                  </p>
+                </div>
 
-        </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sector">Industry Sector</Label>
+                  <Select
+                    value={currentSector}
+                    onValueChange={setSector}
+                    disabled={updateOrganization.isPending}
+                  >
+                    <SelectTrigger id="sector" className="h-12 w-full">
+                      <SelectValue placeholder="Select your industry sector" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SECTORS.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Select the primary industry sector for your organization
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <Button
+                    onClick={handleSave}
+                    disabled={
+                      !hasChanges ||
+                      updateOrganization.isPending ||
+                      !currentSector
+                    }
+                  >
+                    {updateOrganization.isPending
+                      ? "Saving..."
+                      : "Save Changes"}
+                  </Button>
+                  {hasChanges && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setSector(initialSector)}
+                      disabled={updateOrganization.isPending}
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </div>
+
+                {updateOrganization.isSuccess && (
+                  <p className="text-sm text-green-600">
+                    ✓ Organization settings saved successfully
+                  </p>
+                )}
+                {updateOrganization.isError && (
+                  <p className="text-sm text-red-600">
+                    Failed to save changes. Please try again.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
