@@ -8,15 +8,21 @@ import {
 } from "../ui/resizable";
 import { ResizableChatPanel } from "./chat-resizeable-panel";
 import { Button } from "../ui/button";
-import { useState } from "react";
 import type React from "react";
 
 interface ChatbotPreviewProps {
   children?: React.ReactNode;
+  chatOpen: boolean;
+  onChatOpen: () => void;
+  onChatClose: () => void;
 }
 
-export default function ChatbotPreview({ children }: ChatbotPreviewProps) {
-  const [chatOpen, setChatOpen] = useState(true);
+export default function ChatbotPreview({
+  children,
+  chatOpen,
+  onChatOpen,
+  onChatClose,
+}: ChatbotPreviewProps) {
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <ResizablePanelGroup direction="horizontal" className="flex-1">
@@ -39,7 +45,7 @@ export default function ChatbotPreview({ children }: ChatbotPreviewProps) {
               <AlignHorizontalDistributeStart className="h-4 w-4" />
             </ResizableHandle>
             <ResizablePanel defaultSize={30} minSize={20} maxSize={50}>
-              <ResizableChatPanel onClose={() => setChatOpen(false)} />
+              <ResizableChatPanel onClose={onChatClose} />
             </ResizablePanel>
           </>
         )}
@@ -48,8 +54,8 @@ export default function ChatbotPreview({ children }: ChatbotPreviewProps) {
       {/* Floating button to reopen chat when closed */}
       {!chatOpen && (
         <Button
-          onClick={() => setChatOpen(true)}
-          className="fixed right-6 top-1/2 -translate-y-1/2  z-50 h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 text-white pointer-events-auto animate-blink-pulse"
+          onClick={onChatOpen}
+          className="fixed right-6 bottom-6 z-50 h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 text-white pointer-events-auto animate-blink-pulse"
           size="icon"
         >
           <BotMessageSquare />

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import {
   Table,
@@ -13,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Upload, RotateCcw, Trash2 } from "lucide-react";
+import { Upload, Trash2 } from "lucide-react";
 import { toastUtils, dismissToast } from "@/lib/toast-utils";
 import { SimpleFileUploadModal } from "@/components/documents/fileUploadModal";
 import {
@@ -40,7 +39,6 @@ export default function DocumentsPage() {
   const [trainingDocumentId, setTrainingDocumentId] = useState<string | null>(
     null
   );
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Use both TanStack Query and Zustand store
   const { data, isLoading, refetch } = useDocsQuery();
@@ -153,8 +151,8 @@ export default function DocumentsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-6 space-y-6 max-w-7xl">
+      <div className="flex items-center justify-between ">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-semibold">My Resources</h1>
         </div>
