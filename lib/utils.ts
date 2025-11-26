@@ -15,3 +15,8 @@ export function getAuthToken() {
 export function generateRandomPassword(length: number = 16): string {
   return randomBytes(length).toString("hex");
 }
+
+export function getWorkspaceId(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("workspaceId");
+}

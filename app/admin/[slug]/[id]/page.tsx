@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Bot, FileText, ExternalLink } from "lucide-react";
+import { Users, Bot, FileText, ExternalLink, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Member, Workspace } from "@/types/workspace-types";
@@ -10,6 +10,7 @@ import MembersTab from "@/components/workspace-management/members-tabs";
 import LLMSettingsTab from "@/components/workspace-management/llm-settings-tabs";
 import KnowledgebaseTab from "@/components/workspace-management/knowledegebase-tabs";
 import WorkspaceHeader from "@/components/workspace-management/workspace-header";
+import GeneralTab from "@/components/workspace-management/general-tab";
 import {
   useWorkspaceQuery,
   type Workspace as WorkspaceQueryType,
@@ -44,9 +45,12 @@ export default function WorkspaceDetailPage({
     <div className="min-h-screen bg-muted/30">
       <WorkspaceHeader workspace={workspace} />
       <div className="container mx-auto px-6 py-8">
-        <Tabs defaultValue="members" className="space-y-6">
+        <Tabs defaultValue="general" className="space-y-6">
           <div className="flex items-center justify-between">
-            <TabsList className="grid w-full max-w-md grid-cols-3">
+                <TabsList className="flex space-x-4">
+              <TabsTrigger value="general">
+                <Settings className="h-4 w-4 mr-2" /> General
+              </TabsTrigger>
               <TabsTrigger value="members">
                 <Users className="h-4 w-4 mr-2" /> Members
               </TabsTrigger>
@@ -67,6 +71,9 @@ export default function WorkspaceDetailPage({
             </Button>
           </div>
 
+          <TabsContent value="general">
+            <GeneralTab />
+          </TabsContent>
           <TabsContent value="members">
             <MembersTab members={members} setMembers={setMembers} />
           </TabsContent>
