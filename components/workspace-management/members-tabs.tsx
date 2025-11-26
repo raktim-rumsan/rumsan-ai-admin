@@ -40,13 +40,15 @@ import {
   useDeleteInvitation,
   useResendInvitation,
 } from "@/queries/invitationsQuery";
+import { orgContext } from "@/lib/utils";
 
 interface Props {
   members?: Member[];
   setMembers?: (members: Member[]) => void;
+  readOnly?: boolean;
 }
 
-export default function MembersTab({}: Props) {
+export default function MembersTab({readOnly = false }: Props) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
@@ -56,7 +58,16 @@ export default function MembersTab({}: Props) {
   const [deletingInvitationId, setDeletingInvitationId] = useState<
     string | null
   >(null);
-  const { id: workspaceId } = useParams();
+  let workspaceId = useParams()?.id;
+  if (!workspaceId) {
+  // No id in params, use slug from localStorage/context
+  const workspaceSlug = localStorage.getItem("workspaceId");
+  const context = orgContext(); 
+  const workspaces = context?.workspaces;
+
+  const matchedWorkspace = workspaces.find((w: any) => w.slug === workspaceSlug);
+  workspaceId = matchedWorkspace?.id ;
+}
 
   const orgId = useSearchParams().get("orgId") || "";
 
@@ -143,9 +154,12 @@ export default function MembersTab({}: Props) {
               <div>
                 <CardTitle>Workspace Members</CardTitle>
                 <CardDescription className="mt-2">
-                  Manage who has access to this workspace
+                  {!readOnly
+                    ? "Manage who has access to this workspace"
+                    : "You can view the members and invitations in this workspace."}
                 </CardDescription>
               </div>
+               {!readOnly && (
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <Button>
@@ -200,6 +214,7 @@ export default function MembersTab({}: Props) {
                   </div>
                 </DialogContent>
               </Dialog>
+               )}
             </div>
           </CardHeader>
           <CardContent className="p-4">
@@ -225,6 +240,7 @@ export default function MembersTab({}: Props) {
                       </div>
                       <div className="flex items-center gap-3">
                         <Badge variant="outline">{member.role}</Badge>
+                        {!readOnly && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -235,6 +251,7 @@ export default function MembersTab({}: Props) {
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
+                        )}
                       </div>
                     </div>
                   ))
@@ -264,12 +281,13 @@ export default function MembersTab({}: Props) {
                             </Badge>
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {invitations?.invitedBy?.full_name}
+                            Invited By: {invitations?.invitedBy?.full_name}
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <Badge variant="outline">{invitations.role}</Badge>
+                        {!readOnly && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -281,6 +299,7 @@ export default function MembersTab({}: Props) {
                               workspaceId as string
                             );
                           }}
+                          
                           className={`hover:bg-transparent cursor-pointer p-0 ${
                             resendingInvitationId === invitations.id &&
                             workspaceResendInvitation.isPending
@@ -303,6 +322,8 @@ export default function MembersTab({}: Props) {
                             }`}
                           />
                         </Button>
+                        )}
+                        {!readOnly && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -330,6 +351,7 @@ export default function MembersTab({}: Props) {
                             }`}
                           />
                         </Button>
+                        )}
                       </div>
                     </div>
                   ))
