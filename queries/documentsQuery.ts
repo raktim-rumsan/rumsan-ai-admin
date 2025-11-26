@@ -103,20 +103,23 @@ export function useDocDeleteMutation(onSuccess?: () => void) {
   });
 }
 
-export function useKnowledgebaseQuery() {
-   const workspaceId = localStorage.getItem("workspaceId");
+export function useKnowledgebaseQuery(sector: string) {
+  const workspaceId = localStorage.getItem("workspaceId");
   return useQuery({
     queryKey: ["knowledgebase", workspaceId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Doc[]> => {
       const access_token = getAuthToken();
 
       const envIndustries =
-        process.env.NEXT_PUBLIC_INDUSTRY_VALUES?.split(",").map(i => i.trim()) || [];
+        process.env.NEXT_PUBLIC_INDUSTRY_VALUES?.split(",").map((i) =>
+          i.trim()
+        ) || [];
 
-      const queryString =
-        envIndustries.length > 0
-          ? `?industry=${envIndustries.join(",")}`
-          : "";
+      const queryString = sector
+        ? `?industry=${sector}`
+        : envIndustries.length > 0
+        ? `?industry=${envIndustries.join(",")}`
+        : "";
 
       const res = await fetch(`${ROUTES.KNOWLEDGEBASE}${queryString}`, {
         method: "GET",
@@ -229,7 +232,7 @@ export function useToggleDocumentStatusMutation() {
 
   return useMutation({
     mutationFn: async (documentId: string) => {
-      const workspaceId = localStorage.getItem("workspaceId")
+      const workspaceId = localStorage.getItem("workspaceId");
 
       const access_token = getAuthToken();
 
@@ -247,16 +250,16 @@ export function useToggleDocumentStatusMutation() {
       if (!res.ok) {
         throw new Error(data?.message || "Failed to toggle");
       }
-      return  data 
+      return data;
     },
 
     onMutate: async (documentId) => {
       const workspaceId = localStorage.getItem("workspaceId");
 
       // Cancel any pending refetch so it doesn't overwrite optimistic
-        await queryClient.cancelQueries({
-      queryKey: ["knowledgebase", workspaceId],
-    });
+      await queryClient.cancelQueries({
+        queryKey: ["knowledgebase", workspaceId],
+      });
 
       // Snapshot previous value
       const previousDocs = queryClient.getQueryData<Doc[]>([
@@ -269,9 +272,7 @@ export function useToggleDocumentStatusMutation() {
         ["knowledgebase", workspaceId],
         (oldDocs = []) =>
           oldDocs.map((doc) =>
-            doc.id === documentId
-              ? { ...doc, enabled: !doc.enabled }
-              : doc
+            doc.id === documentId ? { ...doc, enabled: !doc.enabled } : doc
           )
       );
 
@@ -290,24 +291,21 @@ export function useToggleDocumentStatusMutation() {
       }
       toastUtils.generic.error("Error", err.message);
     },
-      onSuccess: (data) => {
-      toastUtils.generic.success( data.data.message);
+    onSuccess: (data) => {
+      toastUtils.generic.success(data.data.message);
     },
 
     // refetch once done (safe)
     onSettled: () => {
-    const workspaceId = localStorage.getItem("workspaceId");
-    queryClient.invalidateQueries({
-      queryKey: ["knowledgebase", workspaceId],
-    });
-}
+      const workspaceId = localStorage.getItem("workspaceId");
+      queryClient.invalidateQueries({
+        queryKey: ["knowledgebase", workspaceId],
+      });
+    },
   });
 }
 
-
-export async function viewDocument(
-  url: string,
-) {
+export async function viewDocument(url: string) {
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_API!;
   const access_token = getAuthToken();
   const workspaceId = localStorage.getItem("workspaceId");
@@ -315,8 +313,8 @@ export async function viewDocument(
 
   const headers: Record<string, string> = { accept: "application/pdf" };
 
-    const response = await fetch(fileUrl, {
-    headers: { access_token: access_token  || '' },
+  const response = await fetch(fileUrl, {
+    headers: { access_token: access_token || "" },
   });
   if (!response.ok) {
     try {
@@ -335,8 +333,8 @@ export async function viewDocument(
     }
   }
 
-const blob = await response.blob();
+  const blob = await response.blob();
   const blobUrl = URL.createObjectURL(blob);
 
-  window.open(blobUrl, "_blank"); 
+  window.open(blobUrl, "_blank");
 }

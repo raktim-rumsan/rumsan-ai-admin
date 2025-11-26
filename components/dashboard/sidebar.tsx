@@ -21,6 +21,7 @@ import {
   Settings,
   User,
   ChevronsUpDown,
+  Factory,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -46,6 +47,11 @@ const navigationItems = [
     title: "Team Management",
     icon: User,
     href: "/dashboard/team-management",
+  },
+  {
+    title: "Industry Knowledge",
+    icon: Factory,
+    href: "/dashboard/industry-knowledge",
   },
   {
     title: "Integrations",
