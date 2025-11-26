@@ -21,8 +21,9 @@ export function getWorkspaceId(): string | null {
   return localStorage.getItem("workspaceId");
 }
 
-export function orgContext(key: string) {
+export function orgContext(key?: string) {
   const raw = localStorage.getItem("organizationContext");
   const parsed = raw ? JSON.parse(raw) : null;
+  if (!key) return parsed;
   return parsed?.[key];
 }
