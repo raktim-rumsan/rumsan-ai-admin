@@ -4,6 +4,7 @@ import { FileText } from "lucide-react";
 import {
   useKnowledgebaseQuery,
   useToggleDocumentStatusMutation,
+  viewDocument,
 } from "@/queries/documentsQuery";
 import {
   Card,
@@ -108,7 +109,14 @@ export default function KnowledgebaseTab() {
                       <FileText className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium">{doc.fileName}</p>
+                      <button
+                        type="button"
+                        onClick={() => viewDocument(doc.url)}
+                        title={doc.fileName}
+                        className="text-sm text-primary hover:underline max-w-[320px] truncate text-left"
+                      >
+                        {doc.fileName.replaceAll("_", " ")}
+                      </button>
                       <div className="flex items-center gap-3 mt-1">
                         <p className="text-sm text-muted-foreground">
                           {doc.industry.charAt(0).toUpperCase() +
