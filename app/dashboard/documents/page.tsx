@@ -193,7 +193,7 @@ export default function DocumentsPage() {
                               type="button"
                               onClick={() => viewDocument(doc.url)}
                               title={doc.fileName}
-                              className="text-sm text-primary hover:underline max-w-[320px] truncate text-left"
+                              className="font-medium hover:text-blue-600 cursor-pointer"
                             >
                               {doc.fileName.replaceAll("_", " ")}
                             </button>
