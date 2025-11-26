@@ -75,7 +75,7 @@ export default function WorkspaceDetailPage({
             <GeneralTab />
           </TabsContent>
           <TabsContent value="members">
-            <MembersTab members={members} setMembers={setMembers} />
+            <MembersTab members={members} setMembers={setMembers} readOnly={false} />
           </TabsContent>
           <TabsContent value="llm">
             <LLMSettingsTab />
