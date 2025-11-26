@@ -40,7 +40,7 @@ import {
   useDeleteInvitation,
   useResendInvitation,
 } from "@/queries/invitationsQuery";
-import { orgContext } from "@/lib/utils";
+import { getWorkspaceId, orgContext } from "@/lib/utils";
 
 interface Props {
   members?: Member[];
@@ -61,7 +61,7 @@ export default function MembersTab({readOnly = false }: Props) {
   let workspaceId = useParams()?.id;
   if (!workspaceId) {
   // No id in params, use slug from localStorage/context
-  const workspaceSlug = localStorage.getItem("workspaceId");
+  const workspaceSlug = getWorkspaceId();
   const context = orgContext(); 
   const workspaces = context?.workspaces;
 
