@@ -22,10 +22,7 @@ import {
   SelectValue,
 } from "../ui/select";
 
-const SECTORS = [
-  { value: "banking", label: "Banking" },
-  { value: "veterinary", label: "Veterinary" },
-] as const;
+import { SECTORS } from "@/constants/sector";
 
 export default function OrganizationPage() {
   const { data: organizationDataById, isLoading } = useOrganizationById();
