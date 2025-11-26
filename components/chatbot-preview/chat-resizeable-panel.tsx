@@ -127,10 +127,6 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
           <h2 className="text-base font-semibold text-foreground">
             AI Assistant
           </h2>
-          <div className="flex items-center gap-1.5">
-            <div className="h-2 w-2 rounded-full bg-green-500" />
-            <span className="text-xs text-muted-foreground">Online</span>
-          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, ChevronDown } from "lucide-react";
+import { Menu, ChevronDown, BotMessageSquare } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,9 +18,15 @@ import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 
 interface HeaderProps {
   onMenuClick?: () => void;
+  onChatButtonClick?: () => void;
+  isChatOpen?: boolean;
 }
 
-export function MainHeader({ onMenuClick }: HeaderProps) {
+export function MainHeader({
+  onMenuClick,
+  onChatButtonClick,
+  isChatOpen,
+}: HeaderProps) {
   const pathname = usePathname();
   const [createTeamDialogOpen, setCreateTeamDialogOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -130,7 +136,20 @@ export function MainHeader({ onMenuClick }: HeaderProps) {
         </div>
 
         {/* Right side - Notifications and Profile */}
+
         <div className="flex items-center gap-3">
+          {!isAdminDashboard && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onChatButtonClick}
+              aria-pressed={isChatOpen}
+              title={isChatOpen ? "Assistant is open" : "Open assistant"}
+            >
+              <BotMessageSquare className="h-5 w-5 text-blue-500" />
+            </Button>
+          )}
+
           <NotificationIcon />
           <ProfileUserDashboard />
         </div>

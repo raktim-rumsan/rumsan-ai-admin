@@ -12,6 +12,8 @@ import {
 import { useRouter } from "next/navigation";
 import { managementCardItem } from "./management-cards";
 import { useWorkspaceQuery } from "@/queries/workspaceQuery";
+import { InfoIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -44,18 +46,27 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-
-      <div className="container mx-auto px-6 py-8">
-        {!workspaceLoading && workspaceCount === 0 && (
-          <div
-            onClick={() => router.push("/admin/workspaces")}
-            className="mb-6 rounded-lg bg-background border border-border p-5 cursor-pointer hover:bg-muted/10 transition shadow-sm"
-          >
-            <p className="text-foreground font-semibold text-base text-center">
-              Get started by creating a workspace →
+      {!workspaceLoading && workspaceCount === 0 && (
+        <div className="flex w-auto items-center justify-between gap-4 rounded-sm bg-zinc-900 px-6 py-4 mb-4 border border-zinc-800 mt-4 mr-4 ml-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center size-10 rounded-full bg-zinc-800 border border-zinc-700 shrink-0">
+              <InfoIcon className="size-5 text-white" />
+            </div>
+            <p className="text-base font-medium text-white">
+              Create your first workspace to get started
             </p>
           </div>
-        )}
+          <Button
+            variant="outline"
+            className="bg-transparent border-white/20 text-white hover:bg-white/10 hover:text-white shrink-0"
+            onClick={() => router.push("/admin/workspaces")}
+          >
+            Let's Start From Here
+          </Button>
+        </div>
+      )}
+
+      <div className="container mx-auto px-6 py-8">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
           {managementCardItem.map((card) => {
             const Icon = card.icon;
