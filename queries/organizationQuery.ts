@@ -30,7 +30,7 @@ export function useOrganizationQuery() {
 }
 
 export function useOrganizationById() {
-  const orgId = orgContext("primaryOrganization")?.id
+  const orgId = orgContext("primaryOrganization")?.id;
   return useQuery({
     queryKey: ["organizations", orgId],
     queryFn: async () => {
@@ -63,6 +63,7 @@ export function useOrganizationMutation(onSuccess?: () => void) {
       slug?: string;
       sector?: string;
     }) => {
+      localStorage.clear();
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.ORGANIZATIONS, {
         method: "POST",
@@ -105,7 +106,7 @@ export function useOrganizationMutation(onSuccess?: () => void) {
 
 export function useOrganizationMutationUpdate(onSuccess?: () => void) {
   const queryClient = useQueryClient();
-  const orgId = orgContext("primaryOrganization")?.id
+  const orgId = orgContext("primaryOrganization")?.id;
 
   return useMutation({
     mutationFn: async (organizationData: { name: string; sector?: string }) => {
