@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/card";
 import KnowledgebaseStats from "../workspace-management/knowlege-stats";
 import { Doc } from "@/types/workspace-types";
+import { viewDocument } from "@/queries/documentsQuery";
 
 interface Props {
   data: Doc[];
@@ -57,7 +58,15 @@ export default function KnowledgebaseData({ data, error }: Props) {
                     </div>
 
                     <div className="flex-1">
-                      <p className="font-medium">{doc.fileName}</p>
+                      <button
+                        type="button"
+                        className="font-medium hover:text-blue-600 cursor-pointer"
+                        title={doc.fileName}
+                        onClick={() => viewDocument(doc.url)}
+                        rel="noopener noreferrer"
+                      >
+                        {doc.fileName.replaceAll("_", " ")}
+                      </button>
 
                       <div className="flex items-center gap-3 mt-1">
                         <p className="text-sm text-muted-foreground capitalize">

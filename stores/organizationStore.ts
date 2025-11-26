@@ -16,6 +16,7 @@ export interface Organization {
 export interface Workspace {
   id: string;
   name: string;
+  sector: string | null;
   slug: string;
   description: string;
   role: string;

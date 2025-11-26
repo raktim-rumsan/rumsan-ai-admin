@@ -188,7 +188,10 @@ export function useUpdateWorkspace() {
 
       // Snapshot previous value
       const previousWorkspaces = queryClient.getQueryData<any>(["workspaces"]);
-      const previousWorkspace = queryClient.getQueryData<any>(["workspaces", params.id]);
+      const previousWorkspace = queryClient.getQueryData<any>([
+        "workspaces",
+        params.id,
+      ]);
 
       // Optimistically update the workspace
       queryClient.setQueryData(["workspaces", params.id], (old: any) => ({
@@ -218,14 +221,16 @@ export function useUpdateWorkspace() {
         }
       }
       toastUtils.generic.success("Workspace updated successfully");
-
     },
 
     onError: (err, _variables, context: any) => {
       toastUtils.generic.error(err.message || "Failed to update workspace");
       // Rollback cache
       if (context?.previousWorkspace) {
-        queryClient.setQueryData(["workspaces", context.previousWorkspace.id], context.previousWorkspace);
+        queryClient.setQueryData(
+          ["workspaces", context.previousWorkspace.id],
+          context.previousWorkspace
+        );
       }
       if (context?.previousWorkspaces) {
         queryClient.setQueryData(["workspaces"], context.previousWorkspaces);
@@ -238,7 +243,6 @@ export function useUpdateWorkspace() {
     },
   });
 }
-
 
 export function useInvitationWorkspaceMutation(workspaceIdParam?: string) {
   const queryClient = useQueryClient();

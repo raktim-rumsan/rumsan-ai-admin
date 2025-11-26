@@ -3,15 +3,21 @@
 import { useKnowledgebaseQuery } from "@/queries/documentsQuery";
 import { LoadingCard } from "./loading-card";
 import KnowledgebaseData from "./knowledgebase-data";
+import { useOrganizationContext } from "@/hooks/useOrganizationContext";
 
 export default function KnowledgeBaseDetail() {
-  const { data: fetchedDocs, isLoading, error } = useKnowledgebaseQuery();
+  const { workspaces, isLoading: orgLoading } = useOrganizationContext();
+  const sector = workspaces?.[0]?.sector;
 
-  const documents = fetchedDocs ?? [];
+  const {
+    data: fetchedDocs,
+    isLoading,
+    error,
+  } = useKnowledgebaseQuery(sector!);
 
-  return isLoading ? (
+  return isLoading || orgLoading ? (
     <LoadingCard />
   ) : (
-    <KnowledgebaseData data={documents} error={error} />
+    <KnowledgebaseData data={fetchedDocs ?? []} error={error} />
   );
 }

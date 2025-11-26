@@ -103,7 +103,7 @@ export function useDocDeleteMutation(onSuccess?: () => void) {
   });
 }
 
-export function useKnowledgebaseQuery() {
+export function useKnowledgebaseQuery(sector: string) {
   const workspaceId = localStorage.getItem("workspaceId");
   return useQuery({
     queryKey: ["knowledgebase", workspaceId],
@@ -115,8 +115,11 @@ export function useKnowledgebaseQuery() {
           i.trim()
         ) || [];
 
-      const queryString =
-        envIndustries.length > 0 ? `?industry=${envIndustries.join(",")}` : "";
+      const queryString = sector
+        ? `?industry=${sector}`
+        : envIndustries.length > 0
+        ? `?industry=${envIndustries.join(",")}`
+        : "";
 
       const res = await fetch(`${ROUTES.KNOWLEDGEBASE}${queryString}`, {
         method: "GET",
