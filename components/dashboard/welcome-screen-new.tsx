@@ -3,7 +3,13 @@
 import type React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, FolderOpen, Building, Bot, ArrowRight } from "lucide-react";
+import {
+  MessageSquare,
+  FolderOpen,
+  Building,
+  Bot,
+  ArrowRight,
+} from "lucide-react";
 import Link from "next/link";
 import { ChatInterface } from "@/components/chat/ChatInterface";
 
@@ -14,7 +20,9 @@ export function WelcomeScreen() {
       <div className="lg:col-span-1 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
+            <CardTitle className="text-lg font-semibold">
+              Quick Actions
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Link href="/dashboard/chat" className="block">
@@ -43,17 +51,28 @@ export function WelcomeScreen() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Getting Started</CardTitle>
+            <CardTitle className="text-lg font-semibold">
+              Getting Started
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="text-sm text-gray-600">
-              <h4 className="font-medium mb-2">1. Upload Documents</h4>
-              <p className="mb-4">Start by uploading documents to build your knowledge base.</p>
+              <h4 className="font-medium mb-2">1. Select your workspace</h4>
+              <p className="mb-4">
+                Select your workspace in the above dropdown to start working.
+              </p>
 
-              <h4 className="font-medium mb-2">2. Train AI</h4>
-              <p className="mb-4">Process your documents to make them searchable by the AI.</p>
+              <h4 className="font-medium mb-2">2. Upload Documents</h4>
+              <p className="mb-4">
+                Start by uploading documents to build your knowledge base.
+              </p>
 
-              <h4 className="font-medium mb-2">3. Start Chatting</h4>
+              <h4 className="font-medium mb-2">3. Train AI</h4>
+              <p className="mb-4">
+                Process your documents to make them searchable by the AI.
+              </p>
+
+              <h4 className="font-medium mb-2">4. Start Chatting</h4>
               <p>Ask questions about your documents using natural language.</p>
             </div>
           </CardContent>

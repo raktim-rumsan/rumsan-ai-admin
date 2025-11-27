@@ -20,7 +20,6 @@ import { initializeAuthAfterLogin } from "@/lib/store-hydration";
 import { getRedirectPath } from "@/stores/organizationStore";
 import { getAuthToken } from "@/lib/utils";
 import { ROUTES } from "@/constants";
-import { useOrganizationContext } from "@/hooks/useOrganizationContext";
 
 export default function AuthOtp() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -29,7 +28,6 @@ export default function AuthOtp() {
   const [isResendPending, startResendTransition] = useTransition();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const orgContext = useOrganizationContext();
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -176,10 +174,18 @@ export default function AuthOtp() {
                   )}; path=/; max-age=86400; SameSite=Lax`;
                 }
 
+                // Check for pending invitations and redirect accordingly
+                if (
+                  contextData?.data?.userState ===
+                  "USER_WITH_PENDING_INVITATIONS"
+                ) {
+                  window.location.href = "/invitation-pending";
+                  return;
+                }
+
                 const redirectPath = getRedirectPath(
                   contextData?.data?.redirectTo
                 );
-
                 // Use window.location.href for full page reload to ensure middleware sees the cookie
                 window.location.href = redirectPath;
               } else {

@@ -11,11 +11,18 @@ export function WelcomeScreen() {
       <div className="lg:col-span-2">
         <Card className="h-auto">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Getting Started</CardTitle>
+            <CardTitle className="text-lg font-semibold">
+              Getting Started
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="text-sm text-gray-600">
-              <h4 className="font-medium mb-2">1. Upload Documents</h4>
+              <h4 className="font-medium mb-2">1. Select your workspace</h4>
+              <p className="mb-4">
+                Select your workspace in the dropdown to start working.
+              </p>
+
+              <h4 className="font-medium mb-2">2. Upload Documents</h4>
               <p className="mb-4">
                 Start by uploading documents to build your knowledge base.
                 <Link
@@ -41,12 +48,15 @@ export function WelcomeScreen() {
                 </Link>
               </p>
 
-              <h4 className="font-medium mb-2">2. Train AI</h4>
-              <p className="mb-4">Train your documents to make them accessible by the AI.</p>
-
-              <h4 className="font-medium mb-2">3. Customize your AI</h4>
+              <h4 className="font-medium mb-2">3. Train AI</h4>
               <p className="mb-4">
-                Customize your AI by writing what the AI should do and how it should respond.
+                Train your documents to make them accessible by the AI.
+              </p>
+
+              <h4 className="font-medium mb-2">4. Customize your AI</h4>
+              <p className="mb-4">
+                Customize your AI by writing what the AI should do and how it
+                should respond.
                 <Link
                   href="/dashboard/agent-preview"
                   className="inline-flex items-center font-medium text-blue-600 dark:text-blue-500 hover:underline ml-2"
@@ -70,7 +80,7 @@ export function WelcomeScreen() {
                 </Link>
               </p>
 
-              <h4 className="font-medium mb-2">4. Start Chatting</h4>
+              <h4 className="font-medium mb-2">5. Start Chatting</h4>
               <p>Ask questions about your documents using natural language.</p>
             </div>
           </CardContent>
