@@ -25,7 +25,8 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
   const chatMutation = useChatMutation();
   const { data: storedMessages } = useChatHistory();
   const queryClient = useQueryClient();
-  const { data: workspacesData } = useWorkspaceQuery();
+  const { data: workspacesData, isLoading: isLoadingWorkspace } =
+    useWorkspaceQuery();
 
   // Get workspace bot name from localStorage slug
   const workspaceSlug = localStorage.getItem("workspaceId");
@@ -33,6 +34,7 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
     (ws) => ws.slug === workspaceSlug
   );
   const botName = currentWorkspace?.botName || "Rumsan AI";
+  const isBotNameReady = !isLoadingWorkspace && botName;
 
   const createWelcomeMessageWithBotName = useCallback(
     (): ChatMessage => ({
@@ -45,6 +47,8 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
   );
 
   useEffect(() => {
+    if (isLoadingWorkspace) return; // Wait for workspace to load
+
     if (
       storedMessages &&
       storedMessages.length > 0 &&
@@ -60,6 +64,7 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
     botName,
     messages.length,
     createWelcomeMessageWithBotName,
+    isLoadingWorkspace,
   ]);
 
   useEffect(() => {
@@ -142,7 +147,13 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
           <Bot className="h-5 w-5 text-white" />
         </div>
         <div className="flex-1">
-          <h2 className="text-base font-semibold text-foreground">{botName}</h2>
+          {isLoadingWorkspace ? (
+            <div className="h-5 w-32 bg-muted animate-pulse rounded" />
+          ) : (
+            <h2 className="text-base font-semibold text-foreground">
+              {botName}
+            </h2>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Button
