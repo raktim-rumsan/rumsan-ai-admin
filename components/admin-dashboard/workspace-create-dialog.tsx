@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -15,11 +16,22 @@ import { useCreateWorkspace } from "@/queries/workspaceQuery";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
+import { se } from "date-fns/locale";
+import { SECTORS } from "@/constants/sector";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 export default function WorkspaceCreateDialog() {
   const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [workspaceName, setWorkspaceName] = useState("");
+  const [sector, setSector] = useState("");
+
   const [workspaceDescription, setWorkspaceDescription] = useState("");
 
   const createWorkspace = useCreateWorkspace();
@@ -31,6 +43,7 @@ export default function WorkspaceCreateDialog() {
       {
         name: workspaceName.trim(),
         description: workspaceDescription.trim(),
+        sector: sector,
       },
       {
         onSuccess: ({ data }) => {
@@ -67,6 +80,25 @@ export default function WorkspaceCreateDialog() {
               value={workspaceName}
               onChange={(e) => setWorkspaceName(e.target.value)}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="sector"> Sector</Label>
+            <Select value={sector} onValueChange={setSector}>
+              <SelectTrigger id="sector" className="h-12 w-full">
+                <SelectValue placeholder="Select Sector" />
+              </SelectTrigger>
+              <SelectContent>
+                {SECTORS.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Select the primary industry sector for your workspace
+            </p>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="workspace-description-2">

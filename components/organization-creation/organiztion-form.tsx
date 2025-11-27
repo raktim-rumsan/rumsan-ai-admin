@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { toastUtils } from "@/lib/toast-utils";
 import { useOrganizationMutation } from "@/queries/organizationQuery";
+import { SECTORS } from "@/constants/sector";
 
 interface OrganizationFormProps {
   onSuccess: (organizationName: string) => void;
@@ -109,8 +110,11 @@ export function OrganizationForm({ onSuccess }: OrganizationFormProps) {
                 <SelectValue placeholder="Select a sector" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="banking">Banking</SelectItem>
-                <SelectItem value="dentistry">Dentistry</SelectItem>
+                {SECTORS.map((sector) => (
+                  <SelectItem key={sector.value} value={sector.value}>
+                    {sector.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">

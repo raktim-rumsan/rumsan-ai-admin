@@ -156,17 +156,6 @@ export default function OrganizationPage() {
                     </Button>
                   )}
                 </div>
-
-                {updateOrganization.isSuccess && (
-                  <p className="text-sm text-green-600">
-                    ✓ Organization settings saved successfully
-                  </p>
-                )}
-                {updateOrganization.isError && (
-                  <p className="text-sm text-red-600">
-                    Failed to save changes. Please try again.
-                  </p>
-                )}
               </CardContent>
             </Card>
           </div>

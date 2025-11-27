@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Menu, ChevronDown } from "lucide-react";
+import { Menu, ChevronDown, BotMessageSquare } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,10 +19,17 @@ import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 
 interface HeaderProps {
   onMenuClick?: () => void;
+  onChatButtonClick?: () => void;
+  isChatOpen?: boolean;
 }
 
-export function MainHeader({ onMenuClick }: HeaderProps) {
+export function MainHeader({
+  onMenuClick,
+  onChatButtonClick,
+  isChatOpen,
+}: HeaderProps) {
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const [createTeamDialogOpen, setCreateTeamDialogOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const { data: workspaceData, isLoading, isError } = useWorkspaceQuery(); // ✅ fetch workspaces
@@ -36,7 +44,7 @@ export function MainHeader({ onMenuClick }: HeaderProps) {
   const handleTeamCreated = async (teamSlug: string) => {
     console.log("Team created with slug:", teamSlug);
   };
-  const handleWorkspaceSelect = (workspace: {
+  const handleWorkspaceSelect = async (workspace: {
     id: string;
     name: string;
     slug: string;
@@ -44,6 +52,14 @@ export function MainHeader({ onMenuClick }: HeaderProps) {
     localStorage.setItem("workspaceId", workspace.slug);
     localStorage.setItem("workspaceName", workspace.name);
     setCurrentValue(workspace.name);
+
+    // Clear chat history for new workspace
+    localStorage.removeItem("chatHistory");
+    queryClient.setQueryData(["chatHistory"], []);
+
+    // Reset all queries and force immediate refetch
+    await queryClient.resetQueries();
+    await queryClient.refetchQueries();
   };
 
   if (!isMounted) return null;
@@ -130,7 +146,20 @@ export function MainHeader({ onMenuClick }: HeaderProps) {
         </div>
 
         {/* Right side - Notifications and Profile */}
+
         <div className="flex items-center gap-3">
+          {!isAdminDashboard && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onChatButtonClick}
+              aria-pressed={isChatOpen}
+              title={isChatOpen ? "Assistant is open" : "Open assistant"}
+            >
+              <BotMessageSquare className="h-5 w-5 text-blue-500" />
+            </Button>
+          )}
+
           <NotificationIcon />
           <ProfileUserDashboard />
         </div>

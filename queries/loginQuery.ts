@@ -3,7 +3,6 @@ import { useMutation } from "@tanstack/react-query";
 export default function useLoginMutation() {
   return useMutation({
     mutationFn: async (email: string) => {
-      localStorage.clear();
       const response = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

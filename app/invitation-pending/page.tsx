@@ -1,17 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bell, CheckCircle2, XCircle, GitBranch } from "lucide-react";
+import { Bell, CheckCircle2, XCircle, Handshake } from "lucide-react";
 import { useOrganizationContext } from "@/hooks/useOrganizationContext";
-import {
-  useAcceptInvitation,
-  useCheckInvitation,
-} from "@/queries/invitationsQuery";
+import { useAcceptInvitation } from "@/queries/invitationsQuery";
+import { useWorkspaceQuery } from "@/queries/workspaceQuery";
+import { formatRole } from "@/lib/utils";
 import { toastUtils } from "@/lib/toast-utils";
 import { formatDistanceToNow } from "date-fns";
 
@@ -32,9 +31,9 @@ interface InvitationWithToken
 }
 
 export default function NotificationsPage() {
+  const queryClient = useQueryClient();
   const { pendingInvitations, isLoading, isLoaded, refetch } =
     useOrganizationContext();
-  const pendingInvitationStatus = useCheckInvitation();
   const acceptMutation = useAcceptInvitation();
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [decliningId, setDecliningId] = useState<string | null>(null);
@@ -64,8 +63,18 @@ export default function NotificationsPage() {
           invitation.organizationName || "the organization"
         }!`
       );
-      // Refetch to update the list
-      await refetch();
+      const invitedWorkspace = pendingInvitations.find(
+        (inv) => inv.id === invitation.id
+      );
+      const targetWorkspace = invitedWorkspace?.workspace;
+      if (targetWorkspace) {
+        localStorage.setItem("workspaceId", targetWorkspace.slug);
+        localStorage.setItem("workspaceName", targetWorkspace.name);
+        localStorage.removeItem("chatHistory");
+        queryClient.setQueryData(["chatHistory"], []);
+        // refresh to reset the ws
+        window.location.reload();
+      }
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -79,8 +88,6 @@ export default function NotificationsPage() {
 
   const handleDecline = async (invitationId: string) => {
     setDecliningId(invitationId);
-    // TODO: Implement decline invitation API call if available
-    // For now, just remove from local state after a delay
     setTimeout(() => {
       setDecliningId(null);
       toastUtils.generic.success(
@@ -97,10 +104,6 @@ export default function NotificationsPage() {
     } catch {
       return "recently";
     }
-  };
-
-  const getInitials = (email: string) => {
-    return email.split("@")[0].substring(0, 2).toUpperCase();
   };
 
   // Show skeleton loader while fetching invitations or data not loaded yet
@@ -200,7 +203,7 @@ export default function NotificationsPage() {
                   {/* Icon */}
                   <div className="shrink-0">
                     <div className="w-5 h-5 rounded bg-purple-600 flex items-center justify-center">
-                      <GitBranch className="w-3 h-3 text-white" />
+                      <Handshake className="w-3 h-3 text-white" />
                     </div>
                   </div>
 
@@ -216,16 +219,16 @@ export default function NotificationsPage() {
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 line-clamp-1">
-                      You&apos;ve been invited to join as{" "}
+                      You&apos;ve been invited to join as&nbsp;
                       <span className="font-medium capitalize">
-                        {invitation.role}
-                      </span>{" "}
-                      in{" "}
+                        {formatRole(invitation.role)}
+                      </span>
+                      &nbsp;in&nbsp;
                       <span className="font-medium capitalize">
                         {invitationWithToken.organization?.name ||
                           invitation.organizationId}
-                      </span>{" "}
-                      Organization.
+                      </span>
+                      &nbsp;Organization.
                     </p>
                   </div>
 
@@ -236,16 +239,8 @@ export default function NotificationsPage() {
                       variant="outline"
                       className="bg-yellow-50 text-yellow-700 border-yellow-200 text-xs"
                     >
-                      {invitation.role}
+                      {formatRole(invitation.role)}
                     </Badge>
-
-                    {/* Avatar */}
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-purple-100 text-purple-700 text-xs font-semibold">
-                        {getInitials(invitation.email)}
-                      </AvatarFallback>
-                    </Avatar>
-
                     {/* Timestamp */}
                     <span className="text-xs text-gray-500 whitespace-nowrap">
                       {formatDate(invitation.invitedAt)}

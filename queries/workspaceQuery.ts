@@ -103,6 +103,7 @@ export function useCreateWorkspace() {
     mutationFn: async (workspaceData: {
       name: string;
       description?: string;
+      sector?: string;
     }) => {
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.CREATE_WORKSPACE, {
@@ -188,7 +189,10 @@ export function useUpdateWorkspace() {
 
       // Snapshot previous value
       const previousWorkspaces = queryClient.getQueryData<any>(["workspaces"]);
-      const previousWorkspace = queryClient.getQueryData<any>(["workspaces", params.id]);
+      const previousWorkspace = queryClient.getQueryData<any>([
+        "workspaces",
+        params.id,
+      ]);
 
       // Optimistically update the workspace
       queryClient.setQueryData(["workspaces", params.id], (old: any) => ({
@@ -218,14 +222,16 @@ export function useUpdateWorkspace() {
         }
       }
       toastUtils.generic.success("Workspace updated successfully");
-
     },
 
     onError: (err, _variables, context: any) => {
       toastUtils.generic.error(err.message || "Failed to update workspace");
       // Rollback cache
       if (context?.previousWorkspace) {
-        queryClient.setQueryData(["workspaces", context.previousWorkspace.id], context.previousWorkspace);
+        queryClient.setQueryData(
+          ["workspaces", context.previousWorkspace.id],
+          context.previousWorkspace
+        );
       }
       if (context?.previousWorkspaces) {
         queryClient.setQueryData(["workspaces"], context.previousWorkspaces);
@@ -239,11 +245,10 @@ export function useUpdateWorkspace() {
   });
 }
 
-
 export function useInvitationWorkspaceMutation(workspaceIdParam?: string) {
   const queryClient = useQueryClient();
-  const workspaceId = localStorage.getItem("workspaceId");
-
+  const workspaceId =
+    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
   return useMutation({
     mutationFn: async (payload: CreateInvitationPayload) => {
       const access_token = getAuthToken();
@@ -287,6 +292,7 @@ export function useWorkspaceMemberQuery(workspaceId: string) {
     queryKey: ["workspaces", workspaceId],
     staleTime: 10_000,
     refetchInterval: 10_000, // Automatically refetch every 5 seconds
+    enabled: !!workspaceId, // Only run query if workspaceId is defined
     queryFn: async (): Promise<WorkspacesMemberResponse> => {
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.WORKSPACE_MEMBER(workspaceId), {

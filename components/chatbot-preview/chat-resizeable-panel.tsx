@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Send, Bot, User, Sparkles, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,17 +14,10 @@ import {
   useChatHistory,
   useChatMutation,
 } from "@/queries/chatQuery";
+import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 
 export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
-  const createWelcomeMessage = (): ChatMessage => ({
-    id: "welcome",
-    role: "assistant",
-    content: "Hello! I'm your SecureBank AI Assistant.",
-    timestamp: new Date(),
-  });
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    createWelcomeMessage(),
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -32,8 +25,30 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
   const chatMutation = useChatMutation();
   const { data: storedMessages } = useChatHistory();
   const queryClient = useQueryClient();
+  const { data: workspacesData, isLoading: isLoadingWorkspace } =
+    useWorkspaceQuery();
+
+  // Get workspace bot name from localStorage slug
+  const workspaceSlug =
+    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
+  const currentWorkspace = workspacesData?.data?.myWorkspaces?.find(
+    (ws) => ws.slug === workspaceSlug
+  );
+  const botName = currentWorkspace?.botName || "Rumsan AI";
+
+  const createWelcomeMessageWithBotName = useCallback(
+    (): ChatMessage => ({
+      id: "welcome",
+      role: "assistant",
+      content: `Hello! I'm your ${botName}. How can I help you?`,
+      timestamp: new Date(),
+    }),
+    [botName]
+  );
 
   useEffect(() => {
+    if (isLoadingWorkspace) return; // Wait for workspace to load
+
     if (
       storedMessages &&
       storedMessages.length > 0 &&
@@ -41,8 +56,16 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
     ) {
       setMessages(storedMessages);
       hasHydratedFromStorage.current = true;
+    } else if (messages.length === 0 && botName) {
+      setMessages([createWelcomeMessageWithBotName()]);
     }
-  }, [storedMessages]);
+  }, [
+    storedMessages,
+    botName,
+    messages.length,
+    createWelcomeMessageWithBotName,
+    isLoadingWorkspace,
+  ]);
 
   useEffect(() => {
     saveChatHistory(messages);
@@ -50,7 +73,7 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
   }, [messages, queryClient]);
 
   const handleClearHistory = () => {
-    const welcomeMessage = createWelcomeMessage();
+    const welcomeMessage = createWelcomeMessageWithBotName();
     setMessages([welcomeMessage]);
     clearChatHistory();
     queryClient.setQueryData(["chatHistory"], [welcomeMessage]);
@@ -124,13 +147,13 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
           <Bot className="h-5 w-5 text-white" />
         </div>
         <div className="flex-1">
-          <h2 className="text-base font-semibold text-foreground">
-            AI Assistant
-          </h2>
-          <div className="flex items-center gap-1.5">
-            <div className="h-2 w-2 rounded-full bg-green-500" />
-            <span className="text-xs text-muted-foreground">Online</span>
-          </div>
+          {isLoadingWorkspace ? (
+            <div className="h-5 w-32 bg-muted animate-pulse rounded" />
+          ) : (
+            <h2 className="text-base font-semibold text-foreground">
+              {botName}
+            </h2>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Button
