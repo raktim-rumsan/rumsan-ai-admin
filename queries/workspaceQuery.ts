@@ -246,8 +246,8 @@ export function useUpdateWorkspace() {
 
 export function useInvitationWorkspaceMutation(workspaceIdParam?: string) {
   const queryClient = useQueryClient();
-  const workspaceId = localStorage.getItem("workspaceId");
-
+  const workspaceId =
+    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
   return useMutation({
     mutationFn: async (payload: CreateInvitationPayload) => {
       const access_token = getAuthToken();
@@ -291,6 +291,7 @@ export function useWorkspaceMemberQuery(workspaceId: string) {
     queryKey: ["workspaces", workspaceId],
     staleTime: 10_000,
     refetchInterval: 10_000, // Automatically refetch every 5 seconds
+    enabled: !!workspaceId, // Only run query if workspaceId is defined
     queryFn: async (): Promise<WorkspacesMemberResponse> => {
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.WORKSPACE_MEMBER(workspaceId), {

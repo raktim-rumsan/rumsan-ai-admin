@@ -40,7 +40,9 @@ export function useDocUploadMutation(onSuccess?: () => void) {
 }
 
 export function useDocsQuery() {
-  const workspaceId = localStorage.getItem("workspaceId");
+  const workspaceId =
+    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
+
   return useQuery({
     queryKey: ["documents", workspaceId],
     queryFn: async () => {
