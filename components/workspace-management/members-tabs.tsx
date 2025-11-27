@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { Plus, Trash2, Mail, User, RefreshCcw } from "lucide-react";
 import {
@@ -48,7 +47,7 @@ interface Props {
   readOnly?: boolean;
 }
 
-export default function MembersTab({readOnly = false }: Props) {
+export default function MembersTab({ readOnly = false }: Props) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
@@ -58,34 +57,45 @@ export default function MembersTab({readOnly = false }: Props) {
   const [deletingInvitationId, setDeletingInvitationId] = useState<
     string | null
   >(null);
-  let workspaceId = useParams()?.id;
+
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const orgId = searchParams.get("orgId") || "";
+
+  // Get workspaceId from URL params or localStorage/context
+  let workspaceId: string | undefined = params?.id as string | undefined;
+
   if (!workspaceId) {
-  // No id in params, use slug from localStorage/context
-  const workspaceSlug = getWorkspaceId();
-  const context = orgContext(); 
-  const workspaces = context?.workspaces;
+    // No id in params, use slug from localStorage/context
+    const workspaceSlug = getWorkspaceId();
 
-  const matchedWorkspace = workspaces.find((w: any) => w.slug === workspaceSlug);
-  workspaceId = matchedWorkspace?.id ;
-}
+    if (workspaceSlug) {
+      const context = orgContext();
+      const workspaces = context?.workspaces;
 
-  const orgId = useSearchParams().get("orgId") || "";
+      if (workspaces && Array.isArray(workspaces)) {
+        const matchedWorkspace = workspaces.find(
+          (w: { slug: string; id: string }) => w.slug === workspaceSlug
+        );
+        workspaceId = matchedWorkspace?.id;
+      }
+    }
+  }
 
-  const invitationMutation = useInvitationWorkspaceMutation(
-    workspaceId as string
-  );
+  const invitationMutation = useInvitationWorkspaceMutation(workspaceId || "");
   const deleteWorkspaceMember = useDeleteWorkspaceMemberMutation();
-  const deleteWorkspaceInvitation = useDeleteInvitation(workspaceId as string);
+  const deleteWorkspaceInvitation = useDeleteInvitation(workspaceId || "");
 
   const { data: WorkSpaceUsers, isLoading } = useWorkspaceMemberQuery(
-    workspaceId as string
+    workspaceId || ""
   );
 
-  const workspaceResendInvitation = useResendInvitation(workspaceId as string);
+  const workspaceResendInvitation = useResendInvitation(workspaceId || "");
 
   const removeMember = async (email: string) => {
+    if (!workspaceId) return;
     await deleteWorkspaceMember.mutateAsync({
-      workspaceId: workspaceId as string,
+      workspaceId: workspaceId,
       email,
     });
   };
@@ -94,13 +104,11 @@ export default function MembersTab({readOnly = false }: Props) {
     if (!email || !role) {
       return;
     }
-
     try {
       await invitationMutation.mutateAsync({
         email,
         role,
       });
-
       // Reset form and close dialog on success
       setEmail("");
       setRole("member");
@@ -143,6 +151,18 @@ export default function MembersTab({readOnly = false }: Props) {
     }
   };
 
+  if (!workspaceId) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-muted-foreground">
+            Unable to load workspace. Please select a workspace first.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return isLoading ? (
     <MembersTabsSkeleton />
   ) : (
@@ -159,62 +179,64 @@ export default function MembersTab({readOnly = false }: Props) {
                     : "You can view the members and invitations in this workspace."}
                 </CardDescription>
               </div>
-               {!readOnly && (
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Invite Member
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Invite New Member</DialogTitle>
-                    <DialogDescription>
-                      Send an invitation to join this workspace
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="member@example.com"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="role">Role</Label>
-                        <Select value={role} onValueChange={setRole}>
-                          <SelectTrigger id="role">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="member">Member</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <Button
-                      className={`w-fit ${
-                        invitationMutation.isPending ? "animate-pulse" : ""
-                      }`}
-                      onClick={handleSendInvitation}
-                      disabled={!email || !role || invitationMutation.isPending}
-                    >
-                      <Mail className="h-4 w-4 mr-2" />
-                      {invitationMutation.isPending
-                        ? "Sending..."
-                        : "Send Invitation"}
+              {!readOnly && (
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Invite Member
                     </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-               )}
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Invite New Member</DialogTitle>
+                      <DialogDescription>
+                        Send an invitation to join this workspace
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email Address</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            placeholder="member@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="role">Role</Label>
+                          <Select value={role} onValueChange={setRole}>
+                            <SelectTrigger id="role">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="member">Member</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <Button
+                        className={`w-fit ${
+                          invitationMutation.isPending ? "animate-pulse" : ""
+                        }`}
+                        onClick={handleSendInvitation}
+                        disabled={
+                          !email || !role || invitationMutation.isPending
+                        }
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        {invitationMutation.isPending
+                          ? "Sending..."
+                          : "Send Invitation"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
           </CardHeader>
           <CardContent className="p-4">
@@ -241,16 +263,16 @@ export default function MembersTab({readOnly = false }: Props) {
                       <div className="flex items-center gap-3">
                         <Badge variant="outline">{member.role}</Badge>
                         {!readOnly && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            removeMember(member.user.email);
-                          }}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              removeMember(member.user.email);
+                            }}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -288,69 +310,70 @@ export default function MembersTab({readOnly = false }: Props) {
                       <div className="flex items-center gap-3">
                         <Badge variant="outline">{invitations.role}</Badge>
                         {!readOnly && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            handleResendInvitation(
-                              invitations.id as string,
-                              invitations.email as string,
-                              orgId,
-                              workspaceId as string
-                            );
-                          }}
-                          
-                          className={`hover:bg-transparent cursor-pointer p-0 ${
-                            resendingInvitationId === invitations.id &&
-                            workspaceResendInvitation.isPending
-                              ? "opacity-70"
-                              : ""
-                          }`}
-                          disabled={
-                            resendingInvitationId === invitations.id &&
-                            workspaceResendInvitation.isPending
-                          }
-                          aria-label="Resend invitation"
-                        >
-                          <RefreshCcw
-                            color="#cdd016"
-                            className={`h-4 w-4 ${
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              handleResendInvitation(
+                                invitations.id as string,
+                                invitations.email as string,
+                                orgId,
+                                workspaceId as string
+                              );
+                            }}
+                            className={`hover:bg-transparent cursor-pointer p-0 ${
                               resendingInvitationId === invitations.id &&
                               workspaceResendInvitation.isPending
-                                ? "animate-spin"
+                                ? "opacity-70"
                                 : ""
                             }`}
-                          />
-                        </Button>
+                            disabled={
+                              resendingInvitationId === invitations.id &&
+                              workspaceResendInvitation.isPending
+                            }
+                            aria-label="Resend invitation"
+                          >
+                            <RefreshCcw
+                              color="#cdd016"
+                              className={`h-4 w-4 ${
+                                resendingInvitationId === invitations.id &&
+                                workspaceResendInvitation.isPending
+                                  ? "animate-spin"
+                                  : ""
+                              }`}
+                            />
+                          </Button>
                         )}
                         {!readOnly && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            removeWorkspaceInvitation(invitations.id as string);
-                          }}
-                          className={`text-destructive hover:bg-transparent cursor-pointer p-0 ${
-                            deletingInvitationId === invitations.id &&
-                            deleteWorkspaceInvitation.isPending
-                              ? "opacity-70"
-                              : ""
-                          }`}
-                          disabled={
-                            deletingInvitationId === invitations.id &&
-                            deleteWorkspaceInvitation.isPending
-                          }
-                          aria-label="Delete invitation"
-                        >
-                          <Trash2
-                            className={`h-4 w-4 ${
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              removeWorkspaceInvitation(
+                                invitations.id as string
+                              );
+                            }}
+                            className={`text-destructive hover:bg-transparent cursor-pointer p-0 ${
                               deletingInvitationId === invitations.id &&
                               deleteWorkspaceInvitation.isPending
-                                ? "animate-spin"
+                                ? "opacity-70"
                                 : ""
                             }`}
-                          />
-                        </Button>
+                            disabled={
+                              deletingInvitationId === invitations.id &&
+                              deleteWorkspaceInvitation.isPending
+                            }
+                            aria-label="Delete invitation"
+                          >
+                            <Trash2
+                              className={`h-4 w-4 ${
+                                deletingInvitationId === invitations.id &&
+                                deleteWorkspaceInvitation.isPending
+                                  ? "animate-spin"
+                                  : ""
+                              }`}
+                            />
+                          </Button>
                         )}
                       </div>
                     </div>
