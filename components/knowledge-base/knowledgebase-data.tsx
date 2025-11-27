@@ -47,7 +47,7 @@ export default function KnowledgebaseData({ data, error }: Props) {
             </div>
           ) : (
             <div className="space-y-3">
-              {data.map((doc) => (
+              {data.filter((doc) => doc.enabled).map((doc) => (
                 <div
                   key={doc.id}
                   className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
