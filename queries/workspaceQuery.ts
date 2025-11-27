@@ -246,8 +246,8 @@ export function useUpdateWorkspace() {
 
 export function useInvitationWorkspaceMutation(workspaceIdParam?: string) {
   const queryClient = useQueryClient();
-  const workspaceId = localStorage.getItem("workspaceId");
-
+  const workspaceId =
+    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
   return useMutation({
     mutationFn: async (payload: CreateInvitationPayload) => {
       const access_token = getAuthToken();

@@ -184,24 +184,13 @@ export default function GeneralTab() {
                 <div>
                   <CardTitle>General Settings</CardTitle>
                   <CardDescription>
-                    Configure organization-wide settings
+                    Configure workspace-wide settings
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-center justify-between py-3 border-b">
-                  <div>
-                    <p className="font-medium">Security Settings</p>
-                    <p className="text-sm text-muted-foreground">
-                      2FA, SSO, and access controls
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm" disabled>
-                    Configure
-                  </Button>
-                </div>
                 <div className="flex items-center justify-between py-3 border-b">
                   <div>
                     <p className="font-medium">API Keys</p>
