@@ -27,3 +27,7 @@ export function orgContext(key?: string) {
   if (!key) return parsed; // return whole context if no key
   return parsed?.[key];
 }
+
+export function formatRole(role: string | undefined | null): string {
+  return role?.replace(/_/g, " ") ?? "";
+}

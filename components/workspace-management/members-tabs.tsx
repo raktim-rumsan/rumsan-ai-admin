@@ -39,7 +39,7 @@ import {
   useDeleteInvitation,
   useResendInvitation,
 } from "@/queries/invitationsQuery";
-import { getWorkspaceId, orgContext } from "@/lib/utils";
+import { getWorkspaceId, orgContext, formatRole } from "@/lib/utils";
 
 interface Props {
   members?: Member[];
@@ -261,7 +261,9 @@ export default function MembersTab({ readOnly = false }: Props) {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Badge variant="outline">{member.role}</Badge>
+                        <Badge variant="outline">
+                          {formatRole(member.role)}
+                        </Badge>
                         {!readOnly && (
                           <Button
                             variant="ghost"
@@ -308,7 +310,9 @@ export default function MembersTab({ readOnly = false }: Props) {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Badge variant="outline">{invitations.role}</Badge>
+                        <Badge variant="outline">
+                          {formatRole(invitations.role)}
+                        </Badge>
                         {!readOnly && (
                           <Button
                             variant="ghost"
