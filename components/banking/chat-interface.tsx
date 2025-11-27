@@ -2,15 +2,22 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, MessageCircle, Send } from "lucide-react";
+import {
+  Bot,
+  Copy,
+  MessageCircle,
+  Send,
+  ThumbsDown,
+  ThumbsUp,
+  User,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
   ChatMessage,
+  clearChatHistory,
   saveChatHistory,
-  useChatHistory,
   useChatIndustryMutation,
 } from "@/queries/chatQuery";
-import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 import { toastUtils } from "@/lib/toast-utils";
 import { ScrollArea } from "../ui/scroll-area";
 import { Textarea } from "../ui/textarea";
@@ -20,31 +27,29 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ className }: ChatInterfaceProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const createWelcomeMessage = (): ChatMessage => ({
+    id: "welcome",
+    role: "assistant",
+    content: "Hello! I'm your RumsanBank AI Assistant.",
+    timestamp: new Date(),
+  });
+
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    createWelcomeMessage(),
+  ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const industryChatMutation = useChatIndustryMutation();
-  const { data: chatHistory } = useChatHistory();
-  const { data: workspacesData } = useWorkspaceQuery();
 
-  // Get workspace bot name from localStorage slug
-  const workspaceSlug = localStorage.getItem("workspaceId");
-  const currentWorkspace = workspacesData?.data?.myWorkspaces?.find(
-    (ws) => ws.slug === workspaceSlug
-  );
-
-  console.log({ currentWorkspace });
-  const botName = currentWorkspace?.botName || "AI Assistant";
-
-  // Load chat history on mount
+  // Clear chat history on page refresh/mount
   useEffect(() => {
-    if (chatHistory) {
-      setMessages(chatHistory);
-    }
-  }, [chatHistory]);
+    clearChatHistory();
+    // Reset messages to only show welcome message
+    setMessages([createWelcomeMessage()]);
+  }, []);
   useEffect(() => {
     if (scrollAreaRef.current) {
       const scrollContainer = scrollAreaRef.current.querySelector(
@@ -90,7 +95,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       setMessages(finalMessages);
 
       saveChatHistory(finalMessages);
-      toastUtils.generic.success("Response received");
+      // toastUtils.generic.success("Response received");
     } catch (error) {
       console.error("Chat error:", error);
 
@@ -168,7 +173,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-medium text-sm text-gray-900">
-                    {botName}
+                    AI Assistant
                   </span>
                   <span className="text-xs text-gray-500">thinking...</span>
                 </div>
