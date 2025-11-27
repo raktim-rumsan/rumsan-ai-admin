@@ -43,6 +43,7 @@ export default function WorkspaceCreateDialog() {
       {
         name: workspaceName.trim(),
         description: workspaceDescription.trim(),
+        sector: sector,
       },
       {
         onSuccess: ({ data }) => {

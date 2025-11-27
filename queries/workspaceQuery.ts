@@ -103,6 +103,7 @@ export function useCreateWorkspace() {
     mutationFn: async (workspaceData: {
       name: string;
       description?: string;
+      sector?: string;
     }) => {
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.CREATE_WORKSPACE, {
