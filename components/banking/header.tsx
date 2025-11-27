@@ -1,6 +1,6 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { FileText } from "lucide-react"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { FileText } from "lucide-react";
 
 export function Header() {
   return (
@@ -14,22 +14,41 @@ export function Header() {
         </div>
 
         <nav className="hidden items-center gap-8 md:flex">
-          <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link
+            href="#"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
             Products
           </Link>
-          <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link
+            href="#"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
             Solutions
           </Link>
-          <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link
+            href="#"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
             Pricing
           </Link>
-          <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link
+            href="#"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
             About
           </Link>
         </nav>
 
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">Get Started</Button>
+        <Button asChild>
+          <Link
+            href="/auth/login"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            Get Started
+          </Link>
+        </Button>
       </div>
     </header>
-  )
+  );
 }

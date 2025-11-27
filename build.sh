@@ -52,7 +52,6 @@ docker buildx build \
     --build-arg NEXT_PUBLIC_URL="$NEXT_PUBLIC_URL" \
     --build-arg NEXT_PUBLIC_SERVER_API="$NEXT_PUBLIC_SERVER_API" \
     --build-arg NEXT_PUBLIC_INDUSTRY_VALUES="$NEXT_PUBLIC_INDUSTRY_VALUES" \
-
     -t rumsan/ai-admin:latest \
     .
 
