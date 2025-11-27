@@ -29,12 +29,12 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
     useWorkspaceQuery();
 
   // Get workspace bot name from localStorage slug
-  const workspaceSlug = localStorage.getItem("workspaceId");
+  const workspaceSlug =
+    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
   const currentWorkspace = workspacesData?.data?.myWorkspaces?.find(
     (ws) => ws.slug === workspaceSlug
   );
   const botName = currentWorkspace?.botName || "Rumsan AI";
-  const isBotNameReady = !isLoadingWorkspace && botName;
 
   const createWelcomeMessageWithBotName = useCallback(
     (): ChatMessage => ({

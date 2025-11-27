@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Menu, ChevronDown, BotMessageSquare } from "lucide-react";
 import {
@@ -28,6 +29,7 @@ export function MainHeader({
   isChatOpen,
 }: HeaderProps) {
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const [createTeamDialogOpen, setCreateTeamDialogOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const { data: workspaceData, isLoading, isError } = useWorkspaceQuery(); // ✅ fetch workspaces
@@ -42,7 +44,7 @@ export function MainHeader({
   const handleTeamCreated = async (teamSlug: string) => {
     console.log("Team created with slug:", teamSlug);
   };
-  const handleWorkspaceSelect = (workspace: {
+  const handleWorkspaceSelect = async (workspace: {
     id: string;
     name: string;
     slug: string;
@@ -50,6 +52,14 @@ export function MainHeader({
     localStorage.setItem("workspaceId", workspace.slug);
     localStorage.setItem("workspaceName", workspace.name);
     setCurrentValue(workspace.name);
+
+    // Clear chat history for new workspace
+    localStorage.removeItem("chatHistory");
+    queryClient.setQueryData(["chatHistory"], []);
+
+    // Reset all queries and force immediate refetch
+    await queryClient.resetQueries();
+    await queryClient.refetchQueries();
   };
 
   if (!isMounted) return null;
