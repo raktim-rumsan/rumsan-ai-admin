@@ -2,15 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Bot,
-  Copy,
-  MessageCircle,
-  Send,
-  ThumbsDown,
-  ThumbsUp,
-  User,
-} from "lucide-react";
+import { Bot, MessageCircle, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
   ChatMessage,
@@ -30,7 +22,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   const createWelcomeMessage = (): ChatMessage => ({
     id: "welcome",
     role: "assistant",
-    content: "Hello! I'm your RumsanBank AI Assistant.",
+    content: "Hello! I'm your Rumsan AI Assistant.",
     timestamp: new Date(),
   });
 

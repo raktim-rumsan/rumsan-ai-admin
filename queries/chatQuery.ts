@@ -218,7 +218,7 @@ export async function sendWidgetChatQuery(
 async function sendChatQueryIndustry(
   request: ChatQueryRequest
 ): Promise<ChatQueryResponse> {
-  const sector = process.env.NEXT_PUBLIC_DEFAULT_VALUES;
+  const sector = process.env.NEXT_PUBLIC_INDUSTRY_VALUES;
   const url = `${ROUTES.SECTOR_QUERY}?sector=${encodeURIComponent(
     sector || ""
   )}`;
