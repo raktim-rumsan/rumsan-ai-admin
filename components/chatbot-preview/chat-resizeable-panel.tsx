@@ -245,7 +245,7 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               <div className="bg-muted text-foreground rounded-lg px-4 py-2 text-sm">
-                AI is thinking...
+                {botName} is thinking...
               </div>
             </div>
           )}
