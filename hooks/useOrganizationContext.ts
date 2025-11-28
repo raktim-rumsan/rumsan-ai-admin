@@ -7,6 +7,7 @@ import { useOrganizationStore } from "@/stores/organizationStore";
 import { ROUTES } from "@/constants";
 import type { OrganizationContextResponse } from "@/queries/organizationQuery";
 import { usePathname } from "next/navigation";
+import { WORKSPACE_ROLES } from "@/lib/constants";
 
 const CACHE_DURATION = 5 * 60 * 1000;
 
@@ -235,4 +236,16 @@ export function useRequiredOrganizationContext() {
   }, [context.isLoading, context.isLoaded, context.error]);
 
   return context;
+}
+
+export function useWorkspaceRole(workspaceId: string) {
+  const role = useOrganizationStore(store =>
+    store.workspaces.find(ws => ws.id === workspaceId)?.role
+  );
+
+  return {
+    role,
+    isAdmin: role === WORKSPACE_ROLES.ADMIN,
+    isMember: role === WORKSPACE_ROLES.MEMBER,
+  };
 }
