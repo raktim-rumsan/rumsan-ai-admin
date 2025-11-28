@@ -40,14 +40,14 @@ import {
   useResendInvitation,
 } from "@/queries/invitationsQuery";
 import { getWorkspaceId, orgContext, formatRole } from "@/lib/utils";
+import { useWorkspaceRole } from "@/hooks/useOrganizationContext";
 
 interface Props {
   members?: Member[];
   setMembers?: (members: Member[]) => void;
-  readOnly?: boolean;
 }
 
-export default function MembersTab({ readOnly = false }: Props) {
+export default function MembersTab({ }: Props) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
@@ -81,6 +81,8 @@ export default function MembersTab({ readOnly = false }: Props) {
       }
     }
   }
+
+  const {isAdmin} = useWorkspaceRole(workspaceId || "");
 
   const invitationMutation = useInvitationWorkspaceMutation(workspaceId || "");
   const deleteWorkspaceMember = useDeleteWorkspaceMemberMutation();
@@ -174,12 +176,12 @@ export default function MembersTab({ readOnly = false }: Props) {
               <div>
                 <CardTitle>Workspace Members</CardTitle>
                 <CardDescription className="mt-2">
-                  {!readOnly
+                  {isAdmin
                     ? "Manage who has access to this workspace"
                     : "You can view the members and invitations in this workspace."}
                 </CardDescription>
               </div>
-              {!readOnly && (
+              {isAdmin && (
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
                     <Button>
@@ -264,7 +266,7 @@ export default function MembersTab({ readOnly = false }: Props) {
                         <Badge variant="outline">
                           {formatRole(member.role)}
                         </Badge>
-                        {!readOnly && (
+                        {isAdmin && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -313,7 +315,7 @@ export default function MembersTab({ readOnly = false }: Props) {
                         <Badge variant="outline">
                           {formatRole(invitations.role)}
                         </Badge>
-                        {!readOnly && (
+                        {isAdmin && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -348,7 +350,7 @@ export default function MembersTab({ readOnly = false }: Props) {
                             />
                           </Button>
                         )}
-                        {!readOnly && (
+                        {isAdmin && (
                           <Button
                             variant="ghost"
                             size="sm"
