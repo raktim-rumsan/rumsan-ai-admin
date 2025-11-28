@@ -215,13 +215,20 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
                         {(message.processingTime / 1000).toFixed(2)}s
                       </div>
                     )}
-                    {message.sources && message.sources.length > 0 && (
-                      <div className="border-t border-border pt-2 mt-2">
-                        <p>
-                          Source: {message.sources[0].payload.fileName || "N/A"}
-                        </p>
-                      </div>
-                    )}
+                  { message.sources && message.sources.length > 0 && (
+                        <div className="border-t border-border pt-2 mt-2">
+                          <p className="font-semibold">Sources:</p>
+                          <ul className="list-disc ml-4">
+                            {Array.from(
+                              new Map(
+                                message.sources.map((src) => [src.payload.fileName, src])
+                              ).values()
+                            ).map((src, index) => (
+                              <li key={index}>{src.payload.fileName}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                   </div>
                 )}
               </div>
