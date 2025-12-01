@@ -17,6 +17,9 @@ export interface Workspace {
   ownerId: string;
   createdAt: string;
   updatedAt: string;
+  _count?: {
+    users: number;
+  };
 }
 
 export interface WorkspaceMember {
