@@ -25,6 +25,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { useOrganizationContext } from "@/hooks/useOrganizationContext";
+import { getAuthToken } from "@/lib/utils";
 
 export default function WorkspaceCreateDialog() {
   const router = useRouter();
@@ -35,6 +37,7 @@ export default function WorkspaceCreateDialog() {
   const [workspaceDescription, setWorkspaceDescription] = useState("");
 
   const createWorkspace = useCreateWorkspace();
+  const organizationContext = useOrganizationContext();
 
   const handleCreateWorkspace = () => {
     if (!workspaceName.trim()) return;
@@ -50,6 +53,8 @@ export default function WorkspaceCreateDialog() {
           setIsDialogOpen(false);
           setWorkspaceName("");
           setWorkspaceDescription("");
+           organizationContext.refetch();
+      
           router.push(`/admin/workspaces/${data.id}`);
         },
       }
