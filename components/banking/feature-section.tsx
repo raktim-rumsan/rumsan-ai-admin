@@ -1,5 +1,5 @@
-import { Card } from "@/components/ui/card"
-import { FileText, MessageSquare, Settings } from "lucide-react"
+import { Card } from "@/components/ui/card";
+import { FileText, MessageSquare, Settings } from "lucide-react";
 
 export function FeaturesSection() {
   const features = [
@@ -24,30 +24,40 @@ export function FeaturesSection() {
         "Comprehensive suite of tools to manage your organization efficiently. Track performance metrics, automate workflows, and integrate with existing systems.",
       link: "Learn more →",
     },
-  ]
+  ];
 
   return (
-    <section className="bg-muted/30 py-16 md:py-24">
+    <section id="features" className="bg-muted/30 py-16 md:py-24">
       <div className="container mx-auto px-4">
         <div className="text-center">
           <h2 className="text-balance text-3xl font-bold tracking-tight md:text-4xl">
             Powerful Features for Modern Banking
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-lg text-muted-foreground">
-            Everything you need to deliver exceptional banking experiences and streamline operations in one intelligent
-            platform.
+            Everything you need to deliver exceptional banking experiences and
+            streamline operations in one intelligent platform.
           </p>
         </div>
 
         <div className="mt-12 grid gap-8 md:grid-cols-3">
           {features.map((feature, index) => (
-            <Card key={index} className="border border-border bg-card p-6 shadow-sm">
+            <Card
+              key={index}
+              className="border border-border bg-card p-6 shadow-sm"
+            >
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                 <feature.icon className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="mb-2 text-xl font-semibold text-card-foreground">{feature.title}</h3>
-              <p className="mb-4 text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
-              <a href="#" className="text-sm font-medium text-primary hover:underline">
+              <h3 className="mb-2 text-xl font-semibold text-card-foreground">
+                {feature.title}
+              </h3>
+              <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
+                {feature.description}
+              </p>
+              <a
+                href="#"
+                className="text-sm font-medium text-primary hover:underline"
+              >
                 {feature.link}
               </a>
             </Card>
@@ -55,5 +65,5 @@ export function FeaturesSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }
