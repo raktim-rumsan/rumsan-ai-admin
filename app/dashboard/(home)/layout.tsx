@@ -2,9 +2,9 @@ import type React from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProtectedStoreInitializer } from "@/components/layout/ProtectedStoreInitializer";
-import { MainHeader } from "@/components/header/header";
+import { WorkspaceLayout } from "@/components/dashboard/workspace_layout";
 
-export default async function WorkspaceLayoutPage({
+export default async function DashboardLayoutPage({
   children,
 }: {
   children: React.ReactNode;
@@ -18,11 +18,7 @@ export default async function WorkspaceLayoutPage({
 
   return (
     <ProtectedStoreInitializer>
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
-        <MainHeader />
-      </div>
-      {children}
+      <WorkspaceLayout>{children}</WorkspaceLayout>
     </ProtectedStoreInitializer>
   );
 }

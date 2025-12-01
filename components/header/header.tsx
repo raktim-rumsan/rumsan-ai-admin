@@ -66,7 +66,7 @@ export function MainHeader({
 
   // Check if we're in the admin dashboard
   const isAdminDashboard = pathname?.startsWith("/admin");
-  const isWorkspaceDashboard = pathname?.startsWith("/workspaces");
+  const isWorkspaceDashboard = pathname?.startsWith("/dashboard/");
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-3 lg:px-6">
@@ -77,7 +77,7 @@ export function MainHeader({
           <div
             className={cn(
               "flex items-center space-x-2",
-              !isAdminDashboard && !isWorkspaceDashboard && "lg:hidden"
+              !isAdminDashboard && isWorkspaceDashboard && "lg:hidden"
             )}
           >
             <div className="w-6 h-6 bg-black rounded flex items-center justify-center">
@@ -105,7 +105,7 @@ export function MainHeader({
           )}
 
           {/* Workspace switcher - visible on mobile after hamburger, always visible on desktop, hidden in admin dashboard */}
-          {!isAdminDashboard && !isWorkspaceDashboard && (
+          {/* {!isAdminDashboard && isWorkspaceDashboard && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -143,7 +143,7 @@ export function MainHeader({
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
+          )} */}
         </div>
 
         {/* Right side - Notifications and Profile */}
