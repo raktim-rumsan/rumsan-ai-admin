@@ -3,19 +3,13 @@
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Menu, ChevronDown, BotMessageSquare } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Menu, BotMessageSquare } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { CreateTeamDialog } from "../dashboard/CreateTeamDialog";
 import { ProfileUserDashboard } from "../profile/profile";
 import { NotificationIcon } from "./notification-icon";
 import { usePathname } from "next/navigation";
-import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -32,7 +26,6 @@ export function MainHeader({
   const queryClient = useQueryClient();
   const [createTeamDialogOpen, setCreateTeamDialogOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const { data: workspaceData, isLoading, isError } = useWorkspaceQuery(); // ✅ fetch workspaces
   const [currentValue, setCurrentValue] = useState("Select Workspace");
 
   useEffect(() => {
@@ -149,7 +142,7 @@ export function MainHeader({
         {/* Right side - Notifications and Profile */}
 
         <div className="flex items-center gap-3">
-          {!isAdminDashboard && !isWorkspaceDashboard && (
+          {!isAdminDashboard && (
             <Button
               variant="ghost"
               size="icon"
