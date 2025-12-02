@@ -178,6 +178,7 @@ export function useEmbeddingMutation(onSuccess?: () => void) {
       const data = await res.json();
       return data;
     },
+     retry: false,
     onSuccess: (data) => {
       toastUtils.generic.success(data?.data?.status, data?.data?.message);
       // Invalidate documents query to refetch the list and update status
