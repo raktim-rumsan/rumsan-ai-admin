@@ -308,9 +308,7 @@ export function useToggleDocumentStatusMutation() {
 }
 
 export function viewDocument(url: string) {
-  console.log(url, "url");
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_API!;
-  const fileUrl = `${serverUrl}/assets/${url.replace(/^uploads\//, '')}`;
-
+  const fileUrl = `${serverUrl}/assets/${url.replace(/^uploads\//, "")}`;
   window.open(fileUrl, "_blank");
 }
