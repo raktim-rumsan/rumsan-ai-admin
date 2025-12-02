@@ -307,36 +307,10 @@ export function useToggleDocumentStatusMutation() {
   });
 }
 
-export async function viewDocument(url: string) {
+export function viewDocument(url: string) {
+  console.log(url, "url");
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_API!;
-  const access_token = getAuthToken();
-  const workspaceId = localStorage.getItem("workspaceId");
-  const fileUrl = `${serverUrl}/${url.replace(/^\/+/, "")}`;
+  const fileUrl = `${serverUrl}/assets/${url.replace(/^uploads\//, '')}`;
 
-  const headers: Record<string, string> = { accept: "application/pdf" };
-
-  const response = await fetch(fileUrl, {
-    headers: { access_token: access_token || "" },
-  });
-  if (!response.ok) {
-    try {
-      const errorData = await response.json();
-      const errorMessage =
-        errorData.message ||
-        errorData.error ||
-        `HTTP ${response.status}: ${response.statusText}`;
-      throw new Error(errorMessage);
-    } catch {
-      // If response is not JSON, fall back to response text
-      const errorText = await response.text();
-      throw new Error(
-        errorText || `HTTP ${response.status}: ${response.statusText}`
-      );
-    }
-  }
-
-  const blob = await response.blob();
-  const blobUrl = URL.createObjectURL(blob);
-
-  window.open(blobUrl, "_blank");
+  window.open(fileUrl, "_blank");
 }
