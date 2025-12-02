@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams } from "next/navigation";
+import React, { useState, useTransition } from "react";
+import { useParams, useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  useDeleteWorkspaceMutation,
   useUpdateWorkspace,
   useWorkspaceQuery,
 } from "@/queries/workspaceQuery";
@@ -28,12 +29,26 @@ import Link from "next/link";
 import { Settings } from "lucide-react";
 import GeneralTabSkeleton from "./general-tab-loading";
 import { SECTORS } from "@/constants/sector";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function GeneralTab() {
   const { id: workspaceId } = useParams();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
   const updateWorkspace = useUpdateWorkspace();
+  const deleteWorkspace = useDeleteWorkspaceMutation();
 
   // Find the workspace from the query
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
@@ -63,6 +78,28 @@ export default function GeneralTab() {
         botName: workspaceBotName,
         sector: workspaceSector,
       },
+    });
+  };
+
+  const handleDeleteWorkspace = () => {
+    if (!workspaceId) return;
+
+    startTransition(() => {
+      deleteWorkspace.mutate(workspaceId as string, {
+        onSuccess: () => {
+          // Clear workspace from localStorage if it matches the deleted one
+          const currentWorkspaceSlug = localStorage.getItem("workspaceId");
+          if (
+            currentWorkspace &&
+            currentWorkspace.slug === currentWorkspaceSlug
+          ) {
+            localStorage.removeItem("workspaceId");
+            localStorage.removeItem("workspaceName");
+          }
+          // Redirect to workspaces
+          router.push("/admin/workspaces");
+        },
+      });
     });
   };
 
@@ -203,6 +240,47 @@ export default function GeneralTab() {
                       View Keys
                     </Button>
                   </Link>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between py-3 border-b">
+                  <div>
+                    <p className="font-medium">Delete Workspace </p>
+                    <p className="text-sm text-muted-foreground">
+                      Once you delete a workspace, there is no going back.
+                      Please be certain.
+                    </p>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-500"
+                      >
+                        Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently
+                          delete the workspace and all its data.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteWorkspace}
+                          className="bg-red-500 hover:bg-red-600"
+                          disabled={isPending}
+                        >
+                          {isPending ? "Deleting..." : "Delete"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </CardContent>

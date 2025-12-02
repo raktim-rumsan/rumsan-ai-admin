@@ -354,3 +354,42 @@ export function useDeleteWorkspaceMemberMutation() {
     },
   });
 }
+
+export function useDeleteWorkspaceMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, string>({
+    mutationFn: async (workspaceId: string) => {
+      const access_token = getAuthToken();
+      const res = await fetch(ROUTES.DELETE_WORKSPACE(workspaceId), {
+        method: "DELETE",
+        headers: {
+          access_token: access_token || "",
+        },
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      return; // void
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["workspaces"],
+      });
+      toastUtils.generic.success("Workspace deleted successfully");
+    },
+
+    onError: (error) => {
+      toastUtils.generic.error(
+        "Error deleting workspace",
+        error.message || "Something went wrong. Please try again."
+      );
+    },
+  });
+}
