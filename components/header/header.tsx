@@ -3,19 +3,13 @@
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Menu, ChevronDown, BotMessageSquare } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Menu, BotMessageSquare } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { CreateTeamDialog } from "../dashboard/CreateTeamDialog";
 import { ProfileUserDashboard } from "../profile/profile";
 import { NotificationIcon } from "./notification-icon";
 import { usePathname } from "next/navigation";
-import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -32,7 +26,6 @@ export function MainHeader({
   const queryClient = useQueryClient();
   const [createTeamDialogOpen, setCreateTeamDialogOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const { data: workspaceData, isLoading, isError } = useWorkspaceQuery(); // ✅ fetch workspaces
   const [currentValue, setCurrentValue] = useState("Select Workspace");
 
   useEffect(() => {
@@ -66,6 +59,7 @@ export function MainHeader({
 
   // Check if we're in the admin dashboard
   const isAdminDashboard = pathname?.startsWith("/admin");
+  const isWorkspaceDashboard = pathname?.startsWith("/dashboard/");
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-3 lg:px-6">
@@ -76,7 +70,7 @@ export function MainHeader({
           <div
             className={cn(
               "flex items-center space-x-2",
-              !isAdminDashboard && "lg:hidden"
+              !isAdminDashboard && isWorkspaceDashboard && "lg:hidden"
             )}
           >
             <div className="w-6 h-6 bg-black rounded flex items-center justify-center">
@@ -104,7 +98,7 @@ export function MainHeader({
           )}
 
           {/* Workspace switcher - visible on mobile after hamburger, always visible on desktop, hidden in admin dashboard */}
-          {!isAdminDashboard && (
+          {/* {!isAdminDashboard && isWorkspaceDashboard && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -142,7 +136,7 @@ export function MainHeader({
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
+          )} */}
         </div>
 
         {/* Right side - Notifications and Profile */}

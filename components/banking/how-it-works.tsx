@@ -1,27 +1,34 @@
-import { Upload, Settings, Rocket } from "lucide-react";
+import { FolderPlus, Users, Brain, Rocket } from "lucide-react";
 
 export function HowItWorks() {
   const steps = [
     {
-      icon: Upload,
+      icon: FolderPlus,
       step: "01",
-      title: "Upload/Connect Banking Documents",
+      title: "Create Your Workspace",
       description:
-        "Import your FAQs, policies, and knowledge base documents into Chatty",
+        "Create a dedicated workspace for your bank or department to manage documents, configurations, and AI settings.",
     },
     {
-      icon: Settings,
+      icon: Users,
       step: "02",
-      title: "Train Your Workspace",
+      title: "Invite Admins & Members",
       description:
-        "Configure workspaces for different departments and train the AI with your specific data",
+        "Invite admins and staff with role-based access to upload documents, manage knowledge, and maintain accuracy.",
+    },
+    {
+      icon: Brain,
+      step: "03",
+      title: "Train Your AI",
+      description:
+        "Upload banking documents like FAQs, KYC, SOPs, and policies for Chatty to learn and provide accurate answers.",
     },
     {
       icon: Rocket,
-      step: "03",
-      title: "Deploy & Automate",
+      step: "04",
+      title: "Deploy & Assist",
       description:
-        "Launch across all channels and start automating customer support instantly",
+        "Deploy the chatbot on your website or app, offering customers instant answers about banking services anytime.",
     },
   ];
 
@@ -33,14 +40,14 @@ export function HowItWorks() {
             How It Works
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto text-pretty">
-            Get started with Rumsan Chatty in three simple steps
+            Get started with Rumsan Chatty in four simple steps
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 relative">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
           {/* Connection lines for desktop */}
           <div
-            className="hidden md:block absolute top-16 left-0 right-0 h-0.5 bg-border"
+            className="hidden lg:block absolute top-16 left-0 right-0 h-0.5 bg-border"
             style={{ width: "calc(100% - 10rem)", left: "5rem" }}
           />
 
@@ -55,8 +62,10 @@ export function HowItWorks() {
                   <div className="text-sm font-mono text-primary font-semibold mb-2">
                     {step.step}
                   </div>
-                  <h3 className="font-semibold text-xl mb-3">{step.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed text-pretty">
+                  <h3 className="font-semibold text-xl mb-3 text-balance">
+                    {step.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed text-pretty">
                     {step.description}
                   </p>
                 </div>

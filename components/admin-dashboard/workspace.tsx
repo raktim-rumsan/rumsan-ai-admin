@@ -8,14 +8,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  useWorkspaceQuery,
-} from "@/queries/workspaceQuery";
+import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 import { WorkspacesLoadingGrid } from "./workspace-skeleton";
 import WorkspaceCreateDialog from "./workspace-create-dialog";
 
 export default function WorkspacesPage() {
-
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
 
   return (
@@ -38,10 +35,10 @@ export default function WorkspacesPage() {
               </p>
             </div>
             <div className="flex-shrink-0">
-                {(workspaceData?.data?.myWorkspaces?.length ?? 0) > 0 && (
-                  <WorkspaceCreateDialog />
-                )}
-              </div>
+              {(workspaceData?.data?.myWorkspaces?.length ?? 0) > 0 && (
+                <WorkspaceCreateDialog />
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -98,24 +95,24 @@ export default function WorkspacesPage() {
 
             {/* Empty State for New Workspace */}
             {workspaceData?.data?.myWorkspaces.length === 0 && (
-            <Card className="mt-6 border-dashed">
-              <CardHeader className="text-center py-16">
-                <div className="mx-auto mb-6 rounded-full bg-muted p-6 w-fit">
-                  <Plus className="h-12 w-12 text-muted-foreground" />
-                </div>
-                <CardTitle className="text-2xl mb-3">
-                  {workspaceData?.data?.myWorkspaces.length === 0
-                    ? "Create Your First Workspace"
-                    : "Create a New Workspace"}
-                </CardTitle>
-                <CardDescription className="text-base leading-relaxed max-w-md mx-auto">
-                  {workspaceData?.data?.myWorkspaces.length === 0
-                    ? "Get started by setting up a workspace where your team can collaborate and manage AI assistants together"
-                    : "Set up a new workspace for your team to collaborate and manage AI assistants"}
-                </CardDescription>
-                <WorkspaceCreateDialog/>
-              </CardHeader>
-            </Card>
+              <Card className="mt-6 border-dashed">
+                <CardHeader className="text-center py-16">
+                  <div className="mx-auto mb-6 rounded-full bg-muted p-6 w-fit">
+                    <Plus className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                  <CardTitle className="text-2xl mb-3">
+                    {workspaceData?.data?.myWorkspaces.length === 0
+                      ? "Create Your First Workspace"
+                      : "Create a New Workspace"}
+                  </CardTitle>
+                  <CardDescription className="text-base leading-relaxed max-w-md mx-auto">
+                    {workspaceData?.data?.myWorkspaces.length === 0
+                      ? "Get started by setting up a workspace where your team can collaborate and manage AI assistants together"
+                      : "Set up a new workspace for your team to collaborate and manage AI assistants"}
+                  </CardDescription>
+                  <WorkspaceCreateDialog />
+                </CardHeader>
+              </Card>
             )}
           </>
         )}

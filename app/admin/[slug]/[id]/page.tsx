@@ -47,7 +47,7 @@ export default function WorkspaceDetailPage({
       <div className="container mx-auto px-6 py-8">
         <Tabs defaultValue="general" className="space-y-6">
           <div className="flex items-center justify-between">
-                <TabsList className="flex space-x-4">
+            <TabsList className="flex space-x-4">
               <TabsTrigger value="general">
                 <Settings className="h-4 w-4 mr-2" /> General
               </TabsTrigger>
@@ -65,7 +65,7 @@ export default function WorkspaceDetailPage({
               asChild
               className="bg-green-600 hover:bg-green-700 text-white"
             >
-              <Link href={`/dashboard?workspace=${workspace.slug}`}>
+              <Link href={`/dashboard/workspace/${workspace.slug}`}>
                 <ExternalLink className="h-4 w-4 mr-2" /> Open Workspace
               </Link>
             </Button>
@@ -75,7 +75,11 @@ export default function WorkspaceDetailPage({
             <GeneralTab />
           </TabsContent>
           <TabsContent value="members">
-            <MembersTab members={members} setMembers={setMembers} readOnly={false} />
+            <MembersTab
+              members={members}
+              setMembers={setMembers}
+              readOnly={false}
+            />
           </TabsContent>
           <TabsContent value="llm">
             <LLMSettingsTab />
