@@ -33,36 +33,29 @@ export function SimpleFileUploadModal({
   const [fileError, setFileError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  setFileError(null); // Reset previous errors
-
-  if (e.target.files && e.target.files.length > 0) {
+    setFileError(null); // Reset previous errors
+    if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
+    if (!file) return;
 
-    // Check file size first
-    if (file.size > 10 * 1024 * 1024) {
+    // Allowed files
+    const allowedTypes = ["application/pdf"];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    // Validate type
+    if (!allowedTypes.includes(file.type)) {
+      setFileError("Invalid file type. Only PDF files are allowed.");
+      return;
+    }
+
+    // Validate size
+    if (file.size > maxSize) {
       setFileError("File size exceeds 10 MB.");
       setSelectedFile(null);
       return;
     }
-
-    const reader = new FileReader();
-
-    reader.onload = (event) => {
-      const content = event.target?.result as string;
-
-      if (content.startsWith("%PDF-")) {
-        setSelectedFile(file);
-        setFileError(null); // Clear any previous error
-      } else {
-        setSelectedFile(null);
-        setFileError("Invalid file type. Only PDF files are allowed.");
-      }
-    };
-
-    // Read first 5 bytes as text to check PDF signature
-    reader.readAsText(file.slice(0, 5));
-  }
-};
+    setSelectedFile(file);
+  };
 
   const uploadMutation = useDocUploadMutation(() => {
     toastUtils.fileUpload.success(selectedFile?.name || "File");
@@ -99,11 +92,14 @@ export function SimpleFileUploadModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {
-  setSelectedFile(null);
-  setFileError(null);
-  onClose();
-}}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={() => {
+        setSelectedFile(null);
+        setFileError(null);
+        onClose();
+      }}
+    >
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
@@ -116,31 +112,31 @@ export function SimpleFileUploadModal({
           </p>
           <div className="space-y-2">
             <Label htmlFor="file-upload">File</Label>
-            <Input 
-            id="file-upload" 
-            type="file" 
-            onChange={handleFileChange} 
-            className={fileError ? "border-red-600 focus:ring-red-600" : ""}/>
+            <Input
+              id="file-upload"
+              type="file"
+              onChange={handleFileChange}
+              className={fileError ? "border-red-600 focus:ring-red-600" : ""}
+            />
 
             {fileError && (
               <Alert className="border-red-200 bg-red-50 mt-1">
                 <AlertTriangle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-800">{fileError}</AlertDescription>
+                <AlertDescription className="text-red-800">
+                  {fileError}
+                </AlertDescription>
               </Alert>
             )}
           </div>
           <Alert className="border-yellow-200 bg-yellow-50">
-             <AlertCircle className="h-4 w-4 text-yellow-600"/>
+            <AlertCircle className="h-4 w-4 text-yellow-600" />
             <AlertDescription className="text-yellow-800">
               File size shouldn&apos;t exceed 10 MB.
             </AlertDescription>
           </Alert>
           <Button
             onClick={handleUpload}
-            disabled={
-              isUploading ||
-              !selectedFile 
-            }
+            disabled={isUploading || !selectedFile}
             className="w-full bg-gray-600 hover:bg-gray-700"
           >
             {isUploading ? "Uploading..." : "Upload"}
