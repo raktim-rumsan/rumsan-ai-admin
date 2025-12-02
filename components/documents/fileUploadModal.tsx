@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertCircle, AlertTriangle } from "lucide-react";
 import { toastUtils } from "@/lib/toast-utils";
 import { useDocUploadMutation } from "@/queries/documentsQuery";
 
@@ -27,17 +27,42 @@ export function SimpleFileUploadModal({
   isOpen,
   onClose,
   onUploadSuccess,
-  maxDocuments,
-  currentDocumentCount = 0,
 }: SimpleFileUploadModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
+  setFileError(null); // Reset previous errors
+
+  if (e.target.files && e.target.files.length > 0) {
+    const file = e.target.files[0];
+
+    // Check file size first
+    if (file.size > 10 * 1024 * 1024) {
+      setFileError("File size exceeds 10 MB.");
+      setSelectedFile(null);
+      return;
     }
-  };
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+
+      if (content.startsWith("%PDF-")) {
+        setSelectedFile(file);
+        setFileError(null); // Clear any previous error
+      } else {
+        setSelectedFile(null);
+        setFileError("Invalid file type. Only PDF files are allowed.");
+      }
+    };
+
+    // Read first 5 bytes as text to check PDF signature
+    reader.readAsText(file.slice(0, 5));
+  }
+};
 
   const uploadMutation = useDocUploadMutation(() => {
     toastUtils.fileUpload.success(selectedFile?.name || "File");
@@ -53,21 +78,6 @@ export function SimpleFileUploadModal({
         "No file selected",
         "Please select a file to upload"
       );
-      return;
-    }
-
-    // Check document limit for demo workspaces
-    if (maxDocuments !== undefined && currentDocumentCount >= maxDocuments) {
-      toastUtils.generic.error(
-        "Document limit reached",
-        `Demo workspaces are limited to ${maxDocuments} documents. Please upgrade to upload more files.`
-      );
-      return;
-    }
-
-    // Check file size (10MB limit)
-    if (selectedFile.size > 10 * 1024 * 1024) {
-      toastUtils.fileUpload.sizeLimitExceeded();
       return;
     }
 
@@ -89,46 +99,47 @@ export function SimpleFileUploadModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={() => {
+  setSelectedFile(null);
+  setFileError(null);
+  onClose();
+}}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
             Upload File
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-6">
+        <div className="space-y-4">
           <p className="text-gray-600">
             Select a file from your computer to upload.
           </p>
           <div className="space-y-2">
             <Label htmlFor="file-upload">File</Label>
-            <Input id="file-upload" type="file" onChange={handleFileChange} />
+            <Input 
+            id="file-upload" 
+            type="file" 
+            onChange={handleFileChange} 
+            className={fileError ? "border-red-600 focus:ring-red-600" : ""}/>
+
+            {fileError && (
+              <Alert className="border-red-200 bg-red-50 mt-1">
+                <AlertTriangle className="h-4 w-4 text-red-600" />
+                <AlertDescription className="text-red-800">{fileError}</AlertDescription>
+              </Alert>
+            )}
           </div>
           <Alert className="border-yellow-200 bg-yellow-50">
-            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+             <AlertCircle className="h-4 w-4 text-yellow-600"/>
             <AlertDescription className="text-yellow-800">
               File size shouldn&apos;t exceed 10 MB.
             </AlertDescription>
           </Alert>
-          {maxDocuments !== undefined && (
-            <Alert className="border-blue-200 bg-blue-50">
-              <AlertTriangle className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-blue-800">
-                Demo workspace: {currentDocumentCount}/{maxDocuments} documents
-                used.
-                {currentDocumentCount >= maxDocuments
-                  ? " Upgrade to upload more files."
-                  : " Upgrade for unlimited documents."}
-              </AlertDescription>
-            </Alert>
-          )}
           <Button
             onClick={handleUpload}
             disabled={
               isUploading ||
-              !selectedFile ||
-              (maxDocuments !== undefined &&
-                currentDocumentCount >= maxDocuments)
+              !selectedFile 
             }
             className="w-full bg-gray-600 hover:bg-gray-700"
           >
