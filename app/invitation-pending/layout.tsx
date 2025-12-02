@@ -1,8 +1,8 @@
 import type React from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { ProtectedStoreInitializer } from "@/components/layout/ProtectedStoreInitializer";
+import { WorkspaceLayout } from "@/components/dashboard/workspace_layout";
 
 export default async function InvitationPendingLayoutPage({
   children,
@@ -18,7 +18,7 @@ export default async function InvitationPendingLayoutPage({
 
   return (
     <ProtectedStoreInitializer>
-      <DashboardLayout>{children}</DashboardLayout>
+      <WorkspaceLayout>{children}</WorkspaceLayout>
     </ProtectedStoreInitializer>
   );
 }

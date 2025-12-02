@@ -30,6 +30,7 @@ export default function SectionsLayout({ children }: SectionsLayoutProps) {
             onMenuClick={() => setSidebarOpen(true)}
             onChatButtonClick={handleChatButtonClick}
             isChatOpen={chatOpen}
+            isShowChatIcon
           />
           <ChatbotPreview
             chatOpen={chatOpen}
