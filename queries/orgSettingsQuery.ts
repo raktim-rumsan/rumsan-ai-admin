@@ -24,7 +24,8 @@ export interface UpdateSystemPromptPayload {
 
 // Get organization settings
 export const useOrgSettings = () => {
-  const workspaceId = localStorage.getItem("workspaceId");
+  const workspaceId =
+    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
 
   return useQuery({
     queryKey: ["orgSettings", workspaceId],
@@ -60,7 +61,10 @@ export const useUpdateSystemPrompt = () => {
   return useMutation({
     mutationFn: async (payload: UpdateSystemPromptPayload): Promise<void> => {
       const accessToken = getAuthToken();
-      const workspaceId = localStorage.getItem("workspaceId");
+      const workspaceId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("workspaceId")
+          : null;
       if (!accessToken || !workspaceId) {
         throw new Error("Missing authentication credentials");
       }

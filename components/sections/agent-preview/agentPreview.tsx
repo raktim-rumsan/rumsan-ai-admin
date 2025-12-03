@@ -9,7 +9,6 @@ import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOrgSettings } from "@/queries/orgSettingsQuery";
 import { useUpdateSystemPrompt } from "@/queries/orgSettingsQuery";
-import PreviewChat from "./preview-chat";
 
 export default function AgentPreview() {
   const defaultPrompt = `## Task
@@ -31,9 +30,7 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
   const [documentsEnabled, setDocumentsEnabled] = useState(true);
   const [promptContent, setPromptContent] = useState("");
   const [isMounted, setIsMounted] = useState(false);
-
-  // Get current tenant for tenant-specific org settings
-  const workspaceId = localStorage.getItem("workspaceId");
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
 
   // Get organization settings and update mutation
   const {
@@ -43,9 +40,12 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
   } = useOrgSettings();
   const updateSystemPrompt = useUpdateSystemPrompt();
 
-  // Handle mounting
+  // Handle mounting and get workspaceId from localStorage
   useEffect(() => {
     setIsMounted(true);
+    if (typeof window !== "undefined") {
+      setWorkspaceId(localStorage.getItem("workspaceId"));
+    }
   }, []);
 
   // Refetch org settings when tenant changes
@@ -124,7 +124,7 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
                   />
                 </div>
 
-                <div className="mt-6 flex items-center justify-end flex-shrink-0">
+                <div className="mt-6 flex items-center justify-end shrink-0">
                   <Button
                     variant="outline"
                     size="sm"
