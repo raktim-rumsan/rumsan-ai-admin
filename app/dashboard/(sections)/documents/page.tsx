@@ -24,6 +24,7 @@ import {
 } from "@/queries/documentsQuery";
 import { useDocuments, useSetDocuments } from "@/stores/documentsStore";
 import { DocumentsResponseSchema } from "@/lib/schemas";
+import ConfirmDelete from "@/components/documents/DeleteModal";
 
 interface Document {
   id: string;
@@ -39,6 +40,11 @@ export default function DocumentsPage() {
   const [trainingDocumentId, setTrainingDocumentId] = useState<string | null>(
     null
   );
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [currentDeleteInfo, setCurrentDeleteInfo] = useState<{
+    id: string;
+    fileName: string;
+  } | null>(null);
 
   // Use both TanStack Query and Zustand store
   const { data, isLoading, refetch } = useDocsQuery();
@@ -120,26 +126,22 @@ export default function DocumentsPage() {
     });
   };
 
-  const handleDelete = async (id: string, fileName: string) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete "${fileName}"? This action cannot be undone.`
-      )
-    ) {
-      const loadingToastId = toastUtils.generic.loading("Deleting document...");
+  const handleDelete = async () => {
+    if (!currentDeleteInfo) return;
+    const loadingToastId = toastUtils.generic.loading("Deleting document...");
 
-      deleteMutation.mutate(id, {
-        onError: (error: unknown) => {
-          dismissToast(loadingToastId);
-          const errorMessage =
-            error instanceof Error ? error.message : undefined;
-          toastUtils.data.deleteError(errorMessage);
-        },
-        onSuccess: () => {
-          dismissToast(loadingToastId);
-        },
-      });
-    }
+    deleteMutation.mutate(currentDeleteInfo.id, {
+      onError: (error: unknown) => {
+        dismissToast(loadingToastId);
+        const errorMessage = error instanceof Error ? error.message : undefined;
+        toastUtils.data.deleteError(errorMessage);
+      },
+      onSuccess: () => {
+        dismissToast(loadingToastId);
+        setOpenDeleteModal(false);
+        setCurrentDeleteInfo(null);
+      },
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -222,7 +224,14 @@ export default function DocumentsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleDelete(doc.id, doc.fileName)}
+                              onClick={() => {
+                                setCurrentDeleteInfo({
+                                  id: doc.id,
+                                  fileName: doc.fileName,
+                                });
+                                setOpenDeleteModal(true);
+                              }}
+                              // onClick={() => handleDelete(doc.id, doc.fileName)}
                               className="text-red-600 hover:text-red-700"
                               disabled={deleteMutation.isPending}
                             >
@@ -256,6 +265,13 @@ export default function DocumentsPage() {
         }}
         maxDocuments={undefined}
         currentDocumentCount={currentDocumentCount}
+      />
+      <ConfirmDelete
+        isOpen={openDeleteModal}
+        setIsOpen={setOpenDeleteModal}
+        onConfirm={handleDelete}
+        isDeleting={deleteMutation.isPending}
+        item={currentDeleteInfo?.fileName || ""}
       />
     </div>
   );
