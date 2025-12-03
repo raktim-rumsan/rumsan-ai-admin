@@ -78,7 +78,6 @@ export default function WorkspaceDetailPage({
             <MembersTab
               members={members}
               setMembers={setMembers}
-              readOnly={false}
             />
           </TabsContent>
           <TabsContent value="llm">
