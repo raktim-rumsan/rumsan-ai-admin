@@ -30,7 +30,7 @@ export interface Workspace {
 }
 
 export interface PendingInvitation {
-  token(token: any): void;
+  token: string;
   id: string;
   email: string;
   role: string;

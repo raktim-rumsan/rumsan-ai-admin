@@ -17,6 +17,7 @@ export default async function InvitationPendingLayoutPage({
   }
 
   return (
+    // <main className="h-full overflow-auto p-6">{children}</main>
     <ProtectedStoreInitializer>
       <WorkspaceLayout>{children}</WorkspaceLayout>
     </ProtectedStoreInitializer>

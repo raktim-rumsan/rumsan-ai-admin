@@ -8,7 +8,7 @@ import { useOrganizationContext } from "@/hooks/useOrganizationContext";
 import { useCheckInvitation } from "@/queries/invitationsQuery";
 import { toastUtils } from "@/lib/toast-utils";
 
-export function NotificationIcon() {
+export function NotificationIcon({ pathname }: { pathname: string }) {
   const router = useRouter();
   const { pendingInvitations, refetch: refetchOrganizationContext } =
     useOrganizationContext();
@@ -28,7 +28,10 @@ export function NotificationIcon() {
           : "Failed to refresh invitations. Please try again.";
       toastUtils.generic.error("Error", errorMessage);
     } finally {
-      router.push("/invitation-pending");
+      const target = pathname.endsWith("/invitations")
+        ? pathname
+        : `${pathname}/invitations`;
+      router.push(target);
     }
   };
 
