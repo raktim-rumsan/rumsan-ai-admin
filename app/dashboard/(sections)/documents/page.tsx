@@ -271,7 +271,7 @@ export default function DocumentsPage() {
         setIsOpen={setOpenDeleteModal}
         onConfirm={handleDelete}
         isDeleting={deleteMutation.isPending}
-        message={`Are you sure you want to delete "${currentDeleteInfo?.fileName}"? This action cannot be undone.`}
+        item={currentDeleteInfo?.fileName || ""}
       />
     </div>
   );
