@@ -6,6 +6,8 @@ import { Send, Bot, User, Sparkles, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Markdown from "react-markdown";
+
 import { cn } from "@/lib/utils";
 import {
   ChatMessage,
@@ -206,29 +208,34 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
                     : "bg-muted text-foreground"
                 )}
               >
-                <p className="text-sm leading-relaxed">{message.content}</p>
+                <p className="text-sm leading-relaxed">
+                  <Markdown>{message.content}</Markdown>
+                </p>
                 {message.role === "assistant" && (
                   <div className="mt-3 space-y-2 text-xs text-muted-foreground">
                     {message.processingTime !== undefined && (
                       <div>
-                        Response time:{" "}
+                        Response time:&nbsp;
                         {(message.processingTime / 1000).toFixed(2)}s
                       </div>
                     )}
-                  { message.sources && message.sources.length > 0 && (
-                        <div className="border-t border-border pt-2 mt-2">
-                          <p className="font-semibold">Sources:</p>
-                          <ul className="list-disc ml-4">
-                            {Array.from(
-                              new Map(
-                                message.sources.map((src) => [src.payload.fileName, src])
-                              ).values()
-                            ).map((src, index) => (
-                              <li key={index}>{src.payload.fileName}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                    {message.sources && message.sources.length > 0 && (
+                      <div className="border-t border-border pt-2 mt-2">
+                        <p className="font-semibold">Sources:</p>
+                        <ul className="list-disc ml-4">
+                          {Array.from(
+                            new Map(
+                              message.sources.map((src) => [
+                                src.payload.fileName,
+                                src,
+                              ])
+                            ).values()
+                          ).map((src, index) => (
+                            <li key={index}>{src.payload.fileName}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

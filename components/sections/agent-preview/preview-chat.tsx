@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { ChatMessage, useChatMutation } from "@/queries/chatQuery";
+import Markdown from "react-markdown";
 
 function PreviewChat({
   isFloating,
@@ -157,7 +158,7 @@ function PreviewChat({
                 )}
               >
                 {message.role === "assistant" && (
-                  <div className="flex-shrink-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                  <div className="shrink-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                     <Bot className="w-4 h-4 text-primary-foreground" />
                   </div>
                 )}
@@ -170,7 +171,9 @@ function PreviewChat({
                       : "bg-background border border-border text-foreground"
                   )}
                 >
-                  <div className="whitespace-pre-wrap">{message.content}</div>
+                  <div className="whitespace-pre-wrap">
+                    <Markdown>{message.content}</Markdown>
+                  </div>
 
                   {message.role === "assistant" && (
                     <div className="mt-3 space-y-2">

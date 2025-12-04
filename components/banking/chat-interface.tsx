@@ -10,6 +10,7 @@ import {
   saveChatHistory,
   useChatIndustryMutation,
 } from "@/queries/chatQuery";
+import Markdown from "react-markdown";
 import { toastUtils } from "@/lib/toast-utils";
 import { ScrollArea } from "../ui/scroll-area";
 import { Textarea } from "../ui/textarea";
@@ -152,7 +153,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
                     : "bg-primary text-primary-foreground"
                 }`}
               >
-                {message.content}
+                <Markdown>{message.content}</Markdown>
               </div>
             </div>
           ))}

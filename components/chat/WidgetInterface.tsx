@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Copy, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Send, Bot, User, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ragHealthTest, sendWidgetChatQuery } from "@/queries/chatQuery";
-
+import Markdown from "react-markdown";
 interface WidgetInterfaceProps {
   className?: string;
 }
@@ -22,7 +22,6 @@ interface WidgetConfig {
   apiKey: string;
   workspaceId: string;
 }
-
 
 export function WidgetInterface({ className }: WidgetInterfaceProps) {
   const [messages, setMessages] = useState<WidgetMessage[]>([]);
@@ -173,7 +172,7 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
         className={`flex gap-3 p-4 ${isUser ? "bg-gray-50" : "bg-white"}`}
       >
         <div
-          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+          className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
             isUser ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"
           }`}
         >
@@ -190,8 +189,8 @@ export function WidgetInterface({ className }: WidgetInterfaceProps) {
             </span>
           </div>
 
-          <div className="text-sm text-gray-700 break-words whitespace-pre-wrap">
-            {message.content}
+          <div className="text-sm text-gray-700 wrap-break-word whitespace-pre-wrap">
+            <Markdown>{message.content}</Markdown>
           </div>
 
           {!isUser && (
