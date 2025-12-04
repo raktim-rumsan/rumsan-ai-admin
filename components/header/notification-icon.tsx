@@ -8,7 +8,7 @@ import { useOrganizationContext } from "@/hooks/useOrganizationContext";
 import { useCheckInvitation } from "@/queries/invitationsQuery";
 import { toastUtils } from "@/lib/toast-utils";
 
-export function NotificationIcon() {
+export function NotificationIcon({ pathname }: { pathname: string }) {
   const router = useRouter();
   const { pendingInvitations, refetch: refetchOrganizationContext } =
     useOrganizationContext();
@@ -18,6 +18,8 @@ export function NotificationIcon() {
   const pendingCount = pendingInvitations?.length || 0;
 
   const handleClick = async () => {
+    const workspaceSlug = pathname.split("/")[3];
+
     try {
       await refetchCheckInvitation();
       await refetchOrganizationContext();
@@ -28,7 +30,47 @@ export function NotificationIcon() {
           : "Failed to refresh invitations. Please try again.";
       toastUtils.generic.error("Error", errorMessage);
     } finally {
-      router.push("/invitation-pending");
+      // const target = pathname.endsWith("/invitations")
+      //   ? pathname
+      //   : `${pathname}/invitations`;
+      // router.push(target);
+      const segments = pathname.split("/").filter(Boolean);
+
+      // CASE 0: /admin → /admin/invitations
+      if (segments.length === 1 && segments[0] === "admin") {
+        router.push("/admin/invitations");
+        return;
+      }
+
+      // CASE 1: /dashboard → /dashboard/invitations
+      if (segments.length === 1 && segments[0] === "dashboard") {
+        router.push("/dashboard/invitations");
+        return;
+      }
+
+      // CASE 2: /dashboard/workspace/<slug> → add /invitations
+      if (
+        segments.length === 3 &&
+        segments[0] === "dashboard" &&
+        segments[1] === "workspace"
+      ) {
+        const slug = segments[2];
+        router.push(`/dashboard/workspace/${slug}/invitations`);
+        return;
+      }
+
+      // CASE 3: Already at invitations → keep same
+      if (pathname.endsWith("/invitations")) {
+        router.push(pathname);
+        return;
+      }
+
+      // CASE 4: Replace last segment with invitations
+      // Example: documents → invitations | agent-preview → invitations
+      segments[segments.length - 1] = "invitations";
+      const target = "/" + segments.join("/");
+
+      router.push(target);
     }
   };
 

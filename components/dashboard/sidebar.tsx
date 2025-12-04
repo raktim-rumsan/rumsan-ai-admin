@@ -2,30 +2,9 @@
 
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-
-import {
-  ChevronDown,
-  FolderOpen,
-  Bot,
-  Building,
-  Plug,
-  Settings,
-  User,
-  ChevronsUpDown,
-  Factory,
-} from "lucide-react";
+import { FolderOpen, Bot, Plug, User, Factory } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useUserProfile, useUserLoading } from "@/stores/userStore";
+import { usePathname } from "next/navigation";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -36,72 +15,38 @@ const navigationItems = [
   {
     title: "My Resources",
     icon: FolderOpen,
-    href: "/dashboard/documents",
+    slug: "/documents",
   },
   {
     title: "Prompt Management",
     icon: Bot,
-    href: "/dashboard/agent-preview",
+    slug: "/agent-preview",
   },
   {
     title: "Team Management",
     icon: User,
-    href: "/dashboard/team-management",
+    slug: "/team-management",
   },
   {
     title: "Industry Knowledge",
     icon: Factory,
-    href: "/dashboard/industry-knowledge",
+    slug: "/industry-knowledge",
   },
   {
     title: "Integrations",
     icon: Plug,
-    href: "/dashboard/integrations",
+    slug: "/integrations",
   },
 ];
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const userProfile = useUserProfile();
-  const isLoading = useUserLoading();
 
   // Filter navigation items based on workspace type
   const filteredNavigationItems = navigationItems.filter((item) => {
     return true;
   });
-
-  // Extract user data with fallbacks
-  const getUserDisplayData = () => {
-    if (isLoading) {
-      return {
-        name: "Loading...",
-        email: "",
-        initials: "...",
-      };
-    }
-
-    if (!userProfile) {
-      return {
-        name: "Guest User",
-        email: "guest@example.com",
-        initials: "GU",
-      };
-    }
-
-    const name = userProfile.name || userProfile.email?.split("@")[0] || "User";
-    const email = userProfile.email || "";
-    const initials =
-      name
-        .split(" ")
-        .map((part) => part.charAt(0))
-        .join("")
-        .toUpperCase()
-        .slice(0, 2) || "U";
-
-    return { name, email, initials };
-  };
-
-  const { name, email, initials } = getUserDisplayData();
+  const workspaceSlug = pathname.split("/")[3];
 
   return (
     <>
@@ -152,10 +97,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               {filteredNavigationItems.map((item) => (
                 <Link
                   key={item.title}
-                  href={item.href!}
+                  href={`/dashboard/workspace/${workspaceSlug}/${item.slug}`}
                   className={cn(
                     "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                    pathname === item.href
+                    pathname === item.slug
                       ? "bg-gray-100 text-gray-900"
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   )}
@@ -166,8 +111,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               ))}
             </nav>
           </ScrollArea>
-
-          {/* User profile */}
         </div>
       </div>
     </>
