@@ -23,6 +23,7 @@ import {
 } from "../ui/select";
 
 import { SECTORS } from "@/constants/sector";
+import SidebarImageUploader from "../dashboard/sidebar-image-uploader";
 
 export default function OrganizationPage() {
   const { data: organizationDataById, isLoading } = useOrganizationById();
@@ -99,7 +100,8 @@ export default function OrganizationPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              {/* <CardContent className="space-y-4">
+                
                 <div className="space-y-2">
                   <Label htmlFor="org-name">Organization Name</Label>
                   <div className="rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground">
@@ -156,7 +158,82 @@ export default function OrganizationPage() {
                     </Button>
                   )}
                 </div>
-              </CardContent>
+              </CardContent> */}
+              <CardContent className="pt-6">
+
+  {/* GRID: Left = form fields, Right = uploader */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+    {/* LEFT SIDE: Name + Sector */}
+    <div className="space-y-6">
+      {/* Organization Name */}
+      <div className="space-y-2">
+        <Label htmlFor="org-name">Organization Name</Label>
+        <div className="rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground">
+          {organizationData?.name || "N/A"}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Organization name cannot be changed
+        </p>
+      </div>
+
+      {/* Sector */}
+      <div className="space-y-2">
+        <Label htmlFor="sector">Industry Sector</Label>
+        <Select
+          value={currentSector}
+          onValueChange={setSector}
+          disabled={updateOrganization.isPending}
+        >
+          <SelectTrigger id="sector" className="h-12 w-full">
+            <SelectValue placeholder="Select your industry sector" />
+          </SelectTrigger>
+          <SelectContent>
+            {SECTORS.map((s) => (
+              <SelectItem key={s.value} value={s.value}>
+                {s.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          Select the primary industry sector for your organization
+        </p>
+      </div>
+    </div>
+
+    {/* RIGHT SIDE: Image Uploader */}
+    <div>
+      <SidebarImageUploader />
+    </div>
+
+  </div>
+
+  {/* Buttons under the grid */}
+  <div className="flex items-center gap-3 pt-6">
+    <Button
+      onClick={handleSave}
+      disabled={
+        !hasChanges ||
+        updateOrganization.isPending ||
+        !currentSector
+      }
+    >
+      {updateOrganization.isPending ? "Saving..." : "Save Changes"}
+    </Button>
+
+    {hasChanges && (
+      <Button
+        variant="outline"
+        onClick={() => setSector(initialSector)}
+        disabled={updateOrganization.isPending}
+      >
+        Cancel
+      </Button>
+    )}
+  </div>
+</CardContent>
+
             </Card>
           </div>
         )}
