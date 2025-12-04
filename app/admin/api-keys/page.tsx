@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,12 +38,12 @@ import {
 } from "@/queries/apiKeysQuery";
 import { useSearchParams } from "next/navigation";
 
-export default function SettingsPage() {
+function SettingsPageContent() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const searchParams = useSearchParams();
-  const workspaceId = searchParams.get('workspaceId');
+  const workspaceId = searchParams.get("workspaceId");
 
   // API hooks
   const { data: apiKeys = [], isLoading, error } = useApiKeys();
@@ -96,7 +96,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <Link
-               href={`/admin/workspaces/${workspaceId}`}
+                href={`/admin/workspaces/${workspaceId}`}
                 className="text-sm text-muted-foreground hover:text-foreground mb-2 inline-block"
               >
                 ← Back to Workspace
@@ -277,5 +277,19 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-muted/30 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      }
+    >
+      <SettingsPageContent />
+    </Suspense>
   );
 }

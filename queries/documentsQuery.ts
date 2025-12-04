@@ -12,7 +12,10 @@ export function useDocUploadMutation(onSuccess?: () => void) {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
-      const workspaceId = localStorage.getItem("workspaceId");
+      const workspaceId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("workspaceId")
+          : null;
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.UPLOAD_DOCUMENTS, {
         method: "POST",
@@ -106,7 +109,8 @@ export function useDocDeleteMutation(onSuccess?: () => void) {
 }
 
 export function useKnowledgebaseQuery(sector: string) {
-  const workspaceId = localStorage.getItem("workspaceId");
+  const workspaceId =
+    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
   return useQuery({
     queryKey: ["knowledgebase", workspaceId],
     queryFn: async (): Promise<Doc[]> => {
@@ -150,7 +154,10 @@ export function useEmbeddingMutation(onSuccess?: () => void) {
 
   return useMutation({
     mutationFn: async (documentId: string) => {
-      const workspaceId = localStorage.getItem("workspaceId");
+      const workspaceId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("workspaceId")
+          : null;
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.EMBEDDINGS, {
         method: "POST",
@@ -178,7 +185,7 @@ export function useEmbeddingMutation(onSuccess?: () => void) {
       const data = await res.json();
       return data;
     },
-     retry: false,
+    retry: false,
     onSuccess: (data) => {
       toastUtils.generic.success(data?.data?.status, data?.data?.message);
       // Invalidate documents query to refetch the list and update status
@@ -193,7 +200,10 @@ export function useUnembeddingMutation(onSuccess?: () => void) {
 
   return useMutation({
     mutationFn: async (documentId: string) => {
-      const workspaceId = localStorage.getItem("workspaceId");
+      const workspaceId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("workspaceId")
+          : null;
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.UNEMBEDDINGS, {
         method: "POST",
@@ -235,7 +245,10 @@ export function useToggleDocumentStatusMutation() {
 
   return useMutation({
     mutationFn: async (documentId: string) => {
-      const workspaceId = localStorage.getItem("workspaceId");
+      const workspaceId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("workspaceId")
+          : null;
 
       const access_token = getAuthToken();
 
@@ -257,7 +270,10 @@ export function useToggleDocumentStatusMutation() {
     },
 
     onMutate: async (documentId) => {
-      const workspaceId = localStorage.getItem("workspaceId");
+      const workspaceId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("workspaceId")
+          : null;
 
       // Cancel any pending refetch so it doesn't overwrite optimistic
       await queryClient.cancelQueries({
@@ -284,7 +300,10 @@ export function useToggleDocumentStatusMutation() {
 
     // rollback if fails
     onError: (err, documentId, context) => {
-      const workspaceId = localStorage.getItem("workspaceId");
+      const workspaceId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("workspaceId")
+          : null;
 
       if (context?.previousDocs) {
         queryClient.setQueryData(
@@ -300,7 +319,10 @@ export function useToggleDocumentStatusMutation() {
 
     // refetch once done (safe)
     onSettled: () => {
-      const workspaceId = localStorage.getItem("workspaceId");
+      const workspaceId =
+        typeof window !== "undefined"
+          ? localStorage.getItem("workspaceId")
+          : null;
       queryClient.invalidateQueries({
         queryKey: ["knowledgebase", workspaceId],
       });

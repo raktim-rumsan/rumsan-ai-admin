@@ -2,21 +2,24 @@
 
 # Stage 1: Dependencies
 FROM node:24-alpine AS deps
-RUN apk add --no-cache libc6-compat
+
 WORKDIR /app
+
+RUN apk add --no-cache libc6-compat
 
 # Copy package files
 COPY package.json pnpm-lock.yaml* ./
 
 # Install dependencies based on the preferred package manager
 RUN \
-  if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
+  if [ -f pnpm-lock.yaml ]; then corepack enable pnpm && corepack prepare pnpm@8.14.0 --activate && pnpm i --frozen-lockfile; \
   else echo "Lockfile not found." && exit 1; \
   fi
 
 # Stage 2: Builder
 FROM node:24-alpine AS builder
 WORKDIR /app
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -42,13 +45,21 @@ ENV NEXT_PUBLIC_INDUSTRY_VALUES=${NEXT_PUBLIC_INDUSTRY_VALUES}
 RUN \
   if [ -f yarn.lock ]; then yarn build; \
   elif [ -f package-lock.json ]; then npm run build; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm build; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && corepack prepare pnpm@8.14.0 --activate && pnpm build; \
   else echo "Lockfile not found." && exit 1; \
   fi
 
 # Stage 3: Production image
 FROM node:24-alpine AS runner
 WORKDIR /app
+
+# Required for sharp at build time
+RUN apk add --no-cache \
+  libc6-compat \
+  vips-dev \
+  build-base \
+  python3 \
+  && npm install --arch=x64 --platform=linux --libc=musl sharp
 
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs
