@@ -1,21 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Bot, Menu, X } from "lucide-react";
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">
-                R
-              </span>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+              <Bot className="w-6 h-6" />
             </div>
             <span className="font-semibold text-lg">Rumsan Chatty</span>
           </div>
@@ -29,16 +29,16 @@ export function Navigation() {
               Home
             </a>
             <a
-              href="#features"
+              href="#use-cases"
               className="text-sm font-medium hover:text-primary transition-colors"
             >
-              Features
+              Use Cases
             </a>
             <a
-              href="#solutions"
+              href="#how-it-works"
               className="text-sm font-medium hover:text-primary transition-colors"
             >
-              Solutions
+              How It Works
             </a>
             <a
               href="#pricing"
@@ -46,14 +46,27 @@ export function Navigation() {
             >
               Pricing
             </a>
+            <a
+              href="#about"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
+              About
+            </a>
+            <a
+              href="#contact"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
+              Contact
+            </a>
           </div>
 
           <div className="hidden md:block">
             <Button
               size="sm"
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
+              onClick={() => router.push("/auth/login")}
             >
-              Request Demo
+              Get Started
             </Button>
           </div>
 
@@ -104,8 +117,9 @@ export function Navigation() {
             <Button
               size="sm"
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={() => router.push("/auth/login")}
             >
-              Request Demo
+              Get Started
             </Button>
           </div>
         </div>

@@ -12,7 +12,7 @@ export default function IntegrationLists() {
   );
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="flex min-h-screen  from-gray-50 to-gray-100">
       <div className="flex-1 overflow-auto p-8">
         <div className="w-full mx-auto space-y-12">
           <section>
