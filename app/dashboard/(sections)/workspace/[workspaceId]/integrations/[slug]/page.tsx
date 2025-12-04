@@ -2,7 +2,7 @@
 import { integrationItem } from "@/components/sections/integrations/integration-constant";
 import { Button } from "@/components/ui/button";
 import { notFound, useRouter } from "next/navigation";
-import React from "react";
+import { use } from "react";
 
 export default function IntegrationDetail({
   params,
@@ -10,7 +10,7 @@ export default function IntegrationDetail({
   params: Promise<{ slug: string }>;
 }) {
   const router = useRouter();
-  const resolvedParams = React.use(params);
+  const resolvedParams = use(params);
   const item = integrationItem.slugsItems.find(
     (item) => item.slug === resolvedParams.slug
   );

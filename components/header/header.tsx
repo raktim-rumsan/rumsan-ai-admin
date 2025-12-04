@@ -38,7 +38,6 @@ export function MainHeader({
   if (!isMounted) return null;
 
   // Check if we're in the admin dashboard
-  console.log(pathname, "pathname");
   const admin = pathname?.startsWith("/admin");
   const dashboard = pathname?.startsWith("/dashboard/");
 
