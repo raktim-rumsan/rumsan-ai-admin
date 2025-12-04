@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +18,46 @@ import {
   ArrowRight,
   CheckCircle,
 } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Rumsan AI - AI-Powered Admin Dashboard | Streamline Your Business",
+  description:
+    "Streamline your business with Rumsan AI's intelligent admin dashboard. Combine document management, AI chat assistance, and organizational tools in one powerful platform designed for modern teams.",
+  keywords: [
+    "AI admin dashboard",
+    "document management",
+    "AI chat assistant",
+    "business automation",
+    "organizational tools",
+    "Rumsan AI",
+    "enterprise AI",
+    "workflow automation",
+  ],
+  openGraph: {
+    title: "Rumsan AI - AI-Powered Admin Dashboard",
+    description:
+      "Streamline your business with Rumsan AI's intelligent admin dashboard. Combine document management, AI chat assistance, and organizational tools in one powerful platform.",
+    type: "website",
+    siteName: "Rumsan AI",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Rumsan AI - AI-Powered Admin Dashboard",
+    description:
+      "Streamline your business with intelligent AI-powered administration tools.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+};
 
 export default function HomePage() {
   return (
