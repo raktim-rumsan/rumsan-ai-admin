@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bot, MessageCircle, Send } from "lucide-react";
+import { Bot, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
   ChatMessage,
@@ -122,15 +122,15 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   return (
     <Card className="w-full max-w-md border border-border bg-card p-6 shadow-lg">
       <div className="mb-4 flex items-center gap-2 border-b border-border pb-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-          <MessageCircle className="h-4 w-4 text-primary-foreground" />
+        <div className="flex h-8 w-8 items-center justify-center rounded-full ">
+          <Bot className="w-6 h-6" />
         </div>
         <div>
           <h3 className="text-sm font-semibold text-card-foreground">
             Rumsan Banking Assistant
           </h3>
           <p className="text-xs text-muted-foreground">
-            Ask me anything about your account
+            Ask about our banking services here
           </p>
         </div>
       </div>
@@ -159,7 +159,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
           {isLoading && (
             <div className="flex gap-3 p-4 bg-white">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+              <div className="shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                 <Bot className="w-4 h-4 text-gray-600" />
               </div>
               <div className="flex-1">
@@ -201,7 +201,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
           size="icon"
           variant="ghost"
           disabled={isLoading}
-          className="h-8 w-8 flex-shrink-0"
+          className="h-8 w-8 shrink-0"
           onClick={handleSendMessage}
         >
           <Send className="h-4 w-4" />

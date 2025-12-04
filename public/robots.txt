@@ -1,0 +1,24 @@
+# robots.txt for Rumsan AI Admin
+
+# Allow all search engines to crawl the site
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /auth/
+Disallow: /api/
+Disallow: /onboarding/
+Disallow: /accept-invitation/
+Disallow: /invitation-pending/
+Disallow: /widget/
+
+# Allow landing pages for SEO
+Allow: /home
+Allow: /banking
+Allow: /veterinary
+
+# Crawl-delay (optional, adjust as needed)
+# Crawl-delay: 1
+

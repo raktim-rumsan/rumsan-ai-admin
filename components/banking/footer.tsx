@@ -1,77 +1,114 @@
-import Link from "next/link"
-import { FileText, Github, Twitter, Linkedin } from "lucide-react"
+import {
+  Facebook,
+  Twitter,
+  Linkedin,
+  Mail,
+  MapPin,
+  Phone,
+  Youtube,
+  Bot,
+} from "lucide-react";
 
 export function Footer() {
-  const footerLinks = {
-    "RUMSAN AI": [
-      { label: "Intelligent banking AI for the modern world", href: "#" },
-      { label: "Features", href: "#" },
-      { label: "Pricing", href: "#" },
-    ],
-    Product: [
-      { label: "Features", href: "#" },
-      { label: "Integrations", href: "#" },
-      { label: "Pricing", href: "#" },
-      { label: "Changelog", href: "#" },
-    ],
-    Resources: [
-      { label: "Blog", href: "#" },
-      { label: "API Docs", href: "#" },
-      { label: "Support", href: "#" },
-      { label: "Community", href: "#" },
-    ],
-    Company: [
-      { label: "About", href: "#" },
-      { label: "Careers", href: "#" },
-      { label: "Contact", href: "#" },
-      { label: "Partners", href: "#" },
-    ],
-  }
-
   return (
-    <footer className="border-t border-border bg-background py-12">
-      <div className="container mx-auto px-4">
-        <div className="grid gap-8 md:grid-cols-4">
-          {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
-              <h3 className="mb-4 text-sm font-semibold text-foreground">{title}</h3>
-              <ul className="space-y-3">
-                {links.map((link, index) => (
-                  <li key={index}>
-                    <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground">
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+    <footer
+      id="contact"
+      className="bg-secondary/30 border-t border-border py-16 px-4 sm:px-6 lg:px-8"
+    >
+      <div className="max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-12 mb-12">
+          {/* Column 1: Brand */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <div>
+                <Bot className="w-6 h-6" />
+              </div>
+              <span className="font-semibold text-xl">Rumsan Chatty</span>
             </div>
-          ))}
+            <p className="text-md text-muted-foreground">
+              Create and deploy AI chatbots without any code, enabling faster,
+              smarter communication for customers and teams with reliable,
+              document-trained AI assistance.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Contact Us</h3>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <Mail className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">Email</p>
+                  <a
+                    href="mailto:team@rumsan.com"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    team@rumsan.com
+                  </a>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Phone className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">Phone</p>
+                  <p className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    {" "}
+                    +977 1 234 5678
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">Location</p>
+                  <p className="text-sm text-muted-foreground">
+                    Sanepa, Lalitpur, Nepal
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Follow Us</h3>
+            <div className="flex items-center gap-4">
+              <a
+                href="https://www.linkedin.com/company/rumsan"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                aria-label="LinkedIn"
+              >
+                <Linkedin className="w-5 h-5" />
+              </a>
+              <a
+                href="https://facebook.com/rumsan"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                aria-label="Facebook"
+              >
+                <Facebook className="w-5 h-5" />
+              </a>
+              <a
+                href="https://www.youtube.com/@rumsan1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                aria-label="X/Twitter"
+              >
+                <Youtube className="w-5 h-5" />
+              </a>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 md:flex-row">
-          <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded bg-primary">
-              <FileText className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="text-sm text-muted-foreground">© 2025 RUMSAN AI. All rights reserved.</span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Link href="#" className="text-muted-foreground hover:text-foreground">
-              <Twitter className="h-5 w-5" />
-              <span className="sr-only">Twitter</span>
-            </Link>
-            <Link href="#" className="text-muted-foreground hover:text-foreground">
-              <Github className="h-5 w-5" />
-              <span className="sr-only">GitHub</span>
-            </Link>
-            <Link href="#" className="text-muted-foreground hover:text-foreground">
-              <Linkedin className="h-5 w-5" />
-              <span className="sr-only">LinkedIn</span>
-            </Link>
-          </div>
+        <div className="pt-8 border-t border-border">
+          <p className="text-center text-sm text-muted-foreground">
+            © 2025 Rumsan. Built in Nepal.
+          </p>
         </div>
       </div>
     </footer>
-  )
+  );
 }
