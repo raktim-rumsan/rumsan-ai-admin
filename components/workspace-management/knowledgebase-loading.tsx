@@ -8,8 +8,9 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FileText } from "lucide-react";
 
-export function LoadingCard() {
+export function KnowledgebaseLoading() {
   return (
     <Card className="p-6">
       <CardHeader>
@@ -29,6 +30,27 @@ export function LoadingCard() {
             </div>
           </div>
         ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+export function KnowledgebaseError({ error }: { error: unknown }) {
+  return (
+    <Card className="p-6 border-red-300 bg-red-50">
+      <CardHeader>
+        <CardTitle className="flex items-center text-red-600">
+          <FileText className="h-5 w-5 mr-2 text-red-500" />
+          Failed to load documents
+        </CardTitle>
+        <CardDescription>
+          Something went wrong while fetching the knowledgebase. Please try again later.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-red-500 font-medium">
+          {(error as Error).message}
+        </p>
       </CardContent>
     </Card>
   );

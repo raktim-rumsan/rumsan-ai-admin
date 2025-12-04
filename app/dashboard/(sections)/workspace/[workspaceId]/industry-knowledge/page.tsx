@@ -1,7 +1,7 @@
 "use client";
 
-import KnowledgebaseDetail from "@/components/knowledge-base/knowledgebase-detail";
+import KnowledgebaseTab from "@/components/workspace-management/knowledegebase-tabs";
 
 export default function KnowledgeBaseDetail() {
-  return <KnowledgebaseDetail />;
+  return <KnowledgebaseTab />;
 }

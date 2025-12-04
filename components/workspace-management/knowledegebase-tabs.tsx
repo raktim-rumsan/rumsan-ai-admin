@@ -17,7 +17,10 @@ import { Switch } from "@/components/ui/switch";
 
 import KnowledgebaseStats from "./knowlege-stats";
 import { Skeleton } from "../ui/skeleton";
-import { useOrganizationContext } from "@/hooks/useOrganizationContext";
+import { useOrganizationContext, useWorkspaceRole } from "@/hooks/useOrganizationContext";
+import { KnowledgebaseError, KnowledgebaseLoading } from "./knowledgebase-loading";
+import { useParams } from "next/navigation";
+import { getWorkspaceId, orgContext } from "@/lib/utils";
 
 export default function KnowledgebaseTab() {
   const { workspaces, isLoading: orgLoading } = useOrganizationContext();
@@ -27,58 +30,44 @@ export default function KnowledgebaseTab() {
     isLoading,
     error,
   } = useKnowledgebaseQuery(sector!);
+
+  const params = useParams();
+   // Get workspaceId from URL params or localStorage/context
+    let workspaceId: string | undefined = params?.id as string | undefined;
+  
+    if (!workspaceId) {
+      // No id in params, use slug from localStorage/context
+      const workspaceSlug = getWorkspaceId();
+  
+      if (workspaceSlug) {
+        const context = orgContext();
+        const workspaces = context?.workspaces;
+  
+        if (workspaces && Array.isArray(workspaces)) {
+          const matchedWorkspace = workspaces.find(
+            (w: { slug: string; id: string }) => w.slug === workspaceSlug
+          );
+          workspaceId = matchedWorkspace?.id;
+        }
+      }
+    }
+
+    const {isAdmin} = useWorkspaceRole(workspaceId || "");
+    
+  const visibleDocs = isAdmin
+  ? fetchedDocs
+  : fetchedDocs.filter(doc => doc.enabled);
+
   const toggleMutation = useToggleDocumentStatusMutation();
   const handleToggle = (documentId: string) => {
     toggleMutation.mutate(documentId);
   };
 
-  if (isLoading || orgLoading) {
-    return (
-      <Card className="p-6">
-        <CardHeader>
-          <CardTitle>Loading Knowledgebase</CardTitle>
-          <CardDescription>
-            Please wait while we fetch the knowledgebase documents...
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center gap-4">
-              <Skeleton className="h-10 w-10 rounded-md" />
-              <div className="flex-1 space-y-2">
-                <Skeleton className="h-4 w-[80%]" />
-                <Skeleton className="h-3 w-[60%]" />
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-    );
-  }
+  if (error) return <KnowledgebaseError error={error} />;
 
-  if (error) {
-    return (
-      <Card className="p-6 border-red-300 bg-red-50">
-        <CardHeader>
-          <CardTitle className="flex items-center text-red-600">
-            <FileText className="h-5 w-5 mr-2 text-red-500" />
-            Failed to load documents
-          </CardTitle>
-          <CardDescription>
-            Something went wrong while fetching the knowledgebase. Please try
-            again later.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-red-500 font-medium">
-            {(error as Error).message}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
+  return isLoading ? (
+    <KnowledgebaseLoading />
+  ) : (
     <div className="space-y-6">
       <Card>
         <CardHeader>
@@ -99,7 +88,7 @@ export default function KnowledgebaseTab() {
                 <p>No documents uploaded yet</p>
               </div>
             ) : (
-              fetchedDocs.map((doc) => (
+              visibleDocs.map((doc) => (
                 <div
                   key={doc.id}
                   className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
@@ -130,6 +119,7 @@ export default function KnowledgebaseTab() {
                       </div>
                     </div>
                   </div>
+                  {isAdmin && (
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <Switch
@@ -145,6 +135,7 @@ export default function KnowledgebaseTab() {
                       </span>
                     </div>
                   </div>
+                  )}
                 </div>
               ))
             )}

@@ -146,6 +146,7 @@ export function useKnowledgebaseQuery(sector: string) {
 
       return data.data || [];
     },
+    staleTime: 10_000, 
   });
 }
 
