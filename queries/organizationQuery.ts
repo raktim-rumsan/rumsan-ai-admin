@@ -29,6 +29,48 @@ export function useOrganizationQuery() {
   });
 }
 
+export function useLogoUploadMutation(onSuccess?: () => void) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+  
+      const access_token = getAuthToken();
+      const orgId = orgContext("primaryOrganization")?.id;
+      const res = await fetch(ROUTES.ORGANIZATION_LOGO_UPLOAD(orgId), {
+        method: "POST",
+        body: formData,
+        headers: {
+          access_token: access_token || "",
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        // Handle API error responses properly
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate organization query to refetch the list
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      onSuccess?.();
+    },
+  });
+}
+
+export function getBackendFileUrl(url: string) {
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_API; // e.g., http://localhost:5588
+  if (!url) return null;
+  const fileUrl = `${serverUrl}/assets/${url.replace(/^uploads\//, "")}`;  
+  console.log(fileUrl,"------------")
+  return fileUrl;
+}
+
 export function useOrganizationById() {
   const orgId = orgContext("primaryOrganization")?.id;
   return useQuery({
