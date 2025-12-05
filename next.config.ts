@@ -8,9 +8,16 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // images: {
-  //   unoptimized: true,
-  // },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "assets.rumsan.net",
+        port: "",
+        pathname: "/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
