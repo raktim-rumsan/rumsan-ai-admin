@@ -7,21 +7,14 @@ export function AboutSection() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-balance">
-              About Rumsan
+              Rumsan Chatty
             </h2>
             <div className="space-y-4 text-muted-foreground leading-relaxed">
-              <p>
-                Rumsan is a technology innovation company dedicated to building
-                impactful digital solutions. With a strong focus on AI and
-                emerging technologies, we empower organizations to transform
-                their operations and deliver exceptional experiences to their
-                customers.
-              </p>
               <p>
                 <span className="font-semibold text-foreground">
                   Rumsan Chatty
                 </span>{" "}
-                is our flagship AI chatbot platform designed to make intelligent
+                is an AI chatbot platform designed to make intelligent
                 automation accessible to everyone. Our no-code approach allows
                 organizations to create, train, and deploy sophisticated AI
                 assistants without technical expertise.
@@ -36,13 +29,13 @@ export function AboutSection() {
             </div>
           </div>
 
-          <div className="rounded-xl overflow-hidden border border-border shadow-lg">
+          <div className="flex justify-center lg:justify-end">
             <Image
-              src="/images/rumsan-office.jpg"
+              src="https://assets.rumsan.net/rumsan-group/about-rumsan-chatty-ai.png"
               alt="Rumsan Office"
-              width={600}
-              height={400}
-              className="w-full h-auto object-cover"
+              width={500}
+              height={300}
+              className="h-auto object-cover"
             />
           </div>
         </div>
