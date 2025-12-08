@@ -33,7 +33,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Member } from "@/types/workspace-types";
 import { useParams, useSearchParams } from "next/navigation";
 import {
   useDeleteInvitation,
@@ -42,12 +41,7 @@ import {
 import { getWorkspaceId, orgContext, formatRole } from "@/lib/utils";
 import { useWorkspaceRole } from "@/hooks/useOrganizationContext";
 
-interface Props {
-  members?: Member[];
-  setMembers?: (members: Member[]) => void;
-}
-
-export default function MembersTab({ }: Props) {
+export default function MembersTab() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
@@ -82,7 +76,7 @@ export default function MembersTab({ }: Props) {
     }
   }
 
-  const {isAdmin} = useWorkspaceRole(workspaceId || "");
+  const { isAdmin } = useWorkspaceRole(workspaceId || "");
 
   const invitationMutation = useInvitationWorkspaceMutation(workspaceId || "");
   const deleteWorkspaceMember = useDeleteWorkspaceMemberMutation();

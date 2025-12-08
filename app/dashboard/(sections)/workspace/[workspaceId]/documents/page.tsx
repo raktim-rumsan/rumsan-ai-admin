@@ -25,6 +25,7 @@ import {
 import { useDocuments, useSetDocuments } from "@/stores/documentsStore";
 import { DocumentsResponseSchema } from "@/lib/schemas";
 import ConfirmDelete from "@/components/documents/DeleteModal";
+import DocumentsTableLoader from "@/components/documents/TableLoader";
 
 interface Document {
   id: string;
@@ -171,7 +172,7 @@ export default function DocumentsPage() {
         <CardContent>
           <div className="mt-6">
             {isLoading ? (
-              <div className="text-center py-8">Loading...</div>
+              <DocumentsTableLoader />
             ) : (
               <>
                 <Table>

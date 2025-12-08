@@ -5,14 +5,14 @@ import MembersTab from "@/components/workspace-management/members-tabs";
 function TeamManagementContent() {
   return (
     <div className="p-6 space-y-6">
-      <MembersTab readOnly={true} />
+      <MembersTab />
     </div>
   );
 }
 
 export default function TeamManagementPage() {
   return (
-    <Suspense fallback={<div className="p-6">Loading...</div>}>
+    <Suspense fallback={<div className="space-y-6 p-6">Loading...</div>}>
       <TeamManagementContent />
     </Suspense>
   );
