@@ -9,7 +9,14 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-  unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "assets.rumsan.net",
+        port: "",
+        pathname: "/**",
+      },
+    ],
   },
 };
 

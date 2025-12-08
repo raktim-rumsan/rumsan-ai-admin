@@ -27,7 +27,7 @@ export function PricingSection() {
         "10,000 queries/month",
         "Custom branding",
       ],
-      popular: true,
+      popular: false,
     },
     {
       name: "Enterprise",

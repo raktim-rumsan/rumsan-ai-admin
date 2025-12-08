@@ -1,13 +1,5 @@
-import {
-  Facebook,
-  Twitter,
-  Linkedin,
-  Mail,
-  MapPin,
-  Phone,
-  Youtube,
-  Bot,
-} from "lucide-react";
+import { Linkedin, Mail, MapPin, Phone, Youtube, Bot } from "lucide-react";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -21,14 +13,20 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div>
-                <Bot className="w-6 h-6" />
+                <Image
+                  src="https://assets.rumsan.net/rumsan-group/rumsan-square0.png"
+                  alt="Rumsan Logo"
+                  width={60}
+                  height={60}
+                  className="object-contain"
+                />
               </div>
-              <span className="font-semibold text-xl">Rumsan Chatty</span>
+              <span className="font-bold text-4xl">RUMSAN</span>
             </div>
             <p className="text-md text-muted-foreground">
-              Create and deploy AI chatbots without any code, enabling faster,
-              smarter communication for customers and teams with reliable,
-              document-trained AI assistance.
+              We are a blockchain-focused digital innovation company in Nepal
+              and the US. We specialize in digital solutions for finance,
+              healthcare, decentralized identity and humanitarian sectors.
             </p>
           </div>
 
@@ -48,17 +46,17 @@ export function Footer() {
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <Phone className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                <Phone className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-medium">Phone</p>
                   <p className="text-sm text-muted-foreground hover:text-primary transition-colors">
                     {" "}
-                    +977 1 234 5678
+                    +977 9801074667
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                <MapPin className="w-5 h-5 text-primary mt-0.5 hrink-0" />
                 <div>
                   <p className="text-sm font-medium">Location</p>
                   <p className="text-sm text-muted-foreground">
@@ -81,15 +79,7 @@ export function Footer() {
               >
                 <Linkedin className="w-5 h-5" />
               </a>
-              <a
-                href="https://facebook.com/rumsan"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                aria-label="Facebook"
-              >
-                <Facebook className="w-5 h-5" />
-              </a>
+
               <a
                 href="https://www.youtube.com/@rumsan1"
                 target="_blank"
