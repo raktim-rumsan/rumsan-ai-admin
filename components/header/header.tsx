@@ -38,8 +38,8 @@ export function MainHeader({
   if (!isMounted) return null;
 
   // Check if we're in the admin dashboard
-  const admin = pathname?.startsWith("/admin");
-  const dashboard = pathname?.startsWith("/dashboard/");
+  const isAdminDashboard = pathname?.startsWith("/admin");
+  const isWorkspaceDashboard = pathname?.startsWith("/dashboard/");
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-3 lg:px-6">
@@ -51,8 +51,8 @@ export function MainHeader({
           <Link href={"/dashboard"}>
             <div
               className={cn(
-                "flex items-center space-x-2"
-                // !isAdminDashboard && !isWorkspaceDashboard && "lg:hidden"
+                "flex items-center space-x-2",
+                !isAdminDashboard && isWorkspaceDashboard && "lg:hidden"
               )}
             >
               <div className="w-6 h-6 bg-black rounded flex items-center justify-center">
@@ -69,7 +69,7 @@ export function MainHeader({
           </Link>
 
           {/* Hamburger menu - visible on mobile */}
-          {onMenuClick && (
+          {onMenuClick && isWorkspaceDashboard && (
             <Button
               variant="ghost"
               size="sm"
