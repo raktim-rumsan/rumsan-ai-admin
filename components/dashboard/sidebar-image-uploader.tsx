@@ -4,9 +4,25 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2, Upload, Cloud } from "lucide-react";
 import { readAndCompressImage } from "browser-image-resizer";
-import { getBackendFileUrl, removeOrganizationLogo, useLogoUploadMutation, useOrganizationById } from "@/queries/organizationQuery";
+import {
+  getBackendFileUrl,
+  removeOrganizationLogo,
+  useLogoUploadMutation,
+  useOrganizationById,
+} from "@/queries/organizationQuery";
 import { Card } from "@/components/ui/card";
 import { useOrganizationContext } from "@/hooks/useOrganizationContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const config = {
   quality: 0.7,
@@ -29,48 +45,52 @@ export default function LogoUploader() {
   const removeOrgLogMutation = removeOrganizationLogo();
 
   // Dynamically compute which image to display: preview or backend
-  const displayImage = previewImage
-    ?? (organizationDataById?.data?.url ? getBackendFileUrl(organizationDataById.data.url) : null);
+  const displayImage =
+    previewImage ??
+    (organizationDataById?.data?.url
+      ? getBackendFileUrl(organizationDataById.data.url)
+      : null);
 
   // Handle file selection and compression
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  try {
-    const resizedBlob = await readAndCompressImage(file, config);
-    setCompressedBlob(resizedBlob);
+    try {
+      const resizedBlob = await readAndCompressImage(file, config);
+      setCompressedBlob(resizedBlob);
 
-    const reader = new FileReader();
-    reader.onload = (event) => setPreviewImage(event.target?.result as string);
-    reader.readAsDataURL(resizedBlob);
+      const reader = new FileReader();
+      reader.onload = (event) =>
+        setPreviewImage(event.target?.result as string);
+      reader.readAsDataURL(resizedBlob);
 
-    setSelectedFile(file); // store original file
-  } catch (err) {
-    console.error(err);
-  }
-};
+      setSelectedFile(file); // store original file
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-const handleConfirmUpload = () => {
-  if (!previewImage || !compressedBlob || !selectedFile) return;
+  const handleConfirmUpload = () => {
+    if (!previewImage || !compressedBlob || !selectedFile) return;
 
-  // Use original name
-  const fileToUpload = new File([compressedBlob], selectedFile.name, {
-    type: compressedBlob.type,
-  });
+    // Use original name
+    const fileToUpload = new File([compressedBlob], selectedFile.name, {
+      type: compressedBlob.type,
+    });
 
-  logoUploadMutation.mutate(fileToUpload, {
-    onSuccess: () => {
-      setPreviewImage(null);
-      setCompressedBlob(null);
-      setSelectedFile(null);
-    },
-  });
-};
+    logoUploadMutation.mutate(fileToUpload, {
+      onSuccess: () => {
+        setPreviewImage(null);
+        setCompressedBlob(null);
+        setSelectedFile(null);
+      },
+    });
+  };
 
-  // Remove logo 
+  // Remove logo
   const handleRemoveLogo = () => {
-    removeOrgLogMutation.mutate(orgId)
+    removeOrgLogMutation.mutate(orgId);
   };
 
   return (
@@ -156,16 +176,33 @@ const handleConfirmUpload = () => {
                 Undo
               </Button>
             ) : (
-              // Remove button for backend logo
-              <Button
-                variant="ghost"
-                className="w-full h-12 rounded-none flex items-center justify-center gap-2"
-                onClick={handleRemoveLogo}
-                disabled={!organizationDataById?.data?.url}
-              >
-                <Trash2 className="w-4 h-4" />
-                Remove
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full h-12 rounded-none flex items-center justify-center gap-2"
+                    disabled={!organizationDataById?.data?.url}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Remove
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm Removal</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to remove the organization logo?
+                      This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleRemoveLogo()}>
+                      Remove
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </div>
@@ -182,4 +219,3 @@ const handleConfirmUpload = () => {
     </Card>
   );
 }
-
