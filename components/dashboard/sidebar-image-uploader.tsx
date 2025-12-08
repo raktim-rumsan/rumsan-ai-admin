@@ -10,6 +10,7 @@ import {
   useLogoUploadMutation,
   useOrganizationById,
 } from "@/queries/organizationQuery";
+import { toastUtils } from "@/lib/toast-utils";
 import { Card } from "@/components/ui/card";
 import { useOrganizationContext } from "@/hooks/useOrganizationContext";
 import {
@@ -80,17 +81,35 @@ export default function LogoUploader() {
     });
 
     logoUploadMutation.mutate(fileToUpload, {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        // Try to read backend message from common locations
+        const msg =
+          response?.data?.message ?? response?.message ?? "Logo uploaded";
+        toastUtils.generic.success("Upload successful", msg);
         setPreviewImage(null);
         setCompressedBlob(null);
         setSelectedFile(null);
+      },
+      onError: (err: unknown) => {
+        const msg = err instanceof Error ? err.message : "Upload failed";
+        toastUtils.generic.error("Upload failed", msg);
       },
     });
   };
 
   // Remove logo
   const handleRemoveLogo = () => {
-    removeOrgLogMutation.mutate(orgId);
+    removeOrgLogMutation.mutate(orgId, {
+      onSuccess: (response) => {
+        const msg =
+          response?.data?.message ?? response?.message ?? "Logo removed";
+        toastUtils.generic.success("Logo removed", msg);
+      },
+      onError: (err: unknown) => {
+        const msg = err instanceof Error ? err.message : "Remove failed";
+        toastUtils.generic.error("Remove failed", msg);
+      },
+    });
   };
 
   return (
