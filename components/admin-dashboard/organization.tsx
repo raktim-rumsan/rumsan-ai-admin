@@ -23,7 +23,7 @@ import {
 } from "../ui/select";
 
 import { SECTORS } from "@/constants/sector";
-import SidebarImageUploader from "../dashboard/sidebar-image-uploader";
+import LogoUploader from "../dashboard/image-uploader";
 
 export default function OrganizationPage() {
   const { data: organizationDataById, isLoading } = useOrganizationById();
@@ -143,7 +143,7 @@ export default function OrganizationPage() {
 
                   {/* RIGHT SIDE: Image Uploader */}
                   <div>
-                    <SidebarImageUploader />
+                    <LogoUploader />
                   </div>
                 </div>
 
