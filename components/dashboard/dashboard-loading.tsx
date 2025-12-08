@@ -1,6 +1,6 @@
 import React from "react";
 
-const SkeletonLoader = () => {
+const DashboardLoader = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Bar */}
@@ -35,14 +35,9 @@ const SkeletonLoader = () => {
             </div>
           ))}
         </div>
-
-        {/* Footer */}
-        <div className="mt-12 text-center">
-          <div className="h-4 w-48 bg-gray-200 rounded animate-pulse mx-auto"></div>
-        </div>
       </div>
     </div>
   );
 };
 
-export default SkeletonLoader;
+export default DashboardLoader;

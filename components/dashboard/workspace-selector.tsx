@@ -1,5 +1,4 @@
 "use client";
-
 import { Building2, ArrowRight, Users } from "lucide-react";
 import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 import {
@@ -10,8 +9,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import SkeletonLoader from "./dashboard-looading";
 import { useEffect } from "react";
+import DashboardLoader from "./dashboard-loading";
 
 export default function WorkspaceSelectorPage() {
   const router = useRouter();
@@ -24,7 +23,7 @@ export default function WorkspaceSelectorPage() {
   return (
     <>
       {isLoading ? (
-        <SkeletonLoader />
+        <DashboardLoader />
       ) : (
         <div className="min-h-screen bg-muted/30">
           <div className="border-b bg-background">
@@ -65,9 +64,11 @@ export default function WorkspaceSelectorPage() {
                             <CardTitle className="text-lg">
                               {workspace.name}
                             </CardTitle>
-                            <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 mt-1">
-                              {workspace.sector}
-                            </span>
+                            {workspace.sector && (
+                              <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 mt-1">
+                                {workspace.sector}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <ArrowRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
