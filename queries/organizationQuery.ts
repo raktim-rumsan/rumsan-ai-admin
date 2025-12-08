@@ -36,7 +36,7 @@ export function useLogoUploadMutation(onSuccess?: () => void) {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
-  
+
       const access_token = getAuthToken();
       const orgId = orgContext("primaryOrganization")?.id;
       const res = await fetch(ROUTES.ORGANIZATION_LOGO_UPLOAD(orgId), {
@@ -99,9 +99,9 @@ export function removeOrganizationLogo(onSuccess?: () => void) {
 }
 
 export function getBackendFileUrl(url: string) {
-  const serverUrl = process.env.NEXT_PUBLIC_SERVER_API; 
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_API;
   if (!url) return null;
-  const fileUrl = `${serverUrl}/assets/${url.replace(/^uploads\//, "")}`;  
+  const fileUrl = `${serverUrl}/assets/${url.replace(/^uploads\//, "")}`;
   return fileUrl;
 }
 

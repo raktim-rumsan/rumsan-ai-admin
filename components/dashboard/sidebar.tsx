@@ -5,7 +5,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { FolderOpen, Bot, Plug, User, Factory } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
+import {
+  getBackendFileUrl,
+  useOrganizationById,
+} from "@/queries/organizationQuery";
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -40,6 +43,8 @@ const navigationItems = [
 ];
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { data: organization } = useOrganizationById();
+  const orgUrl = organization?.data?.url;
   const pathname = usePathname();
 
   // Filter navigation items based on workspace type
@@ -111,6 +116,19 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               ))}
             </nav>
           </ScrollArea>
+          <div className="mt-auto w-full px-4 pb-6 flex justify-center">
+            {orgUrl ? (
+              <img
+                src={getBackendFileUrl(orgUrl)!}
+                alt="Organization Logo"
+                className="w-full h-auto object-contain rounded-md"
+              />
+            ) : (
+              <span className="text-gray-500 text-sm font-medium">
+                No image uploaded
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </>
