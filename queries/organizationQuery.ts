@@ -63,11 +63,45 @@ export function useLogoUploadMutation(onSuccess?: () => void) {
   });
 }
 
+export function removeOrganizationLogo(onSuccess?: () => void) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (orgId: string) => {
+      const access_token = getAuthToken();
+      const res = await fetch(ROUTES.ORGANIZATION_LOGO_REMOVE(orgId), {
+        method: "DELETE",
+        headers: {
+          access_token: access_token || "",
+        },
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        // Handle API error responses properly
+        const errorMessage =
+          errorData.message ||
+          errorData.error ||
+          `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      // Return success response (might be empty for DELETE)
+      const data = await res.json().catch(() => ({ success: true }));
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate organizations query to refetch the list
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      onSuccess?.();
+    },
+  });
+}
+
 export function getBackendFileUrl(url: string) {
-  const serverUrl = process.env.NEXT_PUBLIC_SERVER_API; // e.g., http://localhost:5588
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_API; 
   if (!url) return null;
   const fileUrl = `${serverUrl}/assets/${url.replace(/^uploads\//, "")}`;  
-  console.log(fileUrl,"------------")
   return fileUrl;
 }
 

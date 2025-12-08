@@ -4,8 +4,9 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2, Upload, Cloud } from "lucide-react";
 import { readAndCompressImage } from "browser-image-resizer";
-import { getBackendFileUrl, useLogoUploadMutation, useOrganizationById } from "@/queries/organizationQuery";
-import { Card } from "../ui/card";
+import { getBackendFileUrl, removeOrganizationLogo, useLogoUploadMutation, useOrganizationById } from "@/queries/organizationQuery";
+import { Card } from "@/components/ui/card";
+import { useOrganizationContext } from "@/hooks/useOrganizationContext";
 
 const config = {
   quality: 0.7,
@@ -20,9 +21,12 @@ export default function LogoUploader() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const orgConetxt = useOrganizationContext();
+  const orgId = orgConetxt.primaryOrganization?.id || "";
 
   const { data: organizationDataById } = useOrganizationById();
   const logoUploadMutation = useLogoUploadMutation();
+  const removeOrgLogMutation = removeOrganizationLogo();
 
   // Dynamically compute which image to display: preview or backend
   const displayImage = previewImage
@@ -64,11 +68,9 @@ const handleConfirmUpload = () => {
   });
 };
 
-  // Remove logo locally
+  // Remove logo 
   const handleRemoveLogo = () => {
-    setPreviewImage(null);
-    setCompressedBlob(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    removeOrgLogMutation.mutate(orgId)
   };
 
   return (
@@ -101,13 +103,15 @@ const handleConfirmUpload = () => {
           {/* Left button: Change / Confirm */}
           <div className="w-1/2">
             {previewImage ? (
+              // Show Confirm Upload if a new image is selected
               <Button
                 className="w-full h-12 rounded-none flex items-center justify-center gap-2 bg-blue-600 text-white"
                 onClick={handleConfirmUpload}
               >
                 Confirm Upload
               </Button>
-            ) : (
+            ) : organizationDataById?.data?.url ? (
+              // Show Change if there's already a backend logo
               <Button
                 variant="outline"
                 className="w-full h-12 rounded-none flex items-center justify-center gap-2"
@@ -121,19 +125,48 @@ const handleConfirmUpload = () => {
                 <Upload className="w-4 h-4" />
                 Change
               </Button>
+            ) : (
+              // Show Upload if no backend logo exists
+              <Button
+                variant="outline"
+                className="w-full h-12 rounded-none flex items-center justify-center gap-2"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="w-4 h-4" />
+                Upload
+              </Button>
             )}
           </div>
 
           {/* Right button: Remove */}
           <div className="w-1/2">
-            <Button
-              variant="ghost"
-              className="w-full h-12 rounded-none flex items-center justify-center gap-2"
-              onClick={handleRemoveLogo}
-            >
-              <Trash2 className="w-4 h-4" />
-              Remove
-            </Button>
+            {previewImage ? (
+              // Undo button for preview image
+              <Button
+                variant="ghost"
+                className="w-full h-12 rounded-none flex items-center justify-center gap-2"
+                onClick={() => {
+                  setPreviewImage(null);
+                  setCompressedBlob(null);
+                  setSelectedFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+                Undo
+              </Button>
+            ) : (
+              // Remove button for backend logo
+              <Button
+                variant="ghost"
+                className="w-full h-12 rounded-none flex items-center justify-center gap-2"
+                onClick={handleRemoveLogo}
+                disabled={!organizationDataById?.data?.url}
+              >
+                <Trash2 className="w-4 h-4" />
+                Remove
+              </Button>
+            )}
           </div>
         </div>
       </div>
