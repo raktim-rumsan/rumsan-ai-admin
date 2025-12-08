@@ -33,7 +33,17 @@ export default function LLMConfigPage() {
   });
   const { data: workspaceSettings, isPending } = useWorkspaceSettingQuery();
   const updateWorkspaceSetting = useUpdateWorkspaceSetting();
-
+  const chatModel = [
+    { value: "gpt-4.1-2025-04-14", label: "GPT-4.1" },
+    { value: "gpt-4o-2024-11-20 ", label: "GPT-4o" },
+    { value: "gpt-5-mini", label: "GPT-5 mini" },
+    { value: "gpt-5", label: "GPT-5" },
+  ];
+  const embeddingModel = [
+    { value: "text-embedding-3-small", label: "text-embedding-3-small" },
+    { value: "text-embedding-3-large", label: "text-embedding-3-large" },
+    { value: "text-embedding-ada-002", label: "text-embedding-ada-002" },
+  ];
   useEffect(() => {
     if (workspaceSettings) {
       setConfig({
@@ -79,6 +89,7 @@ export default function LLMConfigPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ollama">Ollama</SelectItem>
+                    <SelectItem value="openai">OpenAI</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-gray-500">
@@ -213,6 +224,33 @@ export default function LLMConfigPage() {
                 </div>
               </div>
 
+              {/* API Key*/}
+              {/* <div>
+                {provider === "openai" && (
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="api-key"
+                      className="text-base font-semibold"
+                    >
+                      OpenAI API Key
+                    </Label>
+                    <Input
+                      id="api-key"
+                      type="password"
+                      value={workspaceSettings?.data.openAIApiKey || ""}
+                      onChange={(e) =>
+                        updateWorkspaceSetting.mutate({
+                          openAIApiKey: e.target.value,
+                        })
+                      }
+                      className="h-12 w-full"
+                    />
+                    <p className="text-sm text-gray-500">
+                      Enter your OpenAI API key to enable OpenAI services.
+                    </p>
+                  </div>
+                )}
+              </div> */}
               {/* Action Buttons */}
               <div className="flex gap-4 pt-4">
                 <Button
@@ -226,7 +264,7 @@ export default function LLMConfigPage() {
                     : "Save Configuration"}
                 </Button>
 
-                {/* {provider === "OpenAI" ? (
+                {/* {provider === "openai" ? (
                   <Button
                     onClick={handleTest}
                     disabled={isTesting}
