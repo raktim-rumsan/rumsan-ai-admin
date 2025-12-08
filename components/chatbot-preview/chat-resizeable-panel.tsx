@@ -208,9 +208,9 @@ export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
                     : "bg-muted text-foreground"
                 )}
               >
-                <p className="text-sm leading-relaxed">
+                <div className="text-sm leading-relaxed">
                   <Markdown>{message.content}</Markdown>
-                </p>
+                </div>
                 {message.role === "assistant" && (
                   <div className="mt-3 space-y-2 text-xs text-muted-foreground">
                     {message.processingTime !== undefined && (
