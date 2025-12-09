@@ -11,6 +11,8 @@ export interface WorkspaceSettings {
   embeddingModel: string;
   createdAt: string;
   updatedAt: string;
+  provider: string;
+  apiKey?: string;
 }
 
 export interface WorkspaceSettingsResponse {
