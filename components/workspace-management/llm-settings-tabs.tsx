@@ -18,39 +18,91 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  useTestConnection,
   useUpdateWorkspaceSetting,
   useWorkspaceSettingQuery,
 } from "@/queries/workspaceSettingQuery";
 import LLMConfigurationSkeleton from "./llm-setting-loading";
+import {
+  OLLOMA_CHAT_MODELS,
+  OLLOMA_EMBEDDING_MODELS,
+  OPENAI_CHAT_MODELS,
+  OPENAI_EMBEDDING_MODELS,
+  PROVIDER,
+} from "@/constants/models";
 
 export default function LLMConfigPage() {
-  const [provider, setProvider] = useState("ollama");
   const [config, setConfig] = useState({
-    chatModel: "GPT-4",
-    embeddingModel: "text-embedding-3-small",
-    temperature: "0.7",
-    maxTokens: "400",
+    provider: "",
+    chatModel: "",
+    embeddingModel: "",
+    temperature: "",
+    maxTokens: "",
+    apiKey: "",
   });
   const { data: workspaceSettings, isPending } = useWorkspaceSettingQuery();
   const updateWorkspaceSetting = useUpdateWorkspaceSetting();
 
+  const { mutate: testConnection, isPending: isTesting } = useTestConnection();
+
   useEffect(() => {
     if (workspaceSettings) {
       setConfig({
-        chatModel: workspaceSettings.data.llmModel,
-        embeddingModel: workspaceSettings.data.embeddingModel,
+        chatModel: workspaceSettings.data.llmModel ?? "",
+        embeddingModel: workspaceSettings.data.embeddingModel ?? "",
         temperature: workspaceSettings.data.temperature?.toString(),
         maxTokens: workspaceSettings.data.maxTokensPerQuery?.toString(),
+        provider: workspaceSettings.data.provider,
+        apiKey: workspaceSettings.data.apiKey || "",
       });
     }
   }, [workspaceSettings]);
 
+  useEffect(() => {
+    if (!workspaceSettings) return;
+    if (config.provider === "openai") {
+      setConfig((prev) => ({
+        ...prev,
+        chatModel:
+          workspaceSettings?.data.provider === "openai"
+            ? workspaceSettings?.data.llmModel
+            : "gpt-4.1-2025-04-14",
+        embeddingModel:
+          workspaceSettings?.data.provider === "openai"
+            ? workspaceSettings?.data.embeddingModel
+            : "text-embedding-3-small",
+      }));
+    } else if (config.provider === "ollama") {
+      setConfig((prev) => ({
+        ...prev,
+        chatModel:
+          workspaceSettings?.data.provider === "ollama"
+            ? workspaceSettings?.data.llmModel
+            : "llama3.1:latest",
+        embeddingModel:
+          workspaceSettings?.data.provider === "ollama"
+            ? workspaceSettings?.data.embeddingModel
+            : "nomic-embed-text:latest",
+      }));
+    }
+  }, [config.provider]);
+
+  const availableChatModels =
+    config.provider === "openai" ? OPENAI_CHAT_MODELS : OLLOMA_CHAT_MODELS;
+
+  const availableEmbeddingModels =
+    config.provider === "openai"
+      ? OPENAI_EMBEDDING_MODELS
+      : OLLOMA_EMBEDDING_MODELS;
+
   const handleSave = async () => {
     updateWorkspaceSetting.mutate({
+      provider: config.provider,
       llmModel: config.chatModel,
       embeddingModel: config.embeddingModel,
       maxTokensPerQuery: Number(config.maxTokens),
       temperature: parseFloat(config.temperature),
+      apiKey: config.apiKey,
     });
   };
 
@@ -73,12 +125,21 @@ export default function LLMConfigPage() {
                 <Label htmlFor="provider" className="text-base font-semibold">
                   AI Provider
                 </Label>
-                <Select value={provider} onValueChange={setProvider}>
+                <Select
+                  value={config.provider}
+                  onValueChange={(provider) =>
+                    setConfig((prev) => ({ ...prev, provider }))
+                  }
+                >
                   <SelectTrigger id="provider" className="h-12 w-full">
                     <SelectValue placeholder="Select provider" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ollama">Ollama</SelectItem>
+                    {PROVIDER.map((p) => (
+                      <SelectItem key={p.value} value={p.value}>
+                        {p.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-gray-500">
@@ -111,9 +172,11 @@ export default function LLMConfigPage() {
                         <SelectValue placeholder="Select chat model" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={config.chatModel}>
-                          {config.chatModel}
-                        </SelectItem>
+                        {availableChatModels.map((m) => (
+                          <SelectItem key={m.value} value={m.value}>
+                            {m.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -142,9 +205,11 @@ export default function LLMConfigPage() {
                         <SelectValue placeholder="Select embedding model" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={config.embeddingModel}>
-                          {config.embeddingModel}
-                        </SelectItem>
+                        {availableEmbeddingModels.map((m) => (
+                          <SelectItem key={m.value} value={m.value}>
+                            {m.value}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -213,6 +278,34 @@ export default function LLMConfigPage() {
                 </div>
               </div>
 
+              {/* API Key*/}
+              <div>
+                {config.provider === "openai" && (
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="api-key"
+                      className="text-base font-semibold"
+                    >
+                      OpenAI API Key
+                    </Label>
+                    <Input
+                      id="api-key"
+                      type="password"
+                      value={config.apiKey}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          apiKey: e.target.value,
+                        }))
+                      }
+                      className="h-12 w-full"
+                    />
+                    <p className="text-sm text-gray-500">
+                      Enter your OpenAI API key to enable OpenAI services.
+                    </p>
+                  </div>
+                )}
+              </div>
               {/* Action Buttons */}
               <div className="flex gap-4 pt-4">
                 <Button
@@ -226,9 +319,9 @@ export default function LLMConfigPage() {
                     : "Save Configuration"}
                 </Button>
 
-                {/* {provider === "OpenAI" ? (
+                {config.provider === "openai" ? (
                   <Button
-                    onClick={handleTest}
+                    onClick={() => testConnection({ apiKey: config.apiKey })}
                     disabled={isTesting}
                     variant="outline"
                     className="h-12 px-8 bg-transparent"
@@ -236,7 +329,7 @@ export default function LLMConfigPage() {
                   >
                     {isTesting ? "Testing..." : "Test Connection"}
                   </Button>
-                ) : null} */}
+                ) : null}
               </div>
             </div>
           </CardContent>
