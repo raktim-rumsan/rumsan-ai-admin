@@ -110,3 +110,27 @@ export function useUpdateWorkspaceSetting() {
     },
   });
 }
+export function useTestConnection() {
+  return useMutation({
+    mutationFn: async ({ apiKey }: { apiKey: string }) => {
+      const res = await fetch("https://api.openai.com/v1/models", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error("Connection test failed");
+      }
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Connection successful!");
+    },
+    onError: () => {
+      toast.error("Connection test failed");
+    },
+  });
+}

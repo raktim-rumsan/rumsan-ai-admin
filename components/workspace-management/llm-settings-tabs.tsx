@@ -18,46 +18,38 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  useTestConnection,
   useUpdateWorkspaceSetting,
   useWorkspaceSettingQuery,
 } from "@/queries/workspaceSettingQuery";
 import LLMConfigurationSkeleton from "./llm-setting-loading";
-
-const OLLOMA_CHAT_MODELS = [
-  { value: "llama3.1:latest", label: "llama3.1:latest" },
-];
-const OLLOMA_EMBEDDING_MODELS = [
-  { value: "nomic-embed-text:latest", label: "nomic-embed-text:latest" },
-];
-const OPENAI_CHAT_MODELS = [
-  { value: "gpt-4.1-2025-04-14", label: "GPT-4.1" },
-  { value: "gpt-4o-2024-11-20 ", label: "GPT-4o" },
-  { value: "gpt-5-mini", label: "GPT-5 mini" },
-  { value: "gpt-5", label: "GPT-5" },
-];
-const OPENAI_EMBEDDING_MODELS = [
-  { value: "text-embedding-3-small", label: "text-embedding-3-small" },
-  { value: "text-embedding-3-large", label: "text-embedding-3-large" },
-  { value: "text-embedding-ada-002", label: "text-embedding-ada-002" },
-];
+import {
+  OLLOMA_CHAT_MODELS,
+  OLLOMA_EMBEDDING_MODELS,
+  OPENAI_CHAT_MODELS,
+  OPENAI_EMBEDDING_MODELS,
+  PROVIDER,
+} from "@/constants/models";
 
 export default function LLMConfigPage() {
   const [config, setConfig] = useState({
-    provider: "ollama",
-    chatModel: "GPT-4",
-    embeddingModel: "text-embedding-3-small",
-    temperature: "0.7",
-    maxTokens: "400",
+    provider: "",
+    chatModel: "",
+    embeddingModel: "",
+    temperature: "",
+    maxTokens: "",
     apiKey: "",
   });
   const { data: workspaceSettings, isPending } = useWorkspaceSettingQuery();
   const updateWorkspaceSetting = useUpdateWorkspaceSetting();
 
+  const { mutate: testConnection, isPending: isTesting } = useTestConnection();
+
   useEffect(() => {
     if (workspaceSettings) {
       setConfig({
-        chatModel: workspaceSettings.data.llmModel,
-        embeddingModel: workspaceSettings.data.embeddingModel,
+        chatModel: workspaceSettings.data.llmModel ?? "",
+        embeddingModel: workspaceSettings.data.embeddingModel ?? "",
         temperature: workspaceSettings.data.temperature?.toString(),
         maxTokens: workspaceSettings.data.maxTokensPerQuery?.toString(),
         provider: workspaceSettings.data.provider,
@@ -68,41 +60,40 @@ export default function LLMConfigPage() {
 
   useEffect(() => {
     if (!workspaceSettings) return;
-
     if (config.provider === "openai") {
-      // Auto-set OpenAI defaults
       setConfig((prev) => ({
         ...prev,
         chatModel:
-          workspaceSettings.data.llmModel ?? OPENAI_CHAT_MODELS[0].value,
+          workspaceSettings?.data.provider === "openai"
+            ? workspaceSettings?.data.llmModel
+            : "gpt-4.1-2025-04-14",
         embeddingModel:
-          workspaceSettings.data.embeddingModel ??
-          OPENAI_EMBEDDING_MODELS[0].value,
+          workspaceSettings?.data.provider === "openai"
+            ? workspaceSettings?.data.embeddingModel
+            : "text-embedding-3-small",
       }));
-      return;
-    } else {
-      // Restore saved values
+    } else if (config.provider === "ollama") {
       setConfig((prev) => ({
         ...prev,
         chatModel:
-          workspaceSettings.data.llmModel ?? OLLOMA_CHAT_MODELS[0].value,
+          workspaceSettings?.data.provider === "ollama"
+            ? workspaceSettings?.data.llmModel
+            : "llama3.1:latest",
         embeddingModel:
-          workspaceSettings.data.embeddingModel ??
-          OLLOMA_EMBEDDING_MODELS[0].value,
+          workspaceSettings?.data.provider === "ollama"
+            ? workspaceSettings?.data.embeddingModel
+            : "nomic-embed-text:latest",
       }));
-      return;
     }
   }, [config.provider]);
 
   const availableChatModels =
     config.provider === "openai" ? OPENAI_CHAT_MODELS : OLLOMA_CHAT_MODELS;
-  // :[{ value: config.chatModel, label: config.chatModel }];
 
   const availableEmbeddingModels =
     config.provider === "openai"
       ? OPENAI_EMBEDDING_MODELS
       : OLLOMA_EMBEDDING_MODELS;
-  // : [{ value: config.embeddingModel, label: config.embeddingModel }];
 
   const handleSave = async () => {
     updateWorkspaceSetting.mutate({
@@ -144,8 +135,11 @@ export default function LLMConfigPage() {
                     <SelectValue placeholder="Select provider" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ollama">Ollama</SelectItem>
-                    <SelectItem value="openai">OpenAI</SelectItem>
+                    {PROVIDER.map((p) => (
+                      <SelectItem key={p.value} value={p.value}>
+                        {p.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-gray-500">
@@ -178,9 +172,6 @@ export default function LLMConfigPage() {
                         <SelectValue placeholder="Select chat model" />
                       </SelectTrigger>
                       <SelectContent>
-                        {/* <SelectItem value={config.chatModel}>
-                          {config.chatModel}
-                        </SelectItem> */}
                         {availableChatModels.map((m) => (
                           <SelectItem key={m.value} value={m.value}>
                             {m.label}
@@ -214,9 +205,6 @@ export default function LLMConfigPage() {
                         <SelectValue placeholder="Select embedding model" />
                       </SelectTrigger>
                       <SelectContent>
-                        {/* <SelectItem value={config.embeddingModel}>
-                          {config.embeddingModel}
-                        </SelectItem> */}
                         {availableEmbeddingModels.map((m) => (
                           <SelectItem key={m.value} value={m.value}>
                             {m.value}
@@ -333,12 +321,13 @@ export default function LLMConfigPage() {
 
                 {config.provider === "openai" ? (
                   <Button
+                    onClick={() => testConnection({ apiKey: config.apiKey })}
+                    disabled={isTesting}
                     variant="outline"
                     className="h-12 px-8 bg-transparent"
                     size="lg"
                   >
-                    Test Connection
-                    {/* {isTesting ? "Testing..." : "Test Connection"} */}
+                    {isTesting ? "Testing..." : "Test Connection"}
                   </Button>
                 ) : null}
               </div>
