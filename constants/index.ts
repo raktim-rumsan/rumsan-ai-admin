@@ -27,6 +27,10 @@ export const ROUTES = {
   ORGANIZATION_ID: (orgId: string) => `${API_BASE_URL}/organizations/${orgId}`,
   ORGANIZATION_UPDATE: (orgId: string) =>
     `${API_BASE_URL}/organizations/${orgId}`,
+  ORGANIZATION_LOGO_UPLOAD: (orgId: string) =>
+    `${API_BASE_URL}/organizations/${orgId}/logo`,
+  ORGANIZATION_LOGO_REMOVE: (orgId: string) =>
+    `${API_BASE_URL}/organizations/${orgId}/remove-logo`,
 
   //auth register
   AUTH_REGISTER: `${API_BASE_URL}/auth/register`,
