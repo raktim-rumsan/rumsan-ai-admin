@@ -9,6 +9,7 @@ import {
   getBackendFileUrl,
   useOrganizationById,
 } from "@/queries/organizationQuery";
+import Image from "next/image";
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -118,7 +119,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </ScrollArea>
           <div className="mt-auto w-full px-4 pb-6 flex justify-center">
             {orgUrl ? (
-              <img
+              <Image
+                width={500}
+                height={500}
                 src={getBackendFileUrl(orgUrl)!}
                 alt="Organization Logo"
                 className="w-full h-auto object-contain rounded-md"

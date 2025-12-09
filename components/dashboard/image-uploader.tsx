@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import Image from "next/image";
 
 const config = {
   quality: 0.7,
@@ -33,24 +34,27 @@ const config = {
   debug: false,
 };
 
-export default function LogoUploader() {
+interface ImageUploaderProps {
+  currentImageUrl?: string;
+  uploadMutation: any;
+  removeMutation: any;
+  deleteId: string;
+}
+
+export default function LogoUploader({
+  currentImageUrl,
+  uploadMutation,
+  removeMutation,
+  deleteId,
+}: ImageUploaderProps) {
   const [compressedBlob, setCompressedBlob] = useState<Blob | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const orgConetxt = useOrganizationContext();
-  const orgId = orgConetxt.primaryOrganization?.id || "";
-
-  const { data: organizationDataById } = useOrganizationById();
-  const logoUploadMutation = useLogoUploadMutation();
-  const removeOrgLogMutation = removeOrganizationLogo();
+  const orgContext = useOrganizationContext();
 
   // Dynamically compute which image to display: preview or backend
-  const displayImage =
-    previewImage ??
-    (organizationDataById?.data?.url
-      ? getBackendFileUrl(organizationDataById.data.url)
-      : null);
+  const displayImage = previewImage ?? currentImageUrl ?? null;
 
   // Handle file selection and compression
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,12 +84,13 @@ export default function LogoUploader() {
       type: compressedBlob.type,
     });
 
-    logoUploadMutation.mutate(fileToUpload, {
-      onSuccess: (response) => {
+    uploadMutation.mutate(fileToUpload, {
+      onSuccess: async (response: any) => {
         // Try to read backend message from common locations
         const msg =
           response?.data?.message ?? response?.message ?? "Logo uploaded";
         toastUtils.generic.success("Upload successful", msg);
+        await orgContext.refetch();
         setPreviewImage(null);
         setCompressedBlob(null);
         setSelectedFile(null);
@@ -99,11 +104,12 @@ export default function LogoUploader() {
 
   // Remove logo
   const handleRemoveLogo = () => {
-    removeOrgLogMutation.mutate(orgId, {
-      onSuccess: (response) => {
+    removeMutation.mutate(deleteId, {
+      onSuccess: async (response: any) => {
         const msg =
           response?.data?.message ?? response?.message ?? "Logo removed";
         toastUtils.generic.success("Logo removed", msg);
+        await orgContext.refetch();
       },
       onError: (err: unknown) => {
         const msg = err instanceof Error ? err.message : "Remove failed";
@@ -121,9 +127,11 @@ export default function LogoUploader() {
         role="button"
         aria-label="Select logo"
       >
-        <div className="w-24 h-24 rounded-full overflow-hidden bg-white flex items-center justify-center border">
+        <div className="overflow-hidden bg-white flex items-center justify-center border">
           {displayImage ? (
-            <img
+            <Image
+              width={200}
+              height={200}
               src={displayImage}
               alt="Logo"
               className="w-full h-full object-cover"
@@ -149,7 +157,7 @@ export default function LogoUploader() {
               >
                 Confirm Upload
               </Button>
-            ) : organizationDataById?.data?.url ? (
+            ) : currentImageUrl ? (
               // Show Change if there's already a backend logo
               <Button
                 variant="outline"
@@ -200,7 +208,7 @@ export default function LogoUploader() {
                   <Button
                     variant="ghost"
                     className="w-full h-12 rounded-none flex items-center justify-center gap-2"
-                    disabled={!organizationDataById?.data?.url}
+                    disabled={!currentImageUrl}
                   >
                     <Trash2 className="w-4 h-4" />
                     Remove
@@ -210,8 +218,8 @@ export default function LogoUploader() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Confirm Removal</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to remove the organization logo?
-                      This action cannot be undone.
+                      Are you sure you want to remove the logo? This action
+                      cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

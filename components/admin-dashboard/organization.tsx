@@ -10,6 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
+  getBackendFileUrl,
+  removeOrganizationLogo,
+  useLogoUploadMutation,
   useOrganizationById,
   useOrganizationMutationUpdate,
 } from "@/queries/organizationQuery";
@@ -20,17 +23,25 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "@/components/ui/select";
 
 import { SECTORS } from "@/constants/sector";
 import LogoUploader from "../dashboard/image-uploader";
+import { useOrganizationContext } from "@/hooks/useOrganizationContext";
 
 export default function OrganizationPage() {
-  const { data: organizationDataById, isLoading } = useOrganizationById();
   const updateOrganization = useOrganizationMutationUpdate();
 
+  const uploadMutation = useLogoUploadMutation();
+  const removeMutation = removeOrganizationLogo();
+  const { primaryOrganization: organizationData, isLoading } =
+    useOrganizationContext();
+
+  const currentImageUrl = organizationData?.url
+    ? getBackendFileUrl(organizationData?.url)!
+    : null;
+
   // Derive initial values directly from API data without useEffect
-  const organizationData = organizationDataById?.data;
   const initialSector = organizationData?.sector || "";
 
   const [sector, setSector] = useState(initialSector);
@@ -143,7 +154,12 @@ export default function OrganizationPage() {
 
                   {/* RIGHT SIDE: Image Uploader */}
                   <div>
-                    <LogoUploader />
+                    <LogoUploader
+                      currentImageUrl={currentImageUrl!}
+                      uploadMutation={uploadMutation}
+                      removeMutation={removeMutation}
+                      deleteId={organizationData?.id || ""}
+                    />
                   </div>
                 </div>
 

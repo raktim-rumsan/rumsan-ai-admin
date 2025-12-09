@@ -1,6 +1,6 @@
 import { ROUTES } from "@/constants";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAuthToken, getWorkspaceId } from "@/lib/utils";
+import { getAuthToken, getWorkspaceId, orgContext } from "@/lib/utils";
 import { toastUtils } from "@/lib/toast-utils";
 import { useCreateApiKey } from "./apiKeysQuery";
 
@@ -12,6 +12,7 @@ export interface Workspace {
   description: string | null;
   sector: string | null;
   botName: string | null;
+  url: string | null;
   isActive: boolean;
   isPersonal: boolean;
   ownerId: string;
@@ -312,6 +313,79 @@ export function useWorkspaceMemberQuery(workspaceId: string) {
         throw new Error(errorMessage);
       }
       return data;
+    },
+  });
+}
+
+export function useImageUploadMutation(
+  workspaceId: string,
+  onSuccess?: () => void
+) {
+  console.log(workspaceId, "workspaceId in useImageUploadMutation");
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    // mutationFn: async (file: File) => {
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const access_token = getAuthToken();
+      const res = await fetch(ROUTES.WORKSPACE_IMAGE_UPLOAD(workspaceId), {
+        method: "POST",
+        body: formData,
+        headers: {
+          access_token: access_token || "",
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        // Handle API error responses properly
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate workspace query to refetch the list
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      onSuccess?.();
+    },
+  });
+}
+
+export function removeWorkspaceImage(onSuccess?: () => void) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (workspaceId: string) => {
+      const access_token = getAuthToken();
+      const res = await fetch(ROUTES.WORKSPACE_IMAGE_REMOVE(workspaceId), {
+        method: "DELETE",
+        headers: {
+          access_token: access_token || "",
+        },
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        // Handle API error responses properly
+        const errorMessage =
+          errorData.message ||
+          errorData.error ||
+          `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      // Return success response (might be empty for DELETE)
+      const data = await res.json().catch(() => ({ success: true }));
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate workspace query to refetch the list
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      onSuccess?.();
     },
   });
 }
