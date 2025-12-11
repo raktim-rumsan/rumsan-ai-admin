@@ -40,6 +40,7 @@ import {
 } from "@/queries/invitationsQuery";
 import { getWorkspaceId, orgContext, formatRole } from "@/lib/utils";
 import { useWorkspaceRole } from "@/hooks/useOrganizationContext";
+import ConfirmDelete from "../documents/DeleteModal";
 
 export default function MembersTab() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -51,6 +52,7 @@ export default function MembersTab() {
   const [deletingInvitationId, setDeletingInvitationId] = useState<
     string | null
   >(null);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
   const params = useParams();
   const searchParams = useSearchParams();
@@ -90,10 +92,17 @@ export default function MembersTab() {
 
   const removeMember = async (email: string) => {
     if (!workspaceId) return;
-    await deleteWorkspaceMember.mutateAsync({
-      workspaceId: workspaceId,
-      email,
-    });
+    try {
+      await deleteWorkspaceMember.mutateAsync({
+        workspaceId: workspaceId,
+        email,
+      });
+    } catch (error) {
+      console.error("Failed to delete member:", error);
+    } finally {
+      setEmail("");
+      setOpenDeleteModal(false);
+    }
   };
 
   const handleSendInvitation = async () => {
@@ -138,11 +147,12 @@ export default function MembersTab() {
 
   const removeWorkspaceInvitation = async (invitationId: string) => {
     try {
-      setDeletingInvitationId(invitationId);
+      // setDeletingInvitationId(invitationId);
       await deleteWorkspaceInvitation.mutateAsync(invitationId);
     } catch (error) {
       console.error("Failed to delete invitation:", error);
     } finally {
+      setOpenDeleteModal(false);
       setDeletingInvitationId(null);
     }
   };
@@ -265,7 +275,9 @@ export default function MembersTab() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              removeMember(member.user.email);
+                              setOpenDeleteModal(true);
+                              setEmail(member.user.email);
+                              // removeMember(member.user.email);
                             }}
                             className="text-destructive hover:text-destructive"
                           >
@@ -349,9 +361,11 @@ export default function MembersTab() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              removeWorkspaceInvitation(
-                                invitations.id as string
-                              );
+                              setDeletingInvitationId(invitations.id as string);
+                              setOpenDeleteModal(true);
+                              // removeWorkspaceInvitation(
+                              //   invitations.id as string
+                              // );
                             }}
                             className={`text-destructive hover:bg-transparent cursor-pointer p-0 ${
                               deletingInvitationId === invitations.id &&
@@ -382,6 +396,21 @@ export default function MembersTab() {
             </div>
           </CardContent>
         </Card>
+        <ConfirmDelete
+          isOpen={openDeleteModal}
+          setIsOpen={setOpenDeleteModal}
+          onConfirm={
+            email.length
+              ? () => removeMember(email)
+              : () => removeWorkspaceInvitation(deletingInvitationId ?? "")
+          }
+          isDeleting={
+            email.length
+              ? deleteWorkspaceMember.isPending
+              : deleteWorkspaceInvitation.isPending
+          }
+          item={email.length ? `member ${email}` : "this invitation"}
+        />
       </div>
     </>
   );
