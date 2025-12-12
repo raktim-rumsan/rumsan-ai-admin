@@ -53,7 +53,10 @@ export default function MembersTab() {
     string | null
   >(null);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-
+  const [deleteType, setDeleteType] = useState<"member" | "invitation" | null>(
+    null
+  );
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const params = useParams();
   const searchParams = useSearchParams();
   const orgId = searchParams.get("orgId") || "";
@@ -275,9 +278,9 @@ export default function MembersTab() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
+                              setDeleteType("member");
+                              setDeleteTarget(member.user.email);
                               setOpenDeleteModal(true);
-                              setEmail(member.user.email);
-                              // removeMember(member.user.email);
                             }}
                             className="text-destructive hover:text-destructive"
                           >
@@ -361,7 +364,8 @@ export default function MembersTab() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              setDeletingInvitationId(invitations.id as string);
+                              setDeleteType("invitation");
+                              setDeleteTarget(invitations.id!);
                               setOpenDeleteModal(true);
                               // removeWorkspaceInvitation(
                               //   invitations.id as string
@@ -399,17 +403,23 @@ export default function MembersTab() {
         <ConfirmDelete
           isOpen={openDeleteModal}
           setIsOpen={setOpenDeleteModal}
-          onConfirm={
-            email.length
-              ? () => removeMember(email)
-              : () => removeWorkspaceInvitation(deletingInvitationId ?? "")
-          }
+          onConfirm={() => {
+            if (deleteType === "member") {
+              removeMember(deleteTarget!);
+            } else if (deleteType === "invitation") {
+              removeWorkspaceInvitation(deleteTarget!);
+            }
+          }}
           isDeleting={
-            email.length
+            deleteType === "member"
               ? deleteWorkspaceMember.isPending
               : deleteWorkspaceInvitation.isPending
           }
-          item={email.length ? `member ${email}` : "this invitation"}
+          item={
+            deleteType === "member"
+              ? `member ${deleteTarget}`
+              : `this invitation`
+          }
         />
       </div>
     </>

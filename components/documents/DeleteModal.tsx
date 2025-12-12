@@ -32,7 +32,11 @@ export default function ConfirmDelete({
         </DialogHeader>
 
         <DialogFooter>
-          <Button disabled={isDeleting} onClick={() => setIsOpen(false)}>
+          <Button
+            disabled={isDeleting}
+            onClick={() => setIsOpen(false)}
+            className="cursor-pointer"
+          >
             Cancel
           </Button>
 
@@ -41,6 +45,7 @@ export default function ConfirmDelete({
             variant="outline"
             onClick={() => onConfirm()}
             disabled={isDeleting}
+            className="cursor-pointer"
           >
             {isDeleting ? "Deleting..." : "Yes"}
           </Button>
