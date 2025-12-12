@@ -7,6 +7,7 @@ import { HowItWorks } from "@/components/banking/how-it-works";
 import { PricingSection } from "@/components/banking/pricing";
 import { FeaturesSection } from "@/components/banking/features-sections";
 import { AboutSection } from "@/components/banking/about-section";
+import { CTASection } from "@/components/banking/cta-section";
 
 export const metadata: Metadata = {
   title:
@@ -60,6 +61,7 @@ export default function BankHome() {
       <HowItWorks />
       <FeaturesSection />
       <PricingSection />
+      <CTASection />
       <AboutSection />
       <Footer />
     </main>

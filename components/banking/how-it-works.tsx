@@ -33,10 +33,18 @@ export function HowItWorks() {
   ];
 
   return (
-    <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <section
+      id="how-it-works"
+      className="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+    >
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808006_1px,transparent_1px),linear-gradient(to_bottom,#80808006_1px,transparent_1px)] bg-[size:24px_24px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-[#DC143C]/2 via-purple-500/2 to-[#003893]/2 rounded-full blur-3xl" />
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-balance">
+          <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-balance">
             How It Works
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto text-pretty">
@@ -47,28 +55,29 @@ export function HowItWorks() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
           {/* Connection lines for desktop */}
           <div
-            className="hidden lg:block absolute top-16 left-0 right-0 h-0.5 bg-border"
+            className="hidden lg:block absolute top-16 left-0 right-0 h-0.5 bg-gradient-to-r from-[#DC143C]/20 via-purple-500/20 to-[#003893]/20"
             style={{ width: "calc(100% - 10rem)", left: "5rem" }}
           />
 
-          {steps.map((step, index) => {
+          {steps.map((step) => {
             const Icon = step.icon;
             return (
-              <div key={index} className="relative">
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center mb-6 relative z-10">
-                    <Icon className="w-10 h-10 text-primary-foreground" />
-                  </div>
-                  <div className="text-sm font-mono text-primary font-semibold mb-2">
-                    {step.step}
-                  </div>
-                  <h3 className="font-semibold text-xl mb-3 text-balance">
-                    {step.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed text-pretty">
-                    {step.description}
-                  </p>
+              <div
+                key={step.step}
+                className="group flex flex-col items-center text-center"
+              >
+                <div className="relative z-10 w-24 h-24 rounded-full bg-gradient-to-br from-[#DC143C] to-[#003893] flex items-center justify-center mb-6 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-[#DC143C]/30 transition-all duration-300">
+                  <Icon className="w-10 h-10 text-white" />
                 </div>
+                <span className="text-sm font-medium text-[#DC143C] mb-2">
+                  {step.step}
+                </span>
+                <h3 className="text-lg font-semibold text-foreground mb-3 group-hover:text-[#003893] transition-colors duration-300">
+                  {step.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-muted-foreground max-w-[220px]">
+                  {step.description}
+                </p>
               </div>
             );
           })}

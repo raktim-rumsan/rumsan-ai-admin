@@ -14,6 +14,7 @@ import Markdown from "react-markdown";
 import { toastUtils } from "@/lib/toast-utils";
 import { ScrollArea } from "../ui/scroll-area";
 import { Textarea } from "../ui/textarea";
+import { RobotIcon } from "./chat-icon";
 
 interface ChatInterfaceProps {
   className?: string;
@@ -190,7 +191,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
         className || ""
       }`}
     >
-      <div className="mb-4 p-4 flex items-center gap-2 border-b border-border pb-4">
+      <div className="mb-2 p-4 flex items-center gap-2 border-b border-border">
         <div className="flex h-8 w-8 items-center justify-center rounded-full ">
           <Bot className="w-6 h-6" />
         </div>
@@ -205,8 +206,15 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       </div>
 
       {/* Messages */}
-      <ScrollArea ref={scrollAreaRef} className="h-80 w-full p-4 pr-2">
-        <div className="space-y-3">
+      <ScrollArea
+        ref={scrollAreaRef}
+        className="h-80 w-full pr-4 pb-4 pt-0 pl-4"
+      >
+        <div className="mt-3">
+          <div className="flex flex-col items-center gap-2">
+            <RobotIcon className="w-20 h-20 animate-bounce" />
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-12 h-2 bg-muted rounded-full blur-sm" />
+          </div>
           {messages.map((message) => (
             <div
               key={message.id}
