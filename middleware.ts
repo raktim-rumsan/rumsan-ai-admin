@@ -4,7 +4,6 @@ import { updateSession } from "@/lib/supabase/middleware";
 export async function middleware(request: NextRequest) {
   // First, handle Supabase session
   const supabaseResponse = await updateSession(request);
-
   // If Supabase middleware returned a redirect, return it
   if (supabaseResponse.status === 307 || supabaseResponse.status === 308) {
     return supabaseResponse;
