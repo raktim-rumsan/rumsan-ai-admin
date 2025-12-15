@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -24,85 +25,85 @@ import {
 } from "@/queries/workspaceSettingQuery";
 import LLMConfigurationSkeleton from "./llm-setting-loading";
 import {
-  OLLOMA_CHAT_MODELS,
-  OLLOMA_EMBEDDING_MODELS,
-  OPENAI_CHAT_MODELS,
-  OPENAI_EMBEDDING_MODELS,
   PROVIDER,
+  PROVIDER_CONFIG,
+  type ProviderConfig,
 } from "@/constants/models";
 
+interface LLMConfigFormData {
+  provider: string;
+  chatModel: string;
+  embeddingModel: string;
+  temperature: string;
+  maxTokens: string;
+  apiKey: string;
+}
+
 export default function LLMConfigPage() {
-  const [config, setConfig] = useState({
-    provider: "",
-    chatModel: "",
-    embeddingModel: "",
-    temperature: "",
-    maxTokens: "",
-    apiKey: "",
-  });
   const { data: workspaceSettings, isPending } = useWorkspaceSettingQuery();
   const updateWorkspaceSetting = useUpdateWorkspaceSetting();
-
   const { mutate: testConnection, isPending: isTesting } = useTestConnection();
 
+  const form = useForm<LLMConfigFormData>({
+    defaultValues: {
+      provider: "",
+      chatModel: "",
+      embeddingModel: "",
+      temperature: "",
+      maxTokens: "",
+      apiKey: "",
+    },
+  });
+
+  const { control, handleSubmit, watch, reset, setValue, getValues } = form;
+  const provider = watch("provider");
+
+  // Get provider configuration - returns undefined if provider not found
+  const providerConfig: ProviderConfig | undefined = provider
+    ? PROVIDER_CONFIG[provider]
+    : undefined;
+
+  // Initialize form with workspace settings
   useEffect(() => {
     if (workspaceSettings) {
-      setConfig({
+      reset({
         chatModel: workspaceSettings.data.llmModel ?? "",
         embeddingModel: workspaceSettings.data.embeddingModel ?? "",
-        temperature: workspaceSettings.data.temperature?.toString(),
-        maxTokens: workspaceSettings.data.maxTokensPerQuery?.toString(),
+        temperature: workspaceSettings.data.temperature?.toString() ?? "",
+        maxTokens: workspaceSettings.data.maxTokensPerQuery?.toString() ?? "",
         provider: workspaceSettings.data.provider,
         apiKey: workspaceSettings.data.apiKey || "",
       });
     }
-  }, [workspaceSettings]);
+  }, [workspaceSettings, reset]);
 
   useEffect(() => {
-    if (!workspaceSettings) return;
-    if (config.provider === "openai") {
-      setConfig((prev) => ({
-        ...prev,
-        chatModel:
-          workspaceSettings?.data.provider === "openai"
-            ? workspaceSettings?.data.llmModel
-            : "gpt-4.1-2025-04-14",
-        embeddingModel:
-          workspaceSettings?.data.provider === "openai"
-            ? workspaceSettings?.data.embeddingModel
-            : "text-embedding-3-small",
-      }));
-    } else if (config.provider === "ollama") {
-      setConfig((prev) => ({
-        ...prev,
-        chatModel:
-          workspaceSettings?.data.provider === "ollama"
-            ? workspaceSettings?.data.llmModel
-            : "llama3.1:latest",
-        embeddingModel:
-          workspaceSettings?.data.provider === "ollama"
-            ? workspaceSettings?.data.embeddingModel
-            : "nomic-embed-text:latest",
-      }));
-    }
-  }, [config.provider]);
+    if (!workspaceSettings || !provider || !providerConfig) return;
 
-  const availableChatModels =
-    config.provider === "openai" ? OPENAI_CHAT_MODELS : OLLOMA_CHAT_MODELS;
+    const isSameProvider = workspaceSettings.data.provider === provider;
+    const chatModel = isSameProvider
+      ? workspaceSettings.data.llmModel ?? ""
+      : providerConfig.defaultChatModel;
+    const embeddingModel = isSameProvider
+      ? workspaceSettings.data.embeddingModel ?? ""
+      : providerConfig.defaultEmbeddingModel;
 
-  const availableEmbeddingModels =
-    config.provider === "openai"
-      ? OPENAI_EMBEDDING_MODELS
-      : OLLOMA_EMBEDDING_MODELS;
+    setValue("chatModel", chatModel);
+    setValue("embeddingModel", embeddingModel);
+  }, [provider, workspaceSettings, setValue, providerConfig]);
 
-  const handleSave = async () => {
+  // Get available models from provider config
+  const availableChatModels = providerConfig?.chatModels ?? [];
+  const availableEmbeddingModels = providerConfig?.embeddingModels ?? [];
+
+  const onSubmit = (data: LLMConfigFormData) => {
     updateWorkspaceSetting.mutate({
-      provider: config.provider,
-      llmModel: config.chatModel,
-      embeddingModel: config.embeddingModel,
-      maxTokensPerQuery: Number(config.maxTokens),
-      temperature: parseFloat(config.temperature),
-      apiKey: config.apiKey,
+      provider: data.provider,
+      llmModel: data.chatModel,
+      embeddingModel: data.embeddingModel,
+      maxTokensPerQuery: Number(data.maxTokens),
+      temperature: parseFloat(data.temperature),
+      apiKey: data.apiKey,
     });
   };
 
@@ -125,23 +126,24 @@ export default function LLMConfigPage() {
                 <Label htmlFor="provider" className="text-base font-semibold">
                   AI Provider
                 </Label>
-                <Select
-                  value={config.provider}
-                  onValueChange={(provider) =>
-                    setConfig((prev) => ({ ...prev, provider }))
-                  }
-                >
-                  <SelectTrigger id="provider" className="h-12 w-full">
-                    <SelectValue placeholder="Select provider" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PROVIDER.map((p) => (
-                      <SelectItem key={p.value} value={p.value}>
-                        {p.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="provider"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id="provider" className="h-12 w-full">
+                        <SelectValue placeholder="Select provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PROVIDER.map((p) => (
+                          <SelectItem key={p.value} value={p.value}>
+                            {p.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
                 <p className="text-sm text-gray-500">
                   Select the AI provider for this workspace
                 </p>
@@ -162,23 +164,30 @@ export default function LLMConfigPage() {
                     >
                       Chat Model
                     </Label>
-                    <Select
-                      value={config.chatModel}
-                      onValueChange={(value) =>
-                        setConfig((prev) => ({ ...prev, chatModel: value }))
-                      }
-                    >
-                      <SelectTrigger id="chat-model" className="h-12 w-full">
-                        <SelectValue placeholder="Select chat model" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableChatModels.map((m) => (
-                          <SelectItem key={m.value} value={m.value}>
-                            {m.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      name="chatModel"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger
+                            id="chat-model"
+                            className="h-12 w-full"
+                          >
+                            <SelectValue placeholder="Select chat model" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableChatModels.map((m) => (
+                              <SelectItem key={m.value} value={m.value}>
+                                {m.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </div>
 
                   {/* Embedding Model */}
@@ -189,29 +198,30 @@ export default function LLMConfigPage() {
                     >
                       Embedding Model
                     </Label>
-                    <Select
-                      value={config.embeddingModel}
-                      onValueChange={(value) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          embeddingModel: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger
-                        id="embedding-model"
-                        className="h-12 w-full"
-                      >
-                        <SelectValue placeholder="Select embedding model" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableEmbeddingModels.map((m) => (
-                          <SelectItem key={m.value} value={m.value}>
-                            {m.value}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      name="embeddingModel"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger
+                            id="embedding-model"
+                            className="h-12 w-full"
+                          >
+                            <SelectValue placeholder="Select embedding model" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableEmbeddingModels.map((m) => (
+                              <SelectItem key={m.value} value={m.value}>
+                                {m.value}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </div>
                 </div>
               </div>
@@ -237,13 +247,7 @@ export default function LLMConfigPage() {
                       step="0.1"
                       min="0"
                       max="2"
-                      value={config.temperature}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          temperature: e.target.value,
-                        }))
-                      }
+                      {...form.register("temperature")}
                       className="h-12"
                     />
                     <p className="text-sm text-gray-500">
@@ -262,13 +266,7 @@ export default function LLMConfigPage() {
                     <Input
                       id="max-tokens"
                       type="number"
-                      value={config.maxTokens}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          maxTokens: e.target.value,
-                        }))
-                      }
+                      {...form.register("maxTokens")}
                       className="h-12"
                     />
                     <p className="text-sm text-gray-500">
@@ -280,28 +278,25 @@ export default function LLMConfigPage() {
 
               {/* API Key*/}
               <div>
-                {config.provider === "openai" && (
+                {providerConfig?.requiresApiKey && (
                   <div className="space-y-3">
                     <Label
                       htmlFor="api-key"
                       className="text-base font-semibold"
                     >
-                      OpenAI API Key
+                      {providerConfig.apiKeyLabel || "API Key"}
                     </Label>
                     <Input
                       id="api-key"
                       type="password"
-                      value={config.apiKey}
-                      onChange={(e) =>
-                        setConfig((prev) => ({
-                          ...prev,
-                          apiKey: e.target.value,
-                        }))
-                      }
+                      {...form.register("apiKey")}
                       className="h-12 w-full"
                     />
                     <p className="text-sm text-gray-500">
-                      Enter your OpenAI API key to enable OpenAI services.
+                      Enter your API key to enable{" "}
+                      {PROVIDER.find((p) => p.value === provider)?.label ||
+                        "provider"}{" "}
+                      services.
                     </p>
                   </div>
                 )}
@@ -309,7 +304,7 @@ export default function LLMConfigPage() {
               {/* Action Buttons */}
               <div className="flex gap-4 pt-4">
                 <Button
-                  onClick={handleSave}
+                  onClick={handleSubmit(onSubmit)}
                   disabled={updateWorkspaceSetting.isPending}
                   className="h-12 px-8"
                   size="lg"
@@ -319,9 +314,11 @@ export default function LLMConfigPage() {
                     : "Save Configuration"}
                 </Button>
 
-                {config.provider === "openai" ? (
+                {providerConfig?.requiresApiKey ? (
                   <Button
-                    onClick={() => testConnection({ apiKey: config.apiKey })}
+                    onClick={() =>
+                      testConnection({ apiKey: form.getValues("apiKey") })
+                    }
                     disabled={isTesting}
                     variant="outline"
                     className="h-12 px-8 bg-transparent"
