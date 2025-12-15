@@ -53,7 +53,7 @@ const solutionCards = [
 
 export function UseCasesSection() {
   return (
-    <section className="relative py-24 overflow-hidden">
+    <section id="use-cases" className="relative py-24 overflow-hidden">
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-[#DC143C]/5 via-purple-500/5 to-[#003893]/5 rounded-full blur-3xl" />
