@@ -1,4 +1,3 @@
-"use client";
 import IntegrationsContent from "./integration-content";
 import { integrationItem } from "./integration-constant";
 import { Layers, Sparkles } from "lucide-react";
