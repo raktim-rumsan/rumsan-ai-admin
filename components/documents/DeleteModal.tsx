@@ -11,7 +11,7 @@ import {
 type DeleteProps = {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: (id?: string) => void;
   item: string;
   isDeleting?: boolean;
 };
@@ -28,19 +28,24 @@ export default function ConfirmDelete({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete</DialogTitle>
-          <DialogDescription>{`Are you sure you want to delete "${item}"? This action cannot be undone.`}</DialogDescription>
+          <DialogDescription>{`Are you sure you want to delete ${item}? This action cannot be undone.`}</DialogDescription>
         </DialogHeader>
 
         <DialogFooter>
-          <Button disabled={isDeleting} onClick={() => setIsOpen(false)}>
+          <Button
+            disabled={isDeleting}
+            onClick={() => setIsOpen(false)}
+            className="cursor-pointer"
+          >
             Cancel
           </Button>
 
           <Button
             type="button"
             variant="outline"
-            onClick={onConfirm}
+            onClick={() => onConfirm()}
             disabled={isDeleting}
+            className="cursor-pointer"
           >
             {isDeleting ? "Deleting..." : "Yes"}
           </Button>
