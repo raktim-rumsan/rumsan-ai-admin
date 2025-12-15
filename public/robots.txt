@@ -13,11 +13,9 @@ Disallow: /onboarding/
 Disallow: /accept-invitation/
 Disallow: /invitation-pending/
 Disallow: /widget/
-
-# Allow landing pages for SEO
-Allow: /home
-Allow: /banking
-Allow: /veterinary
+Disallow: /home
+Disallow: /banking
+Disallow: /veterinary
 
 # Crawl-delay (optional, adjust as needed)
 # Crawl-delay: 1

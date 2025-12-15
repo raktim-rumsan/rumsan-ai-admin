@@ -28,7 +28,7 @@ import Image from "next/image";
 
 const config = {
   quality: 0.7,
-  maxWidth: 200,
+  maxWidth: 520,
   maxHeight: 200,
   autoRotate: true,
   debug: false,

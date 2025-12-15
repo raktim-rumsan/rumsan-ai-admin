@@ -74,7 +74,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center px-4 py-4 border-b border-gray-200">
+          <div className="flex items-center px-4 py-6 border-b border-gray-200">
             <Link
               href="/dashboard"
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
@@ -127,9 +127,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 className="w-full h-auto object-contain rounded-md"
               />
             ) : (
-              <span className="text-gray-500 text-sm font-medium">
-                No image uploaded
-              </span>
+              ""
             )}
           </div>
         </div>
