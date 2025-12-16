@@ -111,20 +111,20 @@ export function MainHeader({
 
           {/* Workspace Image */}
           {shouldShowWorkspaceLogo && (
-            <div className="flex justify-center">
+            <div className="flex items-center justify-center h-20 px-4">
               {isLoading ? (
-                <Skeleton className="w-[250px] h-[76px] mb-[4px] rounded-md" />
+                <Skeleton className="w-[250px] h-[76px] rounded-md" />
               ) : workspaceImageUrl ? (
                 <Image
                   width={250}
                   height={40}
                   src={workspaceImageUrl}
                   alt="Workspace Logo"
-                  className="w-[250px] h-[80px] object-contain rounded-md"
+                  className="w-[250px] h-20 object-contain rounded-md"
                 />
               ) : (
-                <div className="inline-flex items-center gap-3 rounded-2xl bg-gradient-to-br from-slate-50 via-white to-blue-50 px-3 py-2 text-slate-900 shadow-sm ring-1 ring-blue-100">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-sm ring-2 ring-blue-200">
+                <div className="inline-flex items-center gap-3 rounded-2xl bg-linear-to-br from-slate-50 via-white to-blue-50 px-4 py-2 text-slate-900 shadow-sm ring-1 ring-blue-100">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-sm ring-2 ring-blue-200">
                     <span className="text-lg font-bold leading-none">
                       {workspaceInitial}
                     </span>
