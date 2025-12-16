@@ -22,7 +22,7 @@ export const integrationItem = {
       category: "service",
       content:
         "Keep your team connected with real-time messaging, notifications, and seamless collaboration across all your tools.",
-      isAvailable: false,
+      isAvailable: true,
       component: <SlackIntegrationGuide />,
     },
     {
