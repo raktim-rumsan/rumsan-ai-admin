@@ -1,5 +1,10 @@
 import { ROUTES } from "@/constants";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  UseMutationResult,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { getAuthToken, getWorkspaceId, orgContext } from "@/lib/utils";
 import { toastUtils } from "@/lib/toast-utils";
 import { useCreateApiKey } from "./apiKeysQuery";
@@ -55,6 +60,17 @@ export type CreateInvitationPayload = {
   email: string;
   role: string;
 };
+export interface UploadResponse {
+  data: {
+    url: string;
+    message: string;
+  };
+}
+export interface RemoveImageResponse {
+  data: {
+    message: string;
+  };
+}
 
 export interface WorkspacesResponse {
   data: {
@@ -320,7 +336,7 @@ export function useWorkspaceMemberQuery(workspaceId: string) {
 export function useImageUploadMutation(
   workspaceId: string,
   onSuccess?: () => void
-) {
+): UseMutationResult<UploadResponse, Error, File> {
   console.log(workspaceId, "workspaceId in useImageUploadMutation");
   const queryClient = useQueryClient();
 
@@ -355,7 +371,9 @@ export function useImageUploadMutation(
   });
 }
 
-export function removeWorkspaceImage(onSuccess?: () => void) {
+export function removeWorkspaceImage(
+  onSuccess?: () => void
+): UseMutationResult<RemoveImageResponse, Error, string> {
   const queryClient = useQueryClient();
 
   return useMutation({

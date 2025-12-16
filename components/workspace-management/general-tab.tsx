@@ -53,7 +53,7 @@ export default function GeneralTab() {
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
   // Find the workspace from the query
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
-    (w: any) => w.id === workspaceId
+    (w) => w.id === workspaceId
   );
   const updateWorkspace = useUpdateWorkspace();
   const deleteWorkspace = useDeleteWorkspaceMutation();

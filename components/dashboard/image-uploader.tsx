@@ -4,12 +4,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2, Upload, Cloud } from "lucide-react";
 import { readAndCompressImage } from "browser-image-resizer";
-import {
-  getBackendFileUrl,
-  removeOrganizationLogo,
-  useLogoUploadMutation,
-  useOrganizationById,
-} from "@/queries/organizationQuery";
+
 import { toastUtils } from "@/lib/toast-utils";
 import { Card } from "@/components/ui/card";
 import { useOrganizationContext } from "@/hooks/useOrganizationContext";
@@ -25,6 +20,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Image from "next/image";
+import { RemoveImageResponse, UploadResponse } from "@/queries/workspaceQuery";
 
 const config = {
   quality: 0.7,
@@ -36,8 +32,24 @@ const config = {
 
 interface ImageUploaderProps {
   currentImageUrl?: string;
-  uploadMutation: any;
-  removeMutation: any;
+  uploadMutation: {
+    mutate: (
+      file: File,
+      options: {
+        onSuccess: (response: UploadResponse) => void;
+        onError: (error: unknown) => void;
+      }
+    ) => void;
+  };
+  removeMutation: {
+    mutate: (
+      id: string,
+      options: {
+        onSuccess: (response: RemoveImageResponse) => void;
+        onError: (error: unknown) => void;
+      }
+    ) => void;
+  };
   deleteId: string;
 }
 
@@ -85,17 +97,16 @@ export default function LogoUploader({
     });
 
     uploadMutation.mutate(fileToUpload, {
-      onSuccess: async (response: any) => {
+      onSuccess: async (response) => {
         // Try to read backend message from common locations
-        const msg =
-          response?.data?.message ?? response?.message ?? "Logo uploaded";
+        const msg = response?.data?.message ?? "Logo uploaded";
         toastUtils.generic.success("Upload successful", msg);
         await orgContext.refetch();
         setPreviewImage(null);
         setCompressedBlob(null);
         setSelectedFile(null);
       },
-      onError: (err: unknown) => {
+      onError: (err) => {
         const msg = err instanceof Error ? err.message : "Upload failed";
         toastUtils.generic.error("Upload failed", msg);
       },
@@ -105,13 +116,12 @@ export default function LogoUploader({
   // Remove logo
   const handleRemoveLogo = () => {
     removeMutation.mutate(deleteId, {
-      onSuccess: async (response: any) => {
-        const msg =
-          response?.data?.message ?? response?.message ?? "Logo removed";
+      onSuccess: async (response) => {
+        const msg = response?.data?.message ?? "Logo removed";
         toastUtils.generic.success("Logo removed", msg);
         await orgContext.refetch();
       },
-      onError: (err: unknown) => {
+      onError: (err) => {
         const msg = err instanceof Error ? err.message : "Remove failed";
         toastUtils.generic.error("Remove failed", msg);
       },
