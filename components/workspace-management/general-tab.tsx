@@ -58,8 +58,6 @@ export default function GeneralTab() {
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
     (w: any) => w.slug === workspaceId
   );
-  const updateWorkspace = useUpdateWorkspace();
-  const deleteWorkspace = useDeleteWorkspaceMutation();
   const uploadMutation = useImageUploadMutation(workspaceId as string);
   const removeMutation = removeWorkspaceImage();
 
