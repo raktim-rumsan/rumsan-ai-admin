@@ -21,7 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  removeWorkspaceImage,
   useDeleteWorkspaceMutation,
+  useImageUploadMutation,
   useUpdateWorkspace,
   useWorkspaceQuery,
 } from "@/queries/workspaceQuery";
@@ -40,6 +42,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import LogoUploader from "../dashboard/image-uploader";
+import { getBackendFileUrl } from "@/queries/organizationQuery";
 
 export default function GeneralTab() {
   const { id: workspaceId } = useParams();
@@ -47,13 +51,19 @@ export default function GeneralTab() {
   const [isPending, startTransition] = useTransition();
 
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
-  const updateWorkspace = useUpdateWorkspace();
-  const deleteWorkspace = useDeleteWorkspaceMutation();
-
   // Find the workspace from the query
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
-    (w: any) => w.id === workspaceId
+    (w) => w.id === workspaceId
   );
+  const updateWorkspace = useUpdateWorkspace();
+  const deleteWorkspace = useDeleteWorkspaceMutation();
+  const uploadMutation = useImageUploadMutation(workspaceId as string);
+  const removeMutation = removeWorkspaceImage();
+
+  const currentImageUrl = currentWorkspace?.url
+    ? getBackendFileUrl(currentWorkspace?.url)!
+    : null;
+
   // Local state only tracks user edits
   const [name, setName] = useState<string>();
   const [description, setDescription] = useState<string>();
@@ -120,9 +130,8 @@ export default function GeneralTab() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* Workspace Name */}
-                <div className="space-y-3 col-span-2">
+              <div className="grid gap-6">
+                <div className="space-y-2">
                   <Label
                     htmlFor="workspace-name"
                     className="text-base font-medium"
@@ -140,49 +149,70 @@ export default function GeneralTab() {
                   </p>
                 </div>
 
-                {/* Bot Name */}
-                <div className="space-y-3">
-                  <Label htmlFor="bot-name" className="text-base font-medium">
-                    Bot Name
-                  </Label>
-                  <Input
-                    id="bot-name"
-                    value={workspaceBotName}
-                    onChange={(e) => setBotName(e.target.value)}
-                    className="h-12 w-full"
-                  />
-                  <p className="text-sm text-gray-500">
-                    Name used by the assistant/chatbot in this workspace.
-                  </p>
+                {/* LEFT: Bot Name + Sector | RIGHT: Uploader */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* LEFT COLUMN */}
+                  <div className="space-y-6">
+                    {/* Bot Name */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="bot-name"
+                        className="text-base font-medium"
+                      >
+                        Bot Name
+                      </Label>
+                      <Input
+                        id="bot-name"
+                        value={workspaceBotName}
+                        onChange={(e) => setBotName(e.target.value)}
+                        className="h-12 w-full"
+                      />
+                      <p className="text-sm text-gray-500">
+                        Name used by the assistant/chatbot in this workspace.
+                      </p>
+                    </div>
+
+                    {/* Sector */}
+                    <div className="space-y-2">
+                      <Label htmlFor="sector" className="text-base font-medium">
+                        Workspace Sector
+                      </Label>
+                      <Select
+                        value={workspaceSector}
+                        onValueChange={(v) => setSector(v)}
+                      >
+                        <SelectTrigger id="sector" className="h-12 w-full">
+                          <SelectValue placeholder="Select a sector" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SECTORS.map((s) => (
+                            <SelectItem key={s.value} value={s.value}>
+                              {s.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-sm text-gray-500">
+                        Choose the sector to help tailor defaults and datasets.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* RIGHT COLUMN: Logo uploader */}
+                  <div className="flex items-start justify-center">
+                    <div className="w-full max-w-xs sm:max-w-sm">
+                      <LogoUploader
+                        currentImageUrl={currentImageUrl!}
+                        uploadMutation={uploadMutation}
+                        removeMutation={removeMutation}
+                        deleteId={workspaceId as string}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Workspace Sector */}
-                <div className="space-y-3">
-                  <Label htmlFor="sector" className="text-base font-medium">
-                    Workspace Sector
-                  </Label>
-                  <Select
-                    value={workspaceSector}
-                    onValueChange={(v) => setSector(v)}
-                  >
-                    <SelectTrigger id="sector" className="h-12 w-full">
-                      <SelectValue placeholder="Select a sector" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SECTORS.map((sector) => (
-                        <SelectItem key={sector.value} value={sector.value}>
-                          {sector.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-sm text-gray-500">
-                    Choose the sector to help tailor defaults and datasets.
-                  </p>
-                </div>
-
-                {/* Workspace Description */}
-                <div className="space-y-3 col-span-2">
+                {/* FULL WIDTH: Description */}
+                <div className="space-y-2">
                   <Label
                     htmlFor="workspace-description"
                     className="text-base font-medium"
@@ -200,13 +230,13 @@ export default function GeneralTab() {
                     Short description of the workspace purpose (optional).
                   </p>
                 </div>
-              </div>
 
-              {/* Save Button */}
-              <div className="flex gap-4 pt-6">
-                <Button onClick={handleSave} className="h-12 px-8">
-                  Save Changes
-                </Button>
+                {/* Save Button */}
+                <div className="flex gap-4 pt-6">
+                  <Button onClick={handleSave} className="h-12 px-8">
+                    Save Changes
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

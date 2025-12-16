@@ -21,6 +21,11 @@ export const ROUTES = {
     `${API_BASE_URL}/workspaces/${workspaceId}/remove-user`,
   DELETE_WORKSPACE: (workspaceId: string) =>
     `${API_BASE_URL}/workspaces/${workspaceId}`,
+  WORKSPACE_IMAGE_UPLOAD: (workspaceId: string) =>
+    `${API_BASE_URL}/workspaces/${workspaceId}/photo`,
+  WORKSPACE_IMAGE_REMOVE: (workspaceId: string) =>
+    `${API_BASE_URL}/workspaces/${workspaceId}/remove-image`,
+
   //organization routes
   ORGANIZATIONS: `${API_BASE_URL}/organizations`,
   ORGANIZATION_CONTEXT: `${API_BASE_URL}/organizations/context`,

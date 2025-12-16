@@ -4,12 +4,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2, Upload, Cloud } from "lucide-react";
 import { readAndCompressImage } from "browser-image-resizer";
-import {
-  getBackendFileUrl,
-  removeOrganizationLogo,
-  useLogoUploadMutation,
-  useOrganizationById,
-} from "@/queries/organizationQuery";
+
 import { toastUtils } from "@/lib/toast-utils";
 import { Card } from "@/components/ui/card";
 import { useOrganizationContext } from "@/hooks/useOrganizationContext";
@@ -24,33 +19,54 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import Image from "next/image";
+import { RemoveImageResponse, UploadResponse } from "@/queries/workspaceQuery";
 
 const config = {
   quality: 0.7,
-  maxWidth: 200,
+  maxWidth: 520,
   maxHeight: 200,
   autoRotate: true,
   debug: false,
 };
 
-export default function LogoUploader() {
+interface ImageUploaderProps {
+  currentImageUrl?: string;
+  uploadMutation: {
+    mutate: (
+      file: File,
+      options: {
+        onSuccess: (response: UploadResponse) => void;
+        onError: (error: unknown) => void;
+      }
+    ) => void;
+  };
+  removeMutation: {
+    mutate: (
+      id: string,
+      options: {
+        onSuccess: (response: RemoveImageResponse) => void;
+        onError: (error: unknown) => void;
+      }
+    ) => void;
+  };
+  deleteId: string;
+}
+
+export default function LogoUploader({
+  currentImageUrl,
+  uploadMutation,
+  removeMutation,
+  deleteId,
+}: ImageUploaderProps) {
   const [compressedBlob, setCompressedBlob] = useState<Blob | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const orgConetxt = useOrganizationContext();
-  const orgId = orgConetxt.primaryOrganization?.id || "";
-
-  const { data: organizationDataById } = useOrganizationById();
-  const logoUploadMutation = useLogoUploadMutation();
-  const removeOrgLogMutation = removeOrganizationLogo();
+  const orgContext = useOrganizationContext();
 
   // Dynamically compute which image to display: preview or backend
-  const displayImage =
-    previewImage ??
-    (organizationDataById?.data?.url
-      ? getBackendFileUrl(organizationDataById.data.url)
-      : null);
+  const displayImage = previewImage ?? currentImageUrl ?? null;
 
   // Handle file selection and compression
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,17 +96,17 @@ export default function LogoUploader() {
       type: compressedBlob.type,
     });
 
-    logoUploadMutation.mutate(fileToUpload, {
-      onSuccess: (response) => {
+    uploadMutation.mutate(fileToUpload, {
+      onSuccess: async (response) => {
         // Try to read backend message from common locations
-        const msg =
-          response?.data?.message ?? response?.message ?? "Logo uploaded";
+        const msg = response?.data?.message ?? "Logo uploaded";
         toastUtils.generic.success("Upload successful", msg);
+        await orgContext.refetch();
         setPreviewImage(null);
         setCompressedBlob(null);
         setSelectedFile(null);
       },
-      onError: (err: unknown) => {
+      onError: (err) => {
         const msg = err instanceof Error ? err.message : "Upload failed";
         toastUtils.generic.error("Upload failed", msg);
       },
@@ -99,13 +115,13 @@ export default function LogoUploader() {
 
   // Remove logo
   const handleRemoveLogo = () => {
-    removeOrgLogMutation.mutate(orgId, {
-      onSuccess: (response) => {
-        const msg =
-          response?.data?.message ?? response?.message ?? "Logo removed";
+    removeMutation.mutate(deleteId, {
+      onSuccess: async (response) => {
+        const msg = response?.data?.message ?? "Logo removed";
         toastUtils.generic.success("Logo removed", msg);
+        await orgContext.refetch();
       },
-      onError: (err: unknown) => {
+      onError: (err) => {
         const msg = err instanceof Error ? err.message : "Remove failed";
         toastUtils.generic.error("Remove failed", msg);
       },
@@ -121,9 +137,11 @@ export default function LogoUploader() {
         role="button"
         aria-label="Select logo"
       >
-        <div className="w-24 h-24 rounded-full overflow-hidden bg-white flex items-center justify-center border">
+        <div className="overflow-hidden bg-white flex items-center justify-center border">
           {displayImage ? (
-            <img
+            <Image
+              width={200}
+              height={200}
               src={displayImage}
               alt="Logo"
               className="w-full h-full object-cover"
@@ -149,7 +167,7 @@ export default function LogoUploader() {
               >
                 Confirm Upload
               </Button>
-            ) : organizationDataById?.data?.url ? (
+            ) : currentImageUrl ? (
               // Show Change if there's already a backend logo
               <Button
                 variant="outline"
@@ -200,7 +218,7 @@ export default function LogoUploader() {
                   <Button
                     variant="ghost"
                     className="w-full h-12 rounded-none flex items-center justify-center gap-2"
-                    disabled={!organizationDataById?.data?.url}
+                    disabled={!currentImageUrl}
                   >
                     <Trash2 className="w-4 h-4" />
                     Remove
@@ -210,8 +228,8 @@ export default function LogoUploader() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Confirm Removal</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to remove the organization logo?
-                      This action cannot be undone.
+                      Are you sure you want to remove the logo? This action
+                      cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

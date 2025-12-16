@@ -8,6 +8,8 @@ export interface Organization {
   id: string;
   name: string;
   slug: string;
+  sector: string | null;
+  url: string | null;
   role: string;
   isOwner: boolean;
   joinedAt: string;
@@ -17,6 +19,7 @@ export interface Workspace {
   id: string;
   name: string;
   sector: string | null;
+  url: string | null;
   slug: string;
   description: string;
   role: string;

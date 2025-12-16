@@ -237,6 +237,8 @@ const OrganizationContextSchema = z.object({
           id: z.string(),
           name: z.string(),
           slug: z.string(),
+          sector: z.string().nullable(),
+          url: z.string().nullable(),
           role: z.string(),
           isOwner: z.boolean(),
           joinedAt: z.string(),

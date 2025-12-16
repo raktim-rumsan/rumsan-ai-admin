@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ChatMessage,
   clearChatHistory,
-  saveChatHistory,
+  // saveChatHistory,
   useChatIndustryMutation,
 } from "@/queries/chatQuery";
 import Markdown from "react-markdown";
@@ -93,7 +93,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
       const finalMessages = [...newMessages, assistantMessage];
       setMessages(finalMessages);
-      saveChatHistory(finalMessages);
+      // saveChatHistory(finalMessages);
     } catch (error) {
       console.error("Chat error:", error);
 
@@ -112,7 +112,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
       const finalMessages = [...newMessages, errorMessage];
       setMessages(finalMessages);
-      saveChatHistory(finalMessages);
+      // saveChatHistory(finalMessages);
     } finally {
       setIsLoading(false);
     }
@@ -151,7 +151,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       const finalMessages = [...newMessages, assistantMessage];
       setMessages(finalMessages);
 
-      saveChatHistory(finalMessages);
+      // saveChatHistory(finalMessages);
       // toastUtils.generic.success("Response received");
     } catch (error) {
       console.error("Chat error:", error);
@@ -171,7 +171,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
       const finalMessages = [...newMessages, errorMessage];
       setMessages(finalMessages);
-      saveChatHistory(finalMessages);
+      // saveChatHistory(finalMessages);
     } finally {
       setIsLoading(false);
     }

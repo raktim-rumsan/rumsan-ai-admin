@@ -9,16 +9,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { clearChatHistory } from "@/queries/chatQuery";
 import DashboardLoader from "./dashboard-loading";
 
 export default function WorkspaceSelectorPage() {
   const router = useRouter();
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
 
-  useEffect(() => {
-    localStorage.removeItem("workspaceId");
-  }, []);
+  localStorage.removeItem("workspaceId");
+  clearChatHistory();
 
   return (
     <>
