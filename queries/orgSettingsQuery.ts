@@ -23,22 +23,19 @@ export interface UpdateSystemPromptPayload {
 }
 
 // Get organization settings
-export const useOrgSettings = () => {
-  const workspaceId =
-    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
-
+export const useOrgSettings = (workspaceSlug?: string) => {
   return useQuery({
-    queryKey: ["orgSettings", workspaceId],
+    queryKey: ["orgSettings", workspaceSlug],
     queryFn: async (): Promise<OrgSettings> => {
       const accessToken = getAuthToken();
-      if (!accessToken || !workspaceId) {
+      if (!accessToken || !workspaceSlug) {
         throw new Error("Missing authentication credentials");
       }
       const response = await fetch(ROUTES.WORKSPACE_SETTING, {
         method: "GET",
         headers: {
           accept: "*/*",
-          "x-tenant-id": workspaceId,
+          "x-tenant-id": workspaceSlug,
           access_token: accessToken,
         },
       });
@@ -50,29 +47,25 @@ export const useOrgSettings = () => {
       const data: OrgSettingsResponse = await response.json();
       return data.data;
     },
-    enabled: typeof window !== "undefined" && !!workspaceId, // Only run on client-side when workspaceId exists
+    enabled: !!workspaceSlug, // Only run when workspaceSlug exists
   });
 };
 
 // Update system prompt
-export const useUpdateSystemPrompt = () => {
+export const useUpdateSystemPrompt = (workspaceSlug?: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (payload: UpdateSystemPromptPayload): Promise<void> => {
       const accessToken = getAuthToken();
-      const workspaceId =
-        typeof window !== "undefined"
-          ? localStorage.getItem("workspaceId")
-          : null;
-      if (!accessToken || !workspaceId) {
+      if (!accessToken || !workspaceSlug) {
         throw new Error("Missing authentication credentials");
       }
       const response = await fetch(ROUTES.SETTING_SYSTEM_PROMT, {
         method: "POST",
         headers: {
           accept: "*/*",
-          "x-tenant-id": workspaceId,
+          "x-tenant-id": workspaceSlug,
           access_token: accessToken,
           "Content-Type": "application/json",
         },

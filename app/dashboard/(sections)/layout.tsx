@@ -7,6 +7,7 @@ import { ProtectedStoreInitializer } from "@/components/layout/ProtectedStoreIni
 import type React from "react";
 
 import { useState } from "react";
+import { useParams } from "next/navigation";
 
 interface SectionsLayoutProps {
   children: React.ReactNode;
@@ -15,6 +16,8 @@ interface SectionsLayoutProps {
 export default function SectionsLayout({ children }: SectionsLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(true);
+  const params = useParams();
+  const workSpaceSlug = params?.workSpaceSlug as string;
 
   const handleChatButtonClick = () => setChatOpen(true);
   const handleChatClose = () => setChatOpen(false);
@@ -36,6 +39,7 @@ export default function SectionsLayout({ children }: SectionsLayoutProps) {
             chatOpen={chatOpen}
             onChatOpen={handleChatButtonClick}
             onChatClose={handleChatClose}
+            workspaceSlug={workSpaceSlug}
           >
             <main className="h-full overflow-auto p-6">{children}</main>
           </ChatbotPreview>

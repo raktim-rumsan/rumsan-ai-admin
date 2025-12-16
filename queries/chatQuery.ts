@@ -44,16 +44,16 @@ export interface ChatQueryResponse {
 
 // Function to send a chat query to the RAG API
 async function sendChatQuery(
-  request: ChatQueryRequest
+  request: ChatQueryRequest,
+  workspaceSlug?: string
 ): Promise<ChatQueryResponse> {
   const token = getAuthToken();
-  const workspaceId = localStorage.getItem("workspaceId");
 
   if (!token) {
     throw new Error("No authentication token found");
   }
 
-  if (!workspaceId) {
+  if (!workspaceSlug) {
     throw new Error("No tenant ID found");
   }
 
@@ -61,7 +61,7 @@ async function sendChatQuery(
     method: "POST",
     headers: {
       accept: "application/json",
-      "x-tenant-id": workspaceId,
+      "x-tenant-id": workspaceSlug,
       access_token: token,
       "Content-Type": "application/json",
     },
@@ -89,9 +89,10 @@ async function sendChatQuery(
 }
 
 // Mutation hook for sending chat messages
-export function useChatMutation() {
+export function useChatMutation(workspaceSlug?: string) {
   return useMutation({
-    mutationFn: sendChatQuery,
+    mutationFn: (request: ChatQueryRequest) =>
+      sendChatQuery(request, workspaceSlug),
     onError: (error: Error) => {
       console.error("Chat query error:", error);
     },

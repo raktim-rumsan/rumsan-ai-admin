@@ -18,26 +18,29 @@ import {
 } from "@/queries/chatQuery";
 import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 
-export function ResizableChatPanel({ onClose }: { onClose?: () => void }) {
+export function ResizableChatPanel({
+  onClose,
+  workspaceSlug,
+}: {
+  onClose?: () => void;
+  workspaceSlug?: string;
+}) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasHydratedFromStorage = useRef(false);
-  const chatMutation = useChatMutation();
+  const chatMutation = useChatMutation(workspaceSlug);
   const { data: storedMessages } = useChatHistory();
   const queryClient = useQueryClient();
   const { data: workspacesData, isLoading: isLoadingWorkspace } =
     useWorkspaceQuery();
 
-  // Get workspace bot name from localStorage slug
-  const workspaceSlug =
-    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
+  // Get workspace bot name from slug
   const currentWorkspace = workspacesData?.data?.myWorkspaces?.find(
     (ws) => ws.slug === workspaceSlug
   );
   const botName = currentWorkspace?.botName || "Rumsan AI";
-
   const createWelcomeMessageWithBotName = useCallback(
     (): ChatMessage => ({
       id: "welcome",

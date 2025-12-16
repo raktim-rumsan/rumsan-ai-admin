@@ -5,23 +5,22 @@ import { ROUTES } from "@/constants";
 import { toastUtils } from "@/lib/toast-utils";
 import { Doc } from "@/types/workspace-types";
 
-export function useDocUploadMutation(onSuccess?: () => void) {
+export function useDocUploadMutation(
+  workspaceSlug?: string,
+  onSuccess?: () => void
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
-      const workspaceId =
-        typeof window !== "undefined"
-          ? localStorage.getItem("workspaceId")
-          : null;
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.UPLOAD_DOCUMENTS, {
         method: "POST",
         body: formData,
         headers: {
-          "x-tenant-id": workspaceId || "",
+          "x-tenant-id": workspaceSlug || "",
           access_token: access_token || "",
         },
       });
@@ -42,18 +41,15 @@ export function useDocUploadMutation(onSuccess?: () => void) {
   });
 }
 
-export function useDocsQuery() {
-  const workspaceId =
-    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
-
+export function useDocsQuery(workspaceSlug?: string) {
   return useQuery({
-    queryKey: ["documents", workspaceId],
+    queryKey: ["documents", workspaceSlug],
     queryFn: async () => {
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.DOCUMENTS, {
         method: "GET",
         headers: {
-          "x-tenant-id": workspaceId || "",
+          "x-tenant-id": workspaceSlug || "",
           access_token: access_token || "",
           accept: "application/json",
         },
@@ -70,18 +66,20 @@ export function useDocsQuery() {
   });
 }
 
-export function useDocDeleteMutation(onSuccess?: () => void) {
+export function useDocDeleteMutation(
+  workspaceSlug?: string,
+  onSuccess?: () => void
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (documentId: string) => {
-      const workspaceId = localStorage.getItem("workspaceId");
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.DELETE_DOCUMENT(documentId), {
         method: "DELETE",
         headers: {
           accept: "application/json",
-          "x-tenant-id": workspaceId || "",
+          "x-tenant-id": workspaceSlug || "",
           access_token: access_token || "",
         },
       });
@@ -108,11 +106,9 @@ export function useDocDeleteMutation(onSuccess?: () => void) {
   });
 }
 
-export function useKnowledgebaseQuery(sector: string) {
-  const workspaceId =
-    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
+export function useKnowledgebaseQuery(workspaceSlug: string, sector: string) {
   return useQuery({
-    queryKey: ["knowledgebase", workspaceId],
+    queryKey: ["knowledgebase", workspaceSlug],
     queryFn: async (): Promise<Doc[]> => {
       const access_token = getAuthToken();
 
@@ -130,7 +126,7 @@ export function useKnowledgebaseQuery(sector: string) {
       const res = await fetch(`${ROUTES.KNOWLEDGEBASE}${queryString}`, {
         method: "GET",
         headers: {
-          "x-tenant-id": workspaceId || "",
+          "x-tenant-id": workspaceSlug || "",
           access_token: access_token || "",
           accept: "application/json",
         },
@@ -146,19 +142,19 @@ export function useKnowledgebaseQuery(sector: string) {
 
       return data.data || [];
     },
-    staleTime: 10_000, 
+    staleTime: 10_000,
   });
 }
 
-export function useEmbeddingMutation(onSuccess?: () => void) {
+export function useEmbeddingMutation(
+  workspaceSlug: string,
+  onSuccess?: () => void
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (documentId: string) => {
-      const workspaceId =
-        typeof window !== "undefined"
-          ? localStorage.getItem("workspaceId")
-          : null;
+      const workspaceId = workspaceSlug;
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.EMBEDDINGS, {
         method: "POST",
@@ -196,21 +192,20 @@ export function useEmbeddingMutation(onSuccess?: () => void) {
   });
 }
 
-export function useUnembeddingMutation(onSuccess?: () => void) {
+export function useUnembeddingMutation(
+  workspaceSlug: string,
+  onSuccess?: () => void
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (documentId: string) => {
-      const workspaceId =
-        typeof window !== "undefined"
-          ? localStorage.getItem("workspaceId")
-          : null;
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.UNEMBEDDINGS, {
         method: "POST",
         headers: {
           accept: "application/json",
-          "x-tenant-id": workspaceId || "",
+          "x-tenant-id": workspaceSlug || "",
           access_token: access_token || "",
           "Content-Type": "application/json",
         },
@@ -241,23 +236,18 @@ export function useUnembeddingMutation(onSuccess?: () => void) {
   });
 }
 
-export function useToggleDocumentStatusMutation() {
+export function useToggleDocumentStatusMutation(workspaceSlug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (documentId: string) => {
-      const workspaceId =
-        typeof window !== "undefined"
-          ? localStorage.getItem("workspaceId")
-          : null;
-
       const access_token = getAuthToken();
 
       const res = await fetch(ROUTES.TOGGLE_DOCUMENT_STATUS(documentId), {
         method: "PATCH",
         headers: {
           accept: "application/json",
-          "x-tenant-id": workspaceId || "",
+          "x-tenant-id": workspaceSlug || "",
           access_token: access_token || "",
         },
       });
@@ -271,25 +261,20 @@ export function useToggleDocumentStatusMutation() {
     },
 
     onMutate: async (documentId) => {
-      const workspaceId =
-        typeof window !== "undefined"
-          ? localStorage.getItem("workspaceId")
-          : null;
-
       // Cancel any pending refetch so it doesn't overwrite optimistic
       await queryClient.cancelQueries({
-        queryKey: ["knowledgebase", workspaceId],
+        queryKey: ["knowledgebase", workspaceSlug],
       });
 
       // Snapshot previous value
       const previousDocs = queryClient.getQueryData<Doc[]>([
         "knowledgebase",
-        workspaceId,
+        workspaceSlug,
       ]);
 
       // Apply optimistic update
       queryClient.setQueryData<Doc[]>(
-        ["knowledgebase", workspaceId],
+        ["knowledgebase", workspaceSlug],
         (oldDocs = []) =>
           oldDocs.map((doc) =>
             doc.id === documentId ? { ...doc, enabled: !doc.enabled } : doc
@@ -301,14 +286,9 @@ export function useToggleDocumentStatusMutation() {
 
     // rollback if fails
     onError: (err, documentId, context) => {
-      const workspaceId =
-        typeof window !== "undefined"
-          ? localStorage.getItem("workspaceId")
-          : null;
-
       if (context?.previousDocs) {
         queryClient.setQueryData(
-          ["knowledgebase", workspaceId],
+          ["knowledgebase", workspaceSlug],
           context.previousDocs
         );
       }
@@ -320,12 +300,8 @@ export function useToggleDocumentStatusMutation() {
 
     // refetch once done (safe)
     onSettled: () => {
-      const workspaceId =
-        typeof window !== "undefined"
-          ? localStorage.getItem("workspaceId")
-          : null;
       queryClient.invalidateQueries({
-        queryKey: ["knowledgebase", workspaceId],
+        queryKey: ["knowledgebase", workspaceSlug],
       });
     },
   });

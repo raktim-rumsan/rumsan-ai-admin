@@ -16,49 +16,43 @@ import {
 import { Switch } from "@/components/ui/switch";
 
 import KnowledgebaseStats from "./knowlege-stats";
-import { Skeleton } from "../ui/skeleton";
-import { useOrganizationContext, useWorkspaceRole } from "@/hooks/useOrganizationContext";
-import { KnowledgebaseError, KnowledgebaseLoading } from "./knowledgebase-loading";
+import {
+  useOrganizationContext,
+  useWorkspaceRole,
+} from "@/hooks/useOrganizationContext";
+import {
+  KnowledgebaseError,
+  KnowledgebaseLoading,
+} from "./knowledgebase-loading";
 import { useParams } from "next/navigation";
-import { getWorkspaceId, orgContext } from "@/lib/utils";
+import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 
 export default function KnowledgebaseTab() {
-  const { workspaces, isLoading: orgLoading } = useOrganizationContext();
+  const { workspaces } = useOrganizationContext();
   const sector = workspaces?.[0]?.sector;
+  const params = useParams();
+  const workSpaceSlug = params?.workSpaceSlug as string;
+
+  // Fetch workspace to get ID from slug
+  const { data: workspaceData } = useWorkspaceQuery();
+  const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
+    (w) => w.slug === workSpaceSlug
+  );
+  const workspaceId = currentWorkspace?.id || "";
+
   const {
     data: fetchedDocs = [],
     isLoading,
     error,
-  } = useKnowledgebaseQuery(sector!);
+  } = useKnowledgebaseQuery(workSpaceSlug, sector!);
 
-  const params = useParams();
-   // Get workspaceId from URL params or localStorage/context
-    let workspaceId: string | undefined = params?.id as string | undefined;
-  
-    if (!workspaceId) {
-      // No id in params, use slug from localStorage/context
-      const workspaceSlug = getWorkspaceId();
-  
-      if (workspaceSlug) {
-        const context = orgContext();
-        const workspaces = context?.workspaces;
-  
-        if (workspaces && Array.isArray(workspaces)) {
-          const matchedWorkspace = workspaces.find(
-            (w: { slug: string; id: string }) => w.slug === workspaceSlug
-          );
-          workspaceId = matchedWorkspace?.id;
-        }
-      }
-    }
+  const { isAdmin } = useWorkspaceRole(workspaceId || "");
 
-    const {isAdmin} = useWorkspaceRole(workspaceId || "");
-    
   const visibleDocs = isAdmin
-  ? fetchedDocs
-  : fetchedDocs.filter(doc => doc.enabled);
+    ? fetchedDocs
+    : fetchedDocs.filter((doc) => doc.enabled);
 
-  const toggleMutation = useToggleDocumentStatusMutation();
+  const toggleMutation = useToggleDocumentStatusMutation(workSpaceSlug);
   const handleToggle = (documentId: string) => {
     toggleMutation.mutate(documentId);
   };
@@ -120,21 +114,21 @@ export default function KnowledgebaseTab() {
                     </div>
                   </div>
                   {isAdmin && (
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={doc.enabled}
-                        onCheckedChange={() => handleToggle(doc.id)}
-                      />
-                      <span
-                        className={`text-sm font-medium ${
-                          doc.enabled ? "text-green-600" : "text-red-600"
-                        }`}
-                      >
-                        {doc.enabled ? "Enabled" : "Disabled"}
-                      </span>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={doc.enabled}
+                          onCheckedChange={() => handleToggle(doc.id)}
+                        />
+                        <span
+                          className={`text-sm font-medium ${
+                            doc.enabled ? "text-green-600" : "text-red-600"
+                          }`}
+                        >
+                          {doc.enabled ? "Enabled" : "Disabled"}
+                        </span>
+                      </div>
                     </div>
-                  </div>
                   )}
                 </div>
               ))

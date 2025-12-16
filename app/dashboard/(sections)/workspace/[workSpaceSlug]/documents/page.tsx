@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -37,6 +38,7 @@ interface Document {
 }
 
 export default function DocumentsPage() {
+  const { workSpaceSlug } = useParams();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [trainingDocumentId, setTrainingDocumentId] = useState<string | null>(
     null
@@ -48,7 +50,7 @@ export default function DocumentsPage() {
   } | null>(null);
 
   // Use both TanStack Query and Zustand store
-  const { data, isLoading, refetch } = useDocsQuery();
+  const { data, isLoading, refetch } = useDocsQuery(workSpaceSlug as string);
   const documentsFromStore = useDocuments();
   const setDocuments = useSetDocuments();
 
@@ -71,14 +73,14 @@ export default function DocumentsPage() {
     }
   }, [data, setDocuments]);
 
-  const deleteMutation = useDocDeleteMutation(() => {
+  const deleteMutation = useDocDeleteMutation(workSpaceSlug as string, () => {
     toastUtils.data.deleteSuccess("Document");
     // Note: The store will be updated when the query refetches
   });
 
-  const embeddingMutation = useEmbeddingMutation();
+  const embeddingMutation = useEmbeddingMutation(workSpaceSlug as string);
 
-  const unEmbeddingMutation = useUnembeddingMutation();
+  const unEmbeddingMutation = useUnembeddingMutation(workSpaceSlug as string);
 
   const handleTrain = async (
     documentId: string,
@@ -266,6 +268,7 @@ export default function DocumentsPage() {
         }}
         maxDocuments={undefined}
         currentDocumentCount={currentDocumentCount}
+        workspaceSlug={workSpaceSlug as string}
       />
       <ConfirmDelete
         isOpen={openDeleteModal}

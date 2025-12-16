@@ -21,12 +21,14 @@ interface SimpleFileUploadModalProps {
   onUploadSuccess: () => void;
   maxDocuments?: number;
   currentDocumentCount?: number;
+  workspaceSlug?: string;
 }
 
 export function SimpleFileUploadModal({
   isOpen,
   onClose,
   onUploadSuccess,
+  workspaceSlug,
 }: SimpleFileUploadModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -57,7 +59,7 @@ export function SimpleFileUploadModal({
     setSelectedFile(file);
   };
 
-  const uploadMutation = useDocUploadMutation(() => {
+  const uploadMutation = useDocUploadMutation(workspaceSlug, () => {
     toastUtils.fileUpload.success(selectedFile?.name || "File");
     setSelectedFile(null);
     onUploadSuccess();

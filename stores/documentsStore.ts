@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { DocumentSchema, type Document } from "@/lib/schemas";
+import { type Document } from "@/lib/schemas";
 
 interface DocumentsState {
   // State
@@ -128,18 +128,28 @@ export const useDocumentsStore = create<DocumentsState>()(
 
 // Selector hooks for better performance
 export const useDocuments = () => useDocumentsStore((state) => state.documents);
-export const useDocumentsLoading = () => useDocumentsStore((state) => state.isLoading);
-export const useDocumentsError = () => useDocumentsStore((state) => state.error);
-export const useDocumentsInitialized = () => useDocumentsStore((state) => state.isInitialized);
+export const useDocumentsLoading = () =>
+  useDocumentsStore((state) => state.isLoading);
+export const useDocumentsError = () =>
+  useDocumentsStore((state) => state.error);
+export const useDocumentsInitialized = () =>
+  useDocumentsStore((state) => state.isInitialized);
 
 // Actions hooks - individual hooks to prevent re-render issues
-export const useSetDocuments = () => useDocumentsStore((state) => state.setDocuments);
-export const useAddDocument = () => useDocumentsStore((state) => state.addDocument);
-export const useRemoveDocument = () => useDocumentsStore((state) => state.removeDocument);
-export const useUpdateDocument = () => useDocumentsStore((state) => state.updateDocument);
-export const useSetDocumentsLoading = () => useDocumentsStore((state) => state.setLoading);
-export const useSetDocumentsError = () => useDocumentsStore((state) => state.setError);
-export const useResetDocuments = () => useDocumentsStore((state) => state.reset);
+export const useSetDocuments = () =>
+  useDocumentsStore((state) => state.setDocuments);
+export const useAddDocument = () =>
+  useDocumentsStore((state) => state.addDocument);
+export const useRemoveDocument = () =>
+  useDocumentsStore((state) => state.removeDocument);
+export const useUpdateDocument = () =>
+  useDocumentsStore((state) => state.updateDocument);
+export const useSetDocumentsLoading = () =>
+  useDocumentsStore((state) => state.setLoading);
+export const useSetDocumentsError = () =>
+  useDocumentsStore((state) => state.setError);
+export const useResetDocuments = () =>
+  useDocumentsStore((state) => state.reset);
 
 // Legacy actions hook - kept for backward compatibility but avoid using in components
 // that re-render frequently as it creates a new object on each render

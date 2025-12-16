@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { ChatMessage, useChatMutation } from "@/queries/chatQuery";
 import Markdown from "react-markdown";
+import { useParams } from "next/navigation";
 
 function PreviewChat({
   isFloating,
@@ -26,9 +27,11 @@ function PreviewChat({
   const [chatMessage, setChatMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isThinking, setIsThinking] = useState(false);
+  const params = useParams();
+  const workSpaceSlug = params?.workSpaceSlug as string;
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatMutation = useChatMutation();
+  const chatMutation = useChatMutation(workSpaceSlug);
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -201,7 +204,7 @@ function PreviewChat({
                 </div>
 
                 {message.role === "user" && (
-                  <div className="flex-shrink-0 w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                  <div className="shrink-0 w-8 h-8 bg-muted rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-muted-foreground" />
                   </div>
                 )}
@@ -210,7 +213,7 @@ function PreviewChat({
 
             {isThinking && (
               <div className="flex gap-3 justify-start">
-                <div className="flex-shrink-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <div className="shrink-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                   <Bot className="w-4 h-4 text-primary-foreground" />
                 </div>
                 <div className="bg-background border border-border rounded-lg px-4 py-2 text-sm text-muted-foreground">

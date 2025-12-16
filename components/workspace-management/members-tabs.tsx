@@ -1,10 +1,12 @@
 "use client";
+
 import { useState } from "react";
 import { Plus, Trash2, Mail, User, RefreshCcw } from "lucide-react";
 import {
   useDeleteWorkspaceMemberMutation,
   useInvitationWorkspaceMutation,
   useWorkspaceMemberQuery,
+  useWorkspaceQuery,
 } from "@/queries/workspaceQuery";
 import {
   Card,
@@ -38,7 +40,7 @@ import {
   useDeleteInvitation,
   useResendInvitation,
 } from "@/queries/invitationsQuery";
-import { getWorkspaceId, orgContext, formatRole } from "@/lib/utils";
+import { formatRole } from "@/lib/utils";
 import { useWorkspaceRole } from "@/hooks/useOrganizationContext";
 import ConfirmDelete from "../documents/DeleteModal";
 
@@ -60,38 +62,26 @@ export default function MembersTab() {
   const params = useParams();
   const searchParams = useSearchParams();
   const orgId = searchParams.get("orgId") || "";
+  const workSpaceSlug = params?.workSpaceSlug as string;
 
-  // Get workspaceId from URL params or localStorage/context
-  let workspaceId: string | undefined = params?.id as string | undefined;
-
-  if (!workspaceId) {
-    // No id in params, use slug from localStorage/context
-    const workspaceSlug = getWorkspaceId();
-
-    if (workspaceSlug) {
-      const context = orgContext();
-      const workspaces = context?.workspaces;
-
-      if (workspaces && Array.isArray(workspaces)) {
-        const matchedWorkspace = workspaces.find(
-          (w: { slug: string; id: string }) => w.slug === workspaceSlug
-        );
-        workspaceId = matchedWorkspace?.id;
-      }
-    }
-  }
+  // Fetch all workspaces to get the current workspace ID from slug
+  const { data: workspaceData } = useWorkspaceQuery();
+  const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
+    (w) => w.slug === workSpaceSlug
+  );
+  const workspaceId = currentWorkspace?.id || "";
 
   const { isAdmin } = useWorkspaceRole(workspaceId || "");
 
-  const invitationMutation = useInvitationWorkspaceMutation(workspaceId || "");
+  const invitationMutation = useInvitationWorkspaceMutation(workSpaceSlug);
   const deleteWorkspaceMember = useDeleteWorkspaceMemberMutation();
-  const deleteWorkspaceInvitation = useDeleteInvitation(workspaceId || "");
+  const deleteWorkspaceInvitation = useDeleteInvitation(workSpaceSlug || "");
 
   const { data: WorkSpaceUsers, isLoading } = useWorkspaceMemberQuery(
-    workspaceId || ""
+    workSpaceSlug || ""
   );
 
-  const workspaceResendInvitation = useResendInvitation(workspaceId || "");
+  const workspaceResendInvitation = useResendInvitation(workSpaceSlug || "");
 
   const removeMember = async (email: string) => {
     if (!workspaceId) return;

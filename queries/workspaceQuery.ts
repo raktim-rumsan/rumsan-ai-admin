@@ -5,7 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { getAuthToken, getWorkspaceId, orgContext } from "@/lib/utils";
+import { getAuthToken } from "@/lib/utils";
 import { toastUtils } from "@/lib/toast-utils";
 import { useCreateApiKey } from "./apiKeysQuery";
 
@@ -144,7 +144,6 @@ export function useCreateWorkspace() {
     },
     onSuccess: async (data) => {
       const { data: workspaceData } = data;
-      localStorage.setItem("workspaceId", workspaceData.slug);
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       try {
         createApiKeyMutation.mutate({
@@ -167,7 +166,7 @@ export function useCreateWorkspace() {
   });
 }
 
-export function useUpdateWorkspace() {
+export function useUpdateWorkspace(workspaceSlug?: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -182,14 +181,12 @@ export function useUpdateWorkspace() {
     }) => {
       const access_token = getAuthToken();
       if (!access_token) throw new Error("Missing auth token");
-      const workspaceId = getWorkspaceId();
-
       const res = await fetch(ROUTES.UPDATE_WORKSPACE(params.id), {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           access_token: access_token || "",
-          "x-tenant-id": workspaceId || "",
+          "x-tenant-id": workspaceSlug || "",
         },
         body: JSON.stringify(params.payload),
       });
@@ -233,14 +230,7 @@ export function useUpdateWorkspace() {
 
       return { previousWorkspaces, previousWorkspace };
     },
-    onSuccess: (data, variables) => {
-      const newSlug = data?.data?.slug ?? data?.slug;
-      if (newSlug) {
-        localStorage.setItem("workspaceId", newSlug);
-        if (variables?.payload?.name) {
-          localStorage.setItem("workspaceName", variables.payload.name);
-        }
-      }
+    onSuccess: () => {
       toastUtils.generic.success("Workspace updated successfully");
     },
 
@@ -265,10 +255,8 @@ export function useUpdateWorkspace() {
   });
 }
 
-export function useInvitationWorkspaceMutation(workspaceIdParam?: string) {
+export function useInvitationWorkspaceMutation(workspaceSlug?: string) {
   const queryClient = useQueryClient();
-  const workspaceId =
-    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
   return useMutation({
     mutationFn: async (payload: CreateInvitationPayload) => {
       const access_token = getAuthToken();
@@ -276,7 +264,7 @@ export function useInvitationWorkspaceMutation(workspaceIdParam?: string) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-tenant-id": workspaceId || "",
+          "x-tenant-id": workspaceSlug || "",
           access_token: access_token || "",
           accept: "application/json",
         },
@@ -297,7 +285,7 @@ export function useInvitationWorkspaceMutation(workspaceIdParam?: string) {
         queryKey: ["invitations"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["workspaces", workspaceIdParam],
+        queryKey: ["workspaces", workspaceSlug],
       });
       toastUtils.invitations.sendSuccess(1);
     },
@@ -307,15 +295,22 @@ export function useInvitationWorkspaceMutation(workspaceIdParam?: string) {
   });
 }
 
-export function useWorkspaceMemberQuery(workspaceId: string) {
+export function useWorkspaceMemberQuery(workspaceSlug: string) {
+  // Fetch workspace to get ID from slug
+  const { data: workspaceData } = useWorkspaceQuery();
+  const workspace = workspaceData?.data?.myWorkspaces?.find(
+    (w) => w.slug === workspaceSlug
+  );
+  const workspaceId = workspace?.id;
+
   return useQuery({
-    queryKey: ["workspaces", workspaceId],
+    queryKey: ["workspaces", workspaceSlug],
     staleTime: 10_000,
     refetchInterval: 10_000, // Automatically refetch every 5 seconds
-    enabled: !!workspaceId, // Only run query if workspaceId is defined
+    enabled: !!workspaceId, // Only run query if workspaceId is resolved
     queryFn: async (): Promise<WorkspacesMemberResponse> => {
       const access_token = getAuthToken();
-      const res = await fetch(ROUTES.WORKSPACE_MEMBER(workspaceId), {
+      const res = await fetch(ROUTES.WORKSPACE_MEMBER(workspaceId!), {
         method: "GET",
         headers: {
           access_token: access_token || "",

@@ -15,6 +15,7 @@ interface ChatbotPreviewProps {
   chatOpen: boolean;
   onChatOpen: () => void;
   onChatClose: () => void;
+  workspaceSlug?: string;
 }
 
 export default function ChatbotPreview({
@@ -22,6 +23,7 @@ export default function ChatbotPreview({
   chatOpen,
   onChatOpen,
   onChatClose,
+  workspaceSlug,
 }: ChatbotPreviewProps) {
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -45,7 +47,10 @@ export default function ChatbotPreview({
               <AlignHorizontalDistributeStart className="h-4 w-4" />
             </ResizableHandle>
             <ResizablePanel defaultSize={30} minSize={20} maxSize={50}>
-              <ResizableChatPanel onClose={onChatClose} />
+              <ResizableChatPanel
+                onClose={onChatClose}
+                workspaceSlug={workspaceSlug}
+              />
             </ResizablePanel>
           </>
         )}

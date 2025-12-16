@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -30,30 +31,18 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
   const [documentsEnabled, setDocumentsEnabled] = useState(true);
   const [promptContent, setPromptContent] = useState("");
   const [isMounted, setIsMounted] = useState(false);
-  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  const { workSpaceSlug } = useParams();
 
   // Get organization settings and update mutation
-  const {
-    data: orgSettings,
-    isLoading: isOrgLoading,
-    refetch,
-  } = useOrgSettings();
-  const updateSystemPrompt = useUpdateSystemPrompt();
+  const { data: orgSettings, isLoading: isOrgLoading } = useOrgSettings(
+    workSpaceSlug as string
+  );
+  const updateSystemPrompt = useUpdateSystemPrompt(workSpaceSlug as string);
 
-  // Handle mounting and get workspaceId from localStorage
+  // Handle mounting
   useEffect(() => {
     setIsMounted(true);
-    if (typeof window !== "undefined") {
-      setWorkspaceId(localStorage.getItem("workspaceId"));
-    }
   }, []);
-
-  // Refetch org settings when tenant changes
-  useEffect(() => {
-    if (isMounted && workspaceId) {
-      refetch();
-    }
-  }, [workspaceId, isMounted, refetch]);
 
   // Load prompt content from org settings when available
   useEffect(() => {
@@ -81,7 +70,7 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
 
   return (
     <div className="flex flex-col bg-background h-full overflow-hidden ">
-      <div className="border-b border-border p-6 flex-shrink-0">
+      <div className="border-b border-border p-6 shrink-0">
         <h1 className="text-2xl font-semibold text-foreground">
           Prompt Management
         </h1>

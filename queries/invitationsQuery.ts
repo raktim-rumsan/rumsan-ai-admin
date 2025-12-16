@@ -141,7 +141,7 @@ export function useAcceptInvitation() {
   });
 }
 
-export function useDeleteInvitation(workspaceId: string) {
+export function useDeleteInvitation(workspaceSlug: string) {
   const queryClient = useQueryClient();
   const access_token = getAuthToken();
 
@@ -163,18 +163,18 @@ export function useDeleteInvitation(workspaceId: string) {
     },
     onMutate: async (invitationId) => {
       await queryClient.cancelQueries({
-        queryKey: ["workspaces", workspaceId],
+        queryKey: ["workspaces", workspaceSlug],
       });
 
       const previousWorkspaceMembers =
         queryClient.getQueryData<WorkspacesMemberResponse>([
           "workspaces",
-          workspaceId,
+          workspaceSlug,
         ]);
 
       if (previousWorkspaceMembers) {
         queryClient.setQueryData<WorkspacesMemberResponse>(
-          ["workspaces", workspaceId],
+          ["workspaces", workspaceSlug],
           (old) => {
             if (!old) return old;
             return {
@@ -200,7 +200,7 @@ export function useDeleteInvitation(workspaceId: string) {
     onError: (error: Error, _variables, context) => {
       if (context?.previousWorkspaceMembers) {
         queryClient.setQueryData(
-          ["workspaces", workspaceId],
+          ["workspaces", workspaceSlug],
           context.previousWorkspaceMembers
         );
       }
@@ -211,13 +211,13 @@ export function useDeleteInvitation(workspaceId: string) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: ["workspaces", workspaceId],
+        queryKey: ["workspaces", workspaceSlug],
       });
     },
   });
 }
 
-export function useResendInvitation(workspaceId: string) {
+export function useResendInvitation(workspaceSlug: string) {
   const queryClient = useQueryClient();
   const access_token = getAuthToken();
 
@@ -243,20 +243,20 @@ export function useResendInvitation(workspaceId: string) {
     },
     onMutate: async (payload) => {
       await queryClient.cancelQueries({
-        queryKey: ["workspaces", workspaceId],
+        queryKey: ["workspaces", workspaceSlug],
       });
 
       const previousWorkspaceMembers =
         queryClient.getQueryData<WorkspacesMemberResponse>([
           "workspaces",
-          workspaceId,
+          workspaceSlug,
         ]);
 
       const optimisticUpdatedAt = new Date().toISOString();
 
       if (previousWorkspaceMembers) {
         queryClient.setQueryData<WorkspacesMemberResponse>(
-          ["workspaces", workspaceId],
+          ["workspaces", workspaceSlug],
           (old) => {
             if (!old) return old;
             return {
@@ -286,7 +286,7 @@ export function useResendInvitation(workspaceId: string) {
     onError: (error: Error, _payload, context) => {
       if (context?.previousWorkspaceMembers) {
         queryClient.setQueryData(
-          ["workspaces", workspaceId],
+          ["workspaces", workspaceSlug],
           context.previousWorkspaceMembers
         );
       }
@@ -297,7 +297,7 @@ export function useResendInvitation(workspaceId: string) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: ["workspaces", workspaceId],
+        queryKey: ["workspaces", workspaceSlug],
       });
     },
   });
