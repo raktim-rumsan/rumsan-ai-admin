@@ -19,11 +19,10 @@ export interface WorkspaceSettingsResponse {
   data: WorkspaceSettings;
 }
 
-export function useWorkspaceSettingQuery() {
-  const workspaceId = localStorage.getItem("workspaceId");
-
+export function useWorkspaceSettingQuery(workspaceSlug?: string) {
   return useQuery({
-    queryKey: ["workspaceSettings"],
+    queryKey: ["workspaceSettings", workspaceSlug],
+    enabled: !!workspaceSlug,
     queryFn: async (): Promise<WorkspaceSettingsResponse> => {
       const access_token = getAuthToken();
       const res = await fetch(`${ROUTES.WORKSPACE_SETTING}`, {
@@ -31,7 +30,7 @@ export function useWorkspaceSettingQuery() {
         headers: {
           "Content-Type": "application/json",
           access_token: access_token || "",
-          "x-tenant-id": workspaceId || "",
+          "x-tenant-id": workspaceSlug || "",
           accept: "application/json",
         },
       });
@@ -45,9 +44,8 @@ export function useWorkspaceSettingQuery() {
     },
   });
 }
-export function useUpdateWorkspaceSetting() {
+export function useUpdateWorkspaceSetting(workspaceSlug?: string) {
   const queryClient = useQueryClient();
-  const workspaceId = localStorage.getItem("workspaceId");
 
   return useMutation({
     mutationFn: async (payload: Partial<WorkspaceSettings>) => {
@@ -57,7 +55,7 @@ export function useUpdateWorkspaceSetting() {
         headers: {
           "Content-Type": "application/json",
           access_token: access_token || "",
-          "x-tenant-id": workspaceId || "",
+          "x-tenant-id": workspaceSlug || "",
           accept: "application/json",
         },
         body: JSON.stringify(payload),
@@ -74,16 +72,18 @@ export function useUpdateWorkspaceSetting() {
     },
     // Optimistic update here
     onMutate: async (newData: Partial<WorkspaceSettings>) => {
-      await queryClient.cancelQueries({ queryKey: ["workspaceSettings"] });
+      await queryClient.cancelQueries({
+        queryKey: ["workspaceSettings", workspaceSlug],
+      });
 
       // Snapshot previous value
       const previousSettings = queryClient.getQueryData<WorkspaceSettings>([
         "workspaceSettings",
-        newData.id,
+        workspaceSlug,
       ]);
 
       // Optimistically update cache
-      queryClient.setQueryData(["workspaceSettings", newData.id], newData);
+      queryClient.setQueryData(["workspaceSettings", workspaceSlug], newData);
 
       return { previousSettings, newData };
     },
@@ -91,7 +91,7 @@ export function useUpdateWorkspaceSetting() {
     // If the mutation fails → rollback optimistic update
     onError: (err, newData, context) => {
       queryClient.setQueryData(
-        ["workspaceSettings", context?.newData.id],
+        ["workspaceSettings", workspaceSlug],
         context?.previousSettings
       );
       toast.error(err.message);
@@ -103,9 +103,9 @@ export function useUpdateWorkspaceSetting() {
     },
 
     // Always run after error or success
-    onSettled: (newData) => {
+    onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: ["workspaceSettings", newData.id],
+        queryKey: ["workspaceSettings", workspaceSlug],
       });
     },
   });

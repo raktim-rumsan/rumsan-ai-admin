@@ -35,18 +35,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      {/* <div className="border-b bg-background">
-        <div className="container mx-auto px-6 py-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              Admin Dashboard
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Manage your RUMSAN AI platform
-            </p>
-          </div>
-        </div>
-      </div> */}
       <AdminDashboardHeader />
       {!workspaceLoading && workspaceCount === 0 && (
         <div className="flex w-auto items-center justify-between gap-4 rounded-sm bg-zinc-900 px-6 py-4 mb-4 border border-zinc-800 mt-4 mr-4 ml-4">
@@ -63,7 +51,7 @@ export default function AdminDashboard() {
             className="bg-transparent border-white/20 text-white hover:bg-white/10 hover:text-white shrink-0"
             onClick={() => router.push("/admin/workspaces")}
           >
-            Let's Start From Here
+            Let&apos;s Start From Here
           </Button>
         </div>
       )}
@@ -88,7 +76,7 @@ export default function AdminDashboard() {
               >
                 {!card.isAvailable && (
                   <div className="absolute top-3 right-3 z-10">
-                    <span className="inline-flex items-center rounded-full bg-gradient-to-r from-primary/90 to-primary/70 px-3 py-1 text-xs font-semibold text-primary-foreground shadow-sm">
+                    <span className="inline-flex items-center rounded-full bg-linear-to-r from-primary/90 to-primary/70 px-3 py-1 text-xs font-semibold text-primary-foreground shadow-sm">
                       Coming Soon
                     </span>
                   </div>

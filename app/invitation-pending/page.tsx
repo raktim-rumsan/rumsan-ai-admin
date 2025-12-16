@@ -68,7 +68,6 @@ export default function NotificationsPage() {
       );
       const targetWorkspace = invitedWorkspace?.workspace;
       if (targetWorkspace) {
-        localStorage.setItem("workspaceId", targetWorkspace.slug);
         localStorage.setItem("workspaceName", targetWorkspace.name);
         localStorage.removeItem("chatHistory");
         queryClient.setQueryData(["chatHistory"], []);

@@ -51,7 +51,6 @@ export default function WorkspaceSelectorPage() {
                     key={workspace.id}
                     className="group h-full transition-all relative hover:shadow-lg hover:border-primary/50 cursor-pointer"
                     onClick={() => {
-                      localStorage.setItem("workspaceId", workspace.slug);
                       router.push(`/dashboard/workspace/${workspace.slug}`);
                     }}
                   >

@@ -98,16 +98,6 @@ export default function GeneralTab() {
     startTransition(() => {
       deleteWorkspace.mutate(workSpaceSlug as string, {
         onSuccess: () => {
-          // Clear workspace from localStorage if it matches the deleted one
-          const currentWorkspaceSlug = localStorage.getItem("workspaceId");
-          if (
-            currentWorkspace &&
-            currentWorkspace.slug === currentWorkspaceSlug
-          ) {
-            localStorage.removeItem("workspaceId");
-            localStorage.removeItem("workspaceName");
-          }
-          // Redirect to workspaces
           router.push("/admin/workspaces");
         },
       });

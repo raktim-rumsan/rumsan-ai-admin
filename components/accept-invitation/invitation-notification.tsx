@@ -46,7 +46,6 @@ export default function NotificationPage() {
       );
 
       if (invitation.workspace) {
-        localStorage.setItem("workspaceId", invitation.workspace.slug);
         localStorage.setItem("workspaceName", invitation.workspace.name);
         queryClient.setQueryData(["chatHistory"], []);
         window.location.reload();

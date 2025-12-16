@@ -16,11 +16,6 @@ export function generateRandomPassword(length: number = 16): string {
   return randomBytes(length).toString("hex");
 }
 
-export function getWorkspaceId(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("workspaceId");
-}
-
 export function orgContext(key?: string) {
   if (typeof window === "undefined") return null;
   const raw = localStorage.getItem("organizationContext");

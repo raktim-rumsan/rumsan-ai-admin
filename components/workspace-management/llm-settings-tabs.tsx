@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -40,8 +41,12 @@ interface LLMConfigFormData {
 }
 
 export default function LLMConfigPage() {
-  const { data: workspaceSettings, isPending } = useWorkspaceSettingQuery();
-  const updateWorkspaceSetting = useUpdateWorkspaceSetting();
+  const params = useParams();
+  const workSpaceSlug = params?.workSpaceSlug as string;
+
+  const { data: workspaceSettings, isPending } =
+    useWorkspaceSettingQuery(workSpaceSlug);
+  const updateWorkspaceSetting = useUpdateWorkspaceSetting(workSpaceSlug);
   const { mutate: testConnection, isPending: isTesting } = useTestConnection();
 
   const form = useForm<LLMConfigFormData>({
@@ -55,7 +60,7 @@ export default function LLMConfigPage() {
     },
   });
 
-  const { control, handleSubmit, watch, reset, setValue, getValues } = form;
+  const { control, handleSubmit, watch, reset, setValue } = form;
   const provider = watch("provider");
 
   // Get provider configuration - returns undefined if provider not found
@@ -65,7 +70,7 @@ export default function LLMConfigPage() {
 
   // Initialize form with workspace settings
   useEffect(() => {
-    if (workspaceSettings) {
+    if (workspaceSettings?.data) {
       reset({
         chatModel: workspaceSettings.data.llmModel ?? "",
         embeddingModel: workspaceSettings.data.embeddingModel ?? "",
@@ -78,7 +83,7 @@ export default function LLMConfigPage() {
   }, [workspaceSettings, reset]);
 
   useEffect(() => {
-    if (!workspaceSettings || !provider || !providerConfig) return;
+    if (!workspaceSettings?.data || !provider || !providerConfig) return;
 
     const isSameProvider = workspaceSettings.data.provider === provider;
     const chatModel = isSameProvider
@@ -246,12 +251,12 @@ export default function LLMConfigPage() {
                       type="number"
                       step="0.1"
                       min="0"
-                      max="2"
+                      max="1"
                       {...form.register("temperature")}
                       className="h-12"
                     />
                     <p className="text-sm text-gray-500">
-                      Higher values make output more random (0-2)
+                      Higher values make output more random (0-1)
                     </p>
                   </div>
 
@@ -266,6 +271,9 @@ export default function LLMConfigPage() {
                     <Input
                       id="max-tokens"
                       type="number"
+                      step="1"
+                      min="100"
+                      max="8000"
                       {...form.register("maxTokens")}
                       className="h-12"
                     />
@@ -293,10 +301,10 @@ export default function LLMConfigPage() {
                       className="h-12 w-full"
                     />
                     <p className="text-sm text-gray-500">
-                      Enter your API key to enable{" "}
+                      Enter your API key to enable&nbsp;
                       {PROVIDER.find((p) => p.value === provider)?.label ||
-                        "provider"}{" "}
-                      services.
+                        "provider"}
+                      &nbsp;services.
                     </p>
                   </div>
                 )}
