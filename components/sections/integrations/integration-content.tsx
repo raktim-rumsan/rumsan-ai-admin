@@ -2,15 +2,18 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Puzzle } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { IntegrationContentProps } from "@/types/integration-types";
 import { Badge } from "@/components/ui/badge";
 
 export default function IntegrationsContent({
   item,
+  isAdminPanel,
 }: Readonly<IntegrationContentProps>) {
   const router = useRouter();
+  const { workspaceId } = useParams();
+
   return (
     <Card className="relative flex flex-col h-full">
       <CardContent className="p-4 sm:p-6 flex flex-col h-full">
@@ -43,8 +46,12 @@ export default function IntegrationsContent({
         {/* Footer Section */}
         <div className="flex flex-wrap items-center justify-between gap-3 mt-auto">
           <Button
-            onClick={() => router.push(`integrations/${item.slug}`)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 text-sm sm:text-base order-2 sm:order-1"
+            onClick={() => {
+              isAdminPanel
+                ? router.push(`${workspaceId}/integrations/${item.slug}`)
+                : router.push(`integrations/${item.slug}`);
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 text-sm sm:text-base order-2 sm:order-1 cursor-pointer"
             disabled={!item.isAvailable}
           >
             <Puzzle className="w-4 h-4 mr-2" />

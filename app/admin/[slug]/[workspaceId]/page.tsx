@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Bot, FileText, ExternalLink, Settings } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Member, Workspace } from "@/types/workspace-types";
@@ -15,20 +15,22 @@ import {
   useWorkspaceQuery,
   type Workspace as WorkspaceQueryType,
 } from "@/queries/workspaceQuery";
+import IntegrationLists from "@/components/sections/integrations/integration-list";
+import { tablist } from "@/constants/workspace-tabs";
 
 export default function WorkspaceDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ workspaceId: string }>;
 }) {
-  const { id: workspaceId } = use(params);
+  const { workspaceId } = use(params);
   const [members, setMembers] = useState<Member[]>([]);
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
   let filterWorkspace: WorkspaceQueryType | undefined;
 
   if (!isLoading && workspaceData) {
     filterWorkspace = workspaceData?.data?.myWorkspaces.find(
-      (ws) => ws.id === workspaceId
+      (ws) => ws.slug === workspaceId
     );
   }
 
@@ -48,18 +50,11 @@ export default function WorkspaceDetailPage({
         <Tabs defaultValue="general" className="space-y-6">
           <div className="flex items-center justify-between">
             <TabsList className="flex space-x-4">
-              <TabsTrigger value="general">
-                <Settings className="h-4 w-4 mr-2" /> General
-              </TabsTrigger>
-              <TabsTrigger value="members">
-                <Users className="h-4 w-4 mr-2" /> Members
-              </TabsTrigger>
-              <TabsTrigger value="llm">
-                <Bot className="h-4 w-4 mr-2" /> LLM Settings
-              </TabsTrigger>
-              <TabsTrigger value="knowledgebase">
-                <FileText className="h-4 w-4 mr-2" /> Industry Knowledge
-              </TabsTrigger>
+              {tablist.map((tab) => (
+                <TabsTrigger value={tab.value} key={tab.value}>
+                  <tab.icons className="h-4 w-4 mr-2" /> {tab.name}
+                </TabsTrigger>
+              ))}
             </TabsList>
             <Button
               asChild
@@ -69,23 +64,20 @@ export default function WorkspaceDetailPage({
                 <ExternalLink className="h-4 w-4 mr-2" /> Open Workspace
               </Link>
             </Button>
-          </div>
-
-          <TabsContent value="general">
-            <GeneralTab />
-          </TabsContent>
-          <TabsContent value="members">
-            <MembersTab
-              members={members}
-              setMembers={setMembers}
-            />
-          </TabsContent>
-          <TabsContent value="llm">
-            <LLMSettingsTab />
-          </TabsContent>
-          <TabsContent value="knowledgebase">
-            <KnowledgebaseTab />
-          </TabsContent>
+          </div>{" "}
+          {tablist.map((tab) => (
+            <TabsContent value={tab.value} key={tab.value}>
+              {tab.value === "general" && <GeneralTab />}
+              {tab.value === "members" && (
+                <MembersTab members={members} setMembers={setMembers} />
+              )}
+              {tab.value === "llm" && <LLMSettingsTab />}
+              {tab.value === "knowledgebase" && <KnowledgebaseTab />}
+              {tab.value === "integrations" && (
+                <IntegrationLists isAdminPanel={true} />
+              )}
+            </TabsContent>
+          ))}
         </Tabs>
       </div>
     </div>

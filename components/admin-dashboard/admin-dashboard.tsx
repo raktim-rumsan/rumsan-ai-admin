@@ -14,6 +14,7 @@ import { managementCardItem } from "./management-cards";
 import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 import { InfoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import AdminDashboardHeader from "./admin-dashboard-header";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      <div className="border-b bg-background">
+      {/* <div className="border-b bg-background">
         <div className="container mx-auto px-6 py-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">
@@ -45,7 +46,8 @@ export default function AdminDashboard() {
             </p>
           </div>
         </div>
-      </div>
+      </div> */}
+      <AdminDashboardHeader />
       {!workspaceLoading && workspaceCount === 0 && (
         <div className="flex w-auto items-center justify-between gap-4 rounded-sm bg-zinc-900 px-6 py-4 mb-4 border border-zinc-800 mt-4 mr-4 ml-4">
           <div className="flex items-center gap-4">

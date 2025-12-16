@@ -46,17 +46,18 @@ import LogoUploader from "../dashboard/image-uploader";
 import { getBackendFileUrl } from "@/queries/organizationQuery";
 
 export default function GeneralTab() {
-  const { id: workspaceId } = useParams();
+  const { workspaceId } = useParams();
+
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
-  // Find the workspace from the query
-  const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
-    (w) => w.id === workspaceId
-  );
   const updateWorkspace = useUpdateWorkspace();
   const deleteWorkspace = useDeleteWorkspaceMutation();
+  // Find the workspace from the query
+  const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
+    (w: any) => w.slug === workspaceId
+  );
   const uploadMutation = useImageUploadMutation(workspaceId as string);
   const removeMutation = removeWorkspaceImage();
 
