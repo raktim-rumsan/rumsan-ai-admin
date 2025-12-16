@@ -53,7 +53,7 @@ export default function WorkspacesPage() {
                 {workspaceData?.data?.myWorkspaces?.map((workspace) => (
                   <Link
                     key={workspace.id}
-                    href={`/admin/workspaces/${workspace.id}`}
+                    href={`/admin/workspaces/${workspace.slug}`}
                     onClick={() =>
                       localStorage.setItem("workspaceId", workspace.slug)
                     }

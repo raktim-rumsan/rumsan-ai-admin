@@ -12,7 +12,8 @@ export const integrationItem = {
       type: "AI Assistant",
       image: ChatWidgetIcon,
       category: "widget",
-      content: "Bring intelligent, real-time assistance to your website with the chat widget.",
+      content:
+        "Bring intelligent, real-time assistance to your website with the chat widget.",
       isAvailable: true,
       component: <EmbedWidget />,
     },
@@ -24,7 +25,7 @@ export const integrationItem = {
       category: "service",
       content:
         "Keep your team connected with real-time messaging, notifications, and seamless collaboration across all your tools.",
-      isAvailable: false,
+      isAvailable: true,
       component: <SlackIntegrationGuide />,
     },
     {
@@ -44,7 +45,8 @@ export const integrationItem = {
       type: "Messaging",
       image: "/logos/messenger_logo.png",
       category: "service",
-      content: "Integrate your Facebook Messenger to engage users and respond automatically.",
+      content:
+        "Integrate your Facebook Messenger to engage users and respond automatically.",
       isAvailable: false,
     },
   ],

@@ -42,17 +42,17 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function GeneralTab() {
-  const { id: workspaceId } = useParams();
+  const { workspaceId } = useParams();
+
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
   const updateWorkspace = useUpdateWorkspace();
   const deleteWorkspace = useDeleteWorkspaceMutation();
-
   // Find the workspace from the query
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
-    (w: any) => w.id === workspaceId
+    (w: any) => w.slug === workspaceId
   );
   // Local state only tracks user edits
   const [name, setName] = useState<string>();
