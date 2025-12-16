@@ -16,8 +16,10 @@ export default function WorkspaceSelectorPage() {
   const router = useRouter();
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
 
-  localStorage.removeItem("workspaceId");
-  clearChatHistory();
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("workspaceId");
+    clearChatHistory();
+  }
 
   return (
     <>

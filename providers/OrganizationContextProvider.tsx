@@ -44,20 +44,3 @@ export function OrganizationContextProvider({
 
   return <>{children}</>;
 }
-
-/**
- * Hook to initialize organization context in components
- * Use this in layouts or components where you need to ensure context is loaded
- */
-export function useInitializeOrganizationContext() {
-  const context = useOrganizationContext();
-  const accessToken = getAuthToken();
-  useEffect(() => {
-    if (accessToken && !context.isLoaded && !context.isLoading) {
-      // The hook will automatically fetch if needed
-      console.log("Organization context initialization requested");
-    }
-  }, [accessToken, context.isLoaded, context.isLoading]);
-
-  return context;
-}

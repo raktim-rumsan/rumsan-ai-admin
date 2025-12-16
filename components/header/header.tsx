@@ -36,10 +36,6 @@ export function MainHeader({
     setIsMounted(true);
   }, []);
 
-  const handleTeamCreated = async (teamSlug: string) => {
-    console.log("Team created with slug:", teamSlug);
-  };
-
   if (!isMounted) return null;
 
   // Route checks
@@ -168,7 +164,7 @@ export function MainHeader({
       <CreateTeamDialog
         open={createTeamDialogOpen}
         onOpenChange={setCreateTeamDialogOpen}
-        onTeamCreated={handleTeamCreated}
+        onTeamCreated={() => {}}
       />
     </header>
   );

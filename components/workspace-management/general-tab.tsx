@@ -46,7 +46,7 @@ import LogoUploader from "../dashboard/image-uploader";
 import { getBackendFileUrl } from "@/queries/organizationQuery";
 
 export default function GeneralTab() {
-  const { workspaceId } = useParams();
+  const { workSpaceSlug } = useParams();
 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -56,9 +56,9 @@ export default function GeneralTab() {
   const deleteWorkspace = useDeleteWorkspaceMutation();
   // Find the workspace from the query
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
-    (w: any) => w.slug === workspaceId
+    (w: any) => w.slug === workSpaceSlug
   );
-  const uploadMutation = useImageUploadMutation(workspaceId as string);
+  const uploadMutation = useImageUploadMutation(workSpaceSlug as string);
   const removeMutation = removeWorkspaceImage();
 
   const currentImageUrl = currentWorkspace?.url
@@ -79,10 +79,10 @@ export default function GeneralTab() {
   const workspaceSector = sector ?? currentWorkspace?.sector ?? "";
 
   const handleSave = () => {
-    if (!workspaceId) return;
+    if (!workSpaceSlug) return;
 
     updateWorkspace.mutate({
-      id: workspaceId as string,
+      id: workSpaceSlug as string,
       payload: {
         name: workspaceName,
         description: workspaceDescription,
@@ -93,10 +93,10 @@ export default function GeneralTab() {
   };
 
   const handleDeleteWorkspace = () => {
-    if (!workspaceId) return;
+    if (!workSpaceSlug) return;
 
     startTransition(() => {
-      deleteWorkspace.mutate(workspaceId as string, {
+      deleteWorkspace.mutate(workSpaceSlug as string, {
         onSuccess: () => {
           // Clear workspace from localStorage if it matches the deleted one
           const currentWorkspaceSlug = localStorage.getItem("workspaceId");
@@ -206,7 +206,7 @@ export default function GeneralTab() {
                         currentImageUrl={currentImageUrl!}
                         uploadMutation={uploadMutation}
                         removeMutation={removeMutation}
-                        deleteId={workspaceId as string}
+                        deleteId={workSpaceSlug as string}
                       />
                     </div>
                   </div>
@@ -266,7 +266,7 @@ export default function GeneralTab() {
                       Manage API access
                     </p>
                   </div>
-                  <Link href={`/admin/api-keys?workspaceId=${workspaceId}`}>
+                  <Link href={`/admin/api-keys?workspaceId=${workSpaceSlug}`}>
                     <Button variant="outline" size="sm">
                       View Keys
                     </Button>

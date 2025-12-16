@@ -21,21 +21,21 @@ import { tablist } from "@/constants/workspace-tabs";
 export default function WorkspaceDetailPage({
   params,
 }: {
-  params: Promise<{ workspaceId: string }>;
+  params: Promise<{ workSpaceSlug: string }>;
 }) {
-  const { workspaceId } = use(params);
+  const { workSpaceSlug } = use(params);
   const [members, setMembers] = useState<Member[]>([]);
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
   let filterWorkspace: WorkspaceQueryType | undefined;
 
   if (!isLoading && workspaceData) {
     filterWorkspace = workspaceData?.data?.myWorkspaces.find(
-      (ws) => ws.slug === workspaceId
+      (ws) => ws.slug === workSpaceSlug
     );
   }
 
   const workspace: Workspace = {
-    id: workspaceId,
+    id: filterWorkspace?.id || "",
     name: filterWorkspace?.name || "",
     description: filterWorkspace?.description || "",
     status: "active",

@@ -337,7 +337,6 @@ export function useImageUploadMutation(
   workspaceId: string,
   onSuccess?: () => void
 ): UseMutationResult<UploadResponse, Error, File> {
-  console.log(workspaceId, "workspaceId in useImageUploadMutation");
   const queryClient = useQueryClient();
 
   return useMutation({
