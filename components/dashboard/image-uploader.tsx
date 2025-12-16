@@ -2,8 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash2, Upload, Cloud } from "lucide-react";
-import { readAndCompressImage } from "browser-image-resizer";
+import { Trash2, Upload, ImageUp } from "lucide-react";
 
 import { toastUtils } from "@/lib/toast-utils";
 import { Card } from "@/components/ui/card";
@@ -74,6 +73,8 @@ export default function LogoUploader({
     if (!file) return;
 
     try {
+      // Dynamically import browser-image-resizer to avoid SSR issues
+      const { readAndCompressImage } = await import("browser-image-resizer");
       const resizedBlob = await readAndCompressImage(file, config);
       setCompressedBlob(resizedBlob);
 
@@ -137,7 +138,7 @@ export default function LogoUploader({
         role="button"
         aria-label="Select logo"
       >
-        <div className="overflow-hidden bg-white flex items-center justify-center border">
+        <div className="overflow-hidden bg-gray-50 flex items-center justify-center">
           {displayImage ? (
             <Image
               width={200}
@@ -148,7 +149,7 @@ export default function LogoUploader({
             />
           ) : (
             <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
-              <Cloud className="w-6 h-6 text-gray-400" />
+              <ImageUp className="w-6 h-6 text-gray-600" />
             </div>
           )}
         </div>

@@ -22,6 +22,7 @@ export function getWorkspaceId(): string | null {
 }
 
 export function orgContext(key?: string) {
+  if (typeof window === "undefined") return null;
   const raw = localStorage.getItem("organizationContext");
   const parsed = raw ? JSON.parse(raw) : null;
   if (!key) return parsed; // return whole context if no key

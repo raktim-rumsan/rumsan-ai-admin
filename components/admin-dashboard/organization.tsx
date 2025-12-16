@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Building2 } from "lucide-react";
 import {
@@ -13,7 +15,6 @@ import {
   getBackendFileUrl,
   removeOrganizationLogo,
   useLogoUploadMutation,
-  useOrganizationById,
   useOrganizationMutationUpdate,
 } from "@/queries/organizationQuery";
 import { useState } from "react";

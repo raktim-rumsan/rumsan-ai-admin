@@ -1,3 +1,5 @@
+"use client";
+
 import { Bot, Building2, CreditCard, FolderKanban } from "lucide-react";
 import WorkspacesPage from "./workspace";
 import AIManagementPage from "./ai-management";
@@ -5,7 +7,7 @@ import BillingPage from "./billing";
 import OrganizationPage from "./organization";
 
 export const managementCardItem = [
-   {
+  {
     title: "Workspace Management",
     description:
       "Create and manage workspaces for different teams and projects",
@@ -29,7 +31,7 @@ export const managementCardItem = [
     isAvailable: true,
     component: <OrganizationPage />,
   },
- 
+
   {
     title: "Billing & Subscription",
     description:
