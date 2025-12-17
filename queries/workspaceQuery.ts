@@ -7,7 +7,6 @@ import {
 } from "@tanstack/react-query";
 import { getAuthToken } from "@/lib/utils";
 import { toastUtils } from "@/lib/toast-utils";
-import { useCreateApiKey } from "./apiKeysQuery";
 
 export interface Workspace {
   id: string;
@@ -118,7 +117,6 @@ export function useWorkspaceQuery() {
 
 export function useCreateWorkspace() {
   const queryClient = useQueryClient();
-  const createApiKeyMutation = useCreateApiKey();
   return useMutation({
     mutationFn: async (workspaceData: {
       name: string;
@@ -142,20 +140,8 @@ export function useCreateWorkspace() {
       }
       return data;
     },
-    onSuccess: async (data) => {
-      const { data: workspaceData } = data;
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
-      try {
-        createApiKeyMutation.mutate({
-          name: `${workspaceData.name}-default-key`,
-        });
-      } catch (error) {
-        console.error("Failed to create default API key:", error);
-        toastUtils.generic.error(
-          "API key creation failed",
-          "Organization created successfully, but default API key could not be generated."
-        );
-      }
     },
     onError: (error: Error) => {
       toastUtils.generic.error(
