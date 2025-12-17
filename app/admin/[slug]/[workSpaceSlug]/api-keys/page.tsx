@@ -37,11 +37,14 @@ import {
   useDeleteApiKey,
 } from "@/queries/apiKeysQuery";
 import { useParams } from "next/navigation";
+import ConfirmDelete from "@/components/documents/DeleteModal";
 
 function SettingsPageContent() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [isMounted, setIsMounted] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const { workSpaceSlug } = useParams();
 
   // API hooks
@@ -67,12 +70,16 @@ function SettingsPageContent() {
     }
   };
 
-  const handleDeleteKey = (id: string | undefined) => {
-    if (!id) {
-      toast.error("Unable to delete API key");
-      return;
-    }
-    deleteApiKeyMutation.mutate(id);
+  // Open confirm modal for deletion
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+
+    deleteApiKeyMutation.mutate(deleteTarget, {
+      onSuccess: () => {
+        setOpenDeleteModal(false);
+        setDeleteTarget(null);
+      },
+    });
   };
 
   const handleCreateKey = () => {
@@ -253,7 +260,10 @@ function SettingsPageContent() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDeleteKey(apiKey.id)}
+                            onClick={() => {
+                              setDeleteTarget(apiKey.id!);
+                              setOpenDeleteModal(true);
+                            }}
                             disabled={
                               deleteApiKeyMutation.isPending || !apiKey.id
                             }
@@ -274,6 +284,14 @@ function SettingsPageContent() {
               )}
             </CardContent>
           </Card>
+          {/* Confirm delete modal for API keys */}
+          <ConfirmDelete
+            isOpen={openDeleteModal}
+            setIsOpen={setOpenDeleteModal}
+            item={"this API key"}
+            onConfirm={handleConfirmDelete}
+            isDeleting={deleteApiKeyMutation.isPending}
+          />
         </div>
       </div>
     </div>
