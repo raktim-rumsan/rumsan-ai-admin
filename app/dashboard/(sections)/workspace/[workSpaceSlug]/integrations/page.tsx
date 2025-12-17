@@ -1,7 +1,7 @@
 import IntegrationLists from "@/components/sections/integrations/integration-list";
 
 function page() {
-  return <IntegrationLists isShowServices={false} />;
+  return <IntegrationLists isAdminPanel={false} />;
 }
 
 export default page;
