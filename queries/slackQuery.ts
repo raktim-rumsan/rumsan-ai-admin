@@ -13,6 +13,52 @@ export interface SlackWorkspaceResponse {
   installedAt?: string;
 }
 
+// Initiate Slack OAuth installation
+export function useSlackOAuthInstall(workspaceSlug?: string) {
+  return useMutation({
+    mutationFn: async (workspaceId?: string): Promise<OAuthInstallResponse> => {
+      const access_token = getAuthToken();
+
+      if (!access_token) {
+        throw new Error("Missing authentication credentials");
+      }
+
+      const res = await fetch(ROUTES.SLACK_OAUTH_INSTALL(workspaceId), {
+        method: "GET",
+        headers: {
+          access_token: access_token || "",
+          "x-tenant-id": workspaceSlug || "",
+          accept: "application/json",
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.installUrl) {
+        //Handle redirect to install url here
+      } else {
+        throw new Error(
+          'Response missing installUrl. Expected format: { "installUrl": "https://slack.com/..." }'
+        );
+      }
+    },
+    onError: (error: Error) => {
+      toastUtils.generic.error(
+        "Failed to initiate Slack integration",
+        error.message || "Something went wrong. Please try again."
+      );
+    },
+  });
+}
+
 export type SlackChannel = {
   id: string;
   created: number;
