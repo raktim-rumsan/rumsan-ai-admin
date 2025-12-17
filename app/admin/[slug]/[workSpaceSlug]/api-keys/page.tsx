@@ -36,18 +36,25 @@ import {
   useCreateApiKey,
   useDeleteApiKey,
 } from "@/queries/apiKeysQuery";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
+import ConfirmDelete from "@/components/documents/DeleteModal";
 
 function SettingsPageContent() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [isMounted, setIsMounted] = useState(false);
-  const searchParams = useSearchParams();
-  const workspaceId = searchParams.get("workspaceId");
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const { workSpaceSlug } = useParams();
+
   // API hooks
-  const { data: apiKeys = [], isLoading, error } = useApiKeys();
-  const createApiKeyMutation = useCreateApiKey();
-  const deleteApiKeyMutation = useDeleteApiKey();
+  const {
+    data: apiKeys = [],
+    isLoading,
+    error,
+  } = useApiKeys(workSpaceSlug as string);
+  const createApiKeyMutation = useCreateApiKey(workSpaceSlug as string);
+  const deleteApiKeyMutation = useDeleteApiKey(workSpaceSlug as string);
 
   useEffect(() => {
     setIsMounted(true);
@@ -63,12 +70,16 @@ function SettingsPageContent() {
     }
   };
 
-  const handleDeleteKey = (id: string | undefined) => {
-    if (!id) {
-      toast.error("Unable to delete API key");
-      return;
-    }
-    deleteApiKeyMutation.mutate(id);
+  // Open confirm modal for deletion
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+
+    deleteApiKeyMutation.mutate(deleteTarget, {
+      onSuccess: () => {
+        setOpenDeleteModal(false);
+        setDeleteTarget(null);
+      },
+    });
   };
 
   const handleCreateKey = () => {
@@ -93,7 +104,7 @@ function SettingsPageContent() {
           <div className="flex items-center justify-between">
             <div>
               <Link
-                href={`/admin/workspaces/${workspaceId}`}
+                href={`/admin/workspaces/${workSpaceSlug}`}
                 className="text-sm text-muted-foreground hover:text-foreground mb-2 inline-block"
               >
                 ← Back to Workspace
@@ -249,7 +260,10 @@ function SettingsPageContent() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDeleteKey(apiKey.id)}
+                            onClick={() => {
+                              setDeleteTarget(apiKey.id!);
+                              setOpenDeleteModal(true);
+                            }}
                             disabled={
                               deleteApiKeyMutation.isPending || !apiKey.id
                             }
@@ -270,6 +284,14 @@ function SettingsPageContent() {
               )}
             </CardContent>
           </Card>
+          {/* Confirm delete modal for API keys */}
+          <ConfirmDelete
+            isOpen={openDeleteModal}
+            setIsOpen={setOpenDeleteModal}
+            item={"this API key"}
+            onConfirm={handleConfirmDelete}
+            isDeleting={deleteApiKeyMutation.isPending}
+          />
         </div>
       </div>
     </div>
