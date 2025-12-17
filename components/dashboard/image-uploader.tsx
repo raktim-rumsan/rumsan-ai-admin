@@ -71,7 +71,6 @@ export default function LogoUploader({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     try {
       // Dynamically import browser-image-resizer to avoid SSR issues
       const { readAndCompressImage } = await import("browser-image-resizer");

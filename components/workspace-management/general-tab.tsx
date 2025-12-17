@@ -47,20 +47,17 @@ import { getBackendFileUrl } from "@/queries/organizationQuery";
 
 export default function GeneralTab() {
   const { workSpaceSlug } = useParams();
-
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
   const updateWorkspace = useUpdateWorkspace(workSpaceSlug as string);
-  const deleteWorkspace = useDeleteWorkspaceMutation();
   // Find the workspace from the query
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
     (w: any) => w.slug === workSpaceSlug
   );
+  const deleteWorkspace = useDeleteWorkspaceMutation();
   const uploadMutation = useImageUploadMutation(workSpaceSlug as string);
   const removeMutation = removeWorkspaceImage();
-
   const currentImageUrl = currentWorkspace?.url
     ? getBackendFileUrl(currentWorkspace?.url)!
     : null;
@@ -80,7 +77,6 @@ export default function GeneralTab() {
 
   const handleSave = () => {
     if (!workSpaceSlug) return;
-
     updateWorkspace.mutate({
       id: workSpaceSlug as string,
       payload: {
@@ -93,10 +89,9 @@ export default function GeneralTab() {
   };
 
   const handleDeleteWorkspace = () => {
-    if (!workSpaceSlug) return;
-
+    if (!currentWorkspace?.id) return;
     startTransition(() => {
-      deleteWorkspace.mutate(workSpaceSlug as string, {
+      deleteWorkspace.mutate(currentWorkspace?.id as string, {
         onSuccess: () => {
           router.push("/admin/workspaces");
         },

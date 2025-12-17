@@ -40,7 +40,6 @@ export default function WorkspaceCreateDialog() {
 
   const handleCreateWorkspace = () => {
     if (!workspaceName.trim()) return;
-
     createWorkspace.mutate(
       {
         name: workspaceName.trim(),
@@ -53,7 +52,7 @@ export default function WorkspaceCreateDialog() {
           setWorkspaceName("");
           setWorkspaceDescription("");
           organizationContext.refetch();
-          router.push(`/admin/workspaces/${data.id}`);
+          router.push(`/admin/workspaces/${data.slug}`);
         },
       }
     );

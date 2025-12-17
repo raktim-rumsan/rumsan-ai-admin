@@ -283,7 +283,6 @@ export function useToggleDocumentStatusMutation(workspaceSlug: string) {
 
       return { previousDocs };
     },
-
     // rollback if fails
     onError: (err, documentId, context) => {
       if (context?.previousDocs) {

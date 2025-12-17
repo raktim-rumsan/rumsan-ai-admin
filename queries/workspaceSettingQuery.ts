@@ -19,7 +19,7 @@ export interface WorkspaceSettingsResponse {
   data: WorkspaceSettings;
 }
 
-export function useWorkspaceSettingQuery(workspaceSlug?: string) {
+export function useWorkspaceSettingQuery(workspaceSlug: string) {
   return useQuery({
     queryKey: ["workspaceSettings", workspaceSlug],
     enabled: !!workspaceSlug,
@@ -29,8 +29,8 @@ export function useWorkspaceSettingQuery(workspaceSlug?: string) {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          access_token: access_token || "",
-          "x-tenant-id": workspaceSlug || "",
+          access_token: access_token!,
+          "x-tenant-id": workspaceSlug,
           accept: "application/json",
         },
       });
@@ -54,8 +54,8 @@ export function useUpdateWorkspaceSetting(workspaceSlug?: string) {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          access_token: access_token || "",
-          "x-tenant-id": workspaceSlug || "",
+          access_token: access_token!,
+          "x-tenant-id": workspaceSlug!,
           accept: "application/json",
         },
         body: JSON.stringify(payload),

@@ -31,7 +31,6 @@ export interface CreateApiKeyResponse {
 export const useApiKeys = () => {
   const workspaceId =
     typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
-
   return useQuery({
     queryKey: ["apiKeys", workspaceId],
     queryFn: async (): Promise<ApiKey[]> => {
@@ -78,7 +77,6 @@ export const useApiKeys = () => {
 // Create organization API key
 export const useCreateApiKey = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (payload: CreateApiKeyPayload): Promise<ApiKey> => {
       const accessToken = getAuthToken();
@@ -129,7 +127,6 @@ export const useCreateApiKey = () => {
 // Delete organization API key
 export const useDeleteApiKey = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (apiKeyId: string): Promise<void> => {
       const accessToken = getAuthToken();

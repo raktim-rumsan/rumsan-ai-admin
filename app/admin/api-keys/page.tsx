@@ -44,7 +44,6 @@ function SettingsPageContent() {
   const [isMounted, setIsMounted] = useState(false);
   const searchParams = useSearchParams();
   const workspaceId = searchParams.get("workspaceId");
-
   // API hooks
   const { data: apiKeys = [], isLoading, error } = useApiKeys();
   const createApiKeyMutation = useCreateApiKey();
@@ -77,7 +76,6 @@ function SettingsPageContent() {
       toast.error("Please enter a name for the API key");
       return;
     }
-
     createApiKeyMutation.mutate(
       { name: newKeyName },
       {
@@ -88,7 +86,6 @@ function SettingsPageContent() {
       }
     );
   };
-
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="border-b bg-background">
@@ -111,7 +108,6 @@ function SettingsPageContent() {
           </div>
         </div>
       </div>
-
       <div className="container mx-auto px-6 py-8 max-w-4xl">
         <div className="space-y-6"></div>
         <div className="space-y-6">

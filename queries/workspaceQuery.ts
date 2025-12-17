@@ -446,14 +446,13 @@ export function useDeleteWorkspaceMemberMutation() {
 
 export function useDeleteWorkspaceMutation() {
   const queryClient = useQueryClient();
-
   return useMutation<void, Error, string>({
     mutationFn: async (workspaceId: string) => {
       const access_token = getAuthToken();
       const res = await fetch(ROUTES.DELETE_WORKSPACE(workspaceId), {
         method: "DELETE",
         headers: {
-          access_token: access_token || "",
+          access_token: access_token!,
         },
       });
 
