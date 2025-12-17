@@ -28,16 +28,13 @@ export interface CreateApiKeyResponse {
 }
 
 // Get organization API keys
-export const useApiKeys = () => {
-  const workspaceId =
-    typeof window !== "undefined" ? localStorage.getItem("workspaceId") : null;
+export const useApiKeys = (workspaceSlug?: string) => {
   return useQuery({
-    queryKey: ["apiKeys", workspaceId],
+    queryKey: ["apiKeys", workspaceSlug],
     queryFn: async (): Promise<ApiKey[]> => {
       const accessToken = getAuthToken();
-      const workspaceId = localStorage.getItem("workspaceId");
 
-      if (!accessToken || !workspaceId) {
+      if (!accessToken || !workspaceSlug) {
         throw new Error("Missing authentication credentials");
       }
 
@@ -45,8 +42,8 @@ export const useApiKeys = () => {
         method: "GET",
         headers: {
           accept: "*/*",
-          "x-tenant-id": workspaceId,
-          access_token: accessToken,
+          "x-tenant-id": workspaceSlug!,
+          access_token: accessToken!,
         },
       });
 
@@ -70,25 +67,25 @@ export const useApiKeys = () => {
 
       return transformedData;
     },
-    enabled: typeof window !== "undefined" && !!workspaceId, // Only run on client-side when workspaceId exists
+    enabled: typeof window !== "undefined" && !!workspaceSlug, // Only run on client-side when workspaceId exists
   });
 };
 
 // Create organization API key
-export const useCreateApiKey = () => {
+export const useCreateApiKey = (workspaceSlug?: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: CreateApiKeyPayload): Promise<ApiKey> => {
       const accessToken = getAuthToken();
-      const workspaceId = localStorage.getItem("workspaceId");
-      if (!accessToken || !workspaceId) {
+      // const workspaceId = localStorage.getItem("workspaceId"); // Restore workspaceId retrieval
+      if (!accessToken || !workspaceSlug) {
         throw new Error("Missing authentication credentials");
       }
       const response = await fetch(ROUTES.CREATE_ORG_API_KEY, {
         method: "POST",
         headers: {
           accept: "*/*",
-          "x-tenant-id": workspaceId,
+          "x-tenant-id": workspaceSlug!,
           access_token: accessToken,
           "Content-Type": "application/json",
         },
@@ -125,20 +122,20 @@ export const useCreateApiKey = () => {
 };
 
 // Delete organization API key
-export const useDeleteApiKey = () => {
+export const useDeleteApiKey = (workspaceSlug?: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (apiKeyId: string): Promise<void> => {
       const accessToken = getAuthToken();
-      const workspaceId = localStorage.getItem("workspaceId");
-      if (!accessToken || !workspaceId) {
+      // const workspaceId = localStorage.getItem("workspaceId");
+      if (!accessToken || !workspaceSlug) {
         throw new Error("Missing authentication credentials");
       }
       const response = await fetch(ROUTES.DELETE_ORG_API_KEY(apiKeyId), {
         method: "DELETE",
         headers: {
           accept: "*/*",
-          "x-tenant-id": workspaceId,
+          "x-tenant-id": workspaceSlug,
           access_token: accessToken,
         },
       });

@@ -36,18 +36,22 @@ import {
   useCreateApiKey,
   useDeleteApiKey,
 } from "@/queries/apiKeysQuery";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 
 function SettingsPageContent() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [isMounted, setIsMounted] = useState(false);
-  const searchParams = useSearchParams();
-  const workspaceId = searchParams.get("workspaceId");
+  const { workSpaceSlug } = useParams();
+
   // API hooks
-  const { data: apiKeys = [], isLoading, error } = useApiKeys();
-  const createApiKeyMutation = useCreateApiKey();
-  const deleteApiKeyMutation = useDeleteApiKey();
+  const {
+    data: apiKeys = [],
+    isLoading,
+    error,
+  } = useApiKeys(workSpaceSlug as string);
+  const createApiKeyMutation = useCreateApiKey(workSpaceSlug as string);
+  const deleteApiKeyMutation = useDeleteApiKey(workSpaceSlug as string);
 
   useEffect(() => {
     setIsMounted(true);
@@ -93,7 +97,7 @@ function SettingsPageContent() {
           <div className="flex items-center justify-between">
             <div>
               <Link
-                href={`/admin/workspaces/${workspaceId}`}
+                href={`/admin/workspaces/${workSpaceSlug}`}
                 className="text-sm text-muted-foreground hover:text-foreground mb-2 inline-block"
               >
                 ← Back to Workspace

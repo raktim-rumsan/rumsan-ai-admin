@@ -252,7 +252,7 @@ export default function GeneralTab() {
                       Manage API access
                     </p>
                   </div>
-                  <Link href={`/admin/api-keys?workspaceId=${workSpaceSlug}`}>
+                  <Link href={`/admin/workspaces/${workSpaceSlug}/api-keys`}>
                     <Button variant="outline" size="sm">
                       View Keys
                     </Button>
