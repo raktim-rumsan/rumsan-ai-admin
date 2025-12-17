@@ -321,7 +321,6 @@ export function useImageUploadMutation(
   const queryClient = useQueryClient();
 
   return useMutation({
-    // mutationFn: async (file: File) => {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
@@ -331,7 +330,7 @@ export function useImageUploadMutation(
         method: "POST",
         body: formData,
         headers: {
-          access_token: access_token || "",
+          access_token: access_token!,
         },
       });
       const data = await res.json();
