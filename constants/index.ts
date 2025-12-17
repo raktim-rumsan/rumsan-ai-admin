@@ -70,6 +70,22 @@ export const ROUTES = {
     `${API_BASE_URL}/invitations/${invitationId}`,
   INVITATION_RESEND: `${API_BASE_URL}/invitations/resend`,
   INVITATION_CHECK: `${API_BASE_URL}/invitations/check`,
+
+  //slack routes
+  SLACK_OAUTH_INSTALL: (workspaceId?: string) =>
+    `${API_BASE_URL}/widgets/slack/oauth/install${
+      workspaceId ? `?workspaceId=${workspaceId}` : ""
+    }`,
+  SLACK_WORKSPACE_BY_IDENTIFIER: (identifier: string) =>
+    `${API_BASE_URL}/widgets/slack/workspaces/${identifier}`,
+  SLACK_CHANNELS: (teamId: string) =>
+    `${API_BASE_URL}/widgets/slack/workspaces/${teamId}/channels`,
+  SLACK_INSTALL_CHANNEL: (teamId: string, channelId: string) =>
+    `${API_BASE_URL}/widgets/slack/workspaces/${teamId}/channels/${channelId}/install`,
+  SLACK_UNINSTALL_CHANNEL: (teamId: string, channelId: string) =>
+    `${API_BASE_URL}/widgets/slack/workspaces/${teamId}/channels/${channelId}/uninstall`,
+  SLACK_UNINSTALL_WORKSPACE: (teamId: string) =>
+    `${API_BASE_URL}/widgets/slack/workspaces/${teamId}`,
 };
 
 export default API_BASE_URL;
