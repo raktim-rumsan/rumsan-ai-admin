@@ -12,7 +12,7 @@ export default function IntegrationsContent({
   isAdminPanel,
 }: Readonly<IntegrationContentProps>) {
   const router = useRouter();
-  const { workspaceId } = useParams();
+  const { workSpaceSlug } = useParams();
 
   return (
     <Card className="relative flex flex-col h-full">
@@ -48,7 +48,7 @@ export default function IntegrationsContent({
           <Button
             onClick={() => {
               isAdminPanel
-                ? router.push(`${workspaceId}/integrations/${item.slug}`)
+                ? router.push(`${workSpaceSlug}/integrations/${item.slug}`)
                 : router.push(`integrations/${item.slug}`);
             }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 text-sm sm:text-base order-2 sm:order-1 cursor-pointer"
