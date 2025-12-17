@@ -88,7 +88,9 @@ export default function DocumentsPage() {
     isRetrain: boolean
   ) => {
     const action = isRetrain ? "Retraining" : "Training";
-    const loadingToastId = toastUtils.generic.loading(`${action} document...`);
+    const loadingToastId = toastUtils.generic.loading(
+      `${action} document. Please wait a moment.`
+    );
 
     // Set the training document ID to show loading state for this specific document
     setTrainingDocumentId(documentId);
