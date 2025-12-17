@@ -293,13 +293,23 @@ export default function LLMConfigPage() {
                       className="text-base font-semibold"
                     >
                       {providerConfig.apiKeyLabel || "API Key"}
+                      <span className="text-red-500 ml-1">*</span>
                     </Label>
                     <Input
                       id="api-key"
                       type="password"
-                      {...form.register("apiKey")}
+                      {...form.register("apiKey", {
+                        required: providerConfig.requiresApiKey
+                          ? "API Key is required"
+                          : false,
+                      })}
                       className="h-12 w-full"
                     />
+                    {form.formState.errors.apiKey && (
+                      <p className="text-sm text-red-500">
+                        {form.formState.errors.apiKey.message}
+                      </p>
+                    )}
                     <p className="text-sm text-gray-500">
                       Enter your API key to enable&nbsp;
                       {PROVIDER.find((p) => p.value === provider)?.label ||
