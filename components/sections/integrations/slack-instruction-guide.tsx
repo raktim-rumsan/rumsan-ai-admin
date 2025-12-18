@@ -23,16 +23,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import ConfirmDelete from "@/components/documents/DeleteModal";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 
 export default function SlackIntegrationGuide() {
   const [activeTab, setActiveTab] = useState<"channel" | "events">("channel");
@@ -91,7 +81,7 @@ export default function SlackIntegrationGuide() {
       }
     );
   };
-  const deleteWorkspace = () => {
+  const deleteSlackWorkspace = () => {
     removeSlackWorkspace(currentWorkspace?.id!, {
       onSuccess: () => {
         setOpenDeleteModal(false);
@@ -271,7 +261,7 @@ export default function SlackIntegrationGuide() {
         <ConfirmDelete
           isOpen={openDeleteModal}
           setIsOpen={setOpenDeleteModal}
-          onConfirm={() => deleteWorkspace()}
+          onConfirm={() => deleteSlackWorkspace()}
           isDeleting={isRemovingSlackWorkspace}
           item={"this Slack workspace"}
         />
