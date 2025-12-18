@@ -19,8 +19,8 @@ export function CTASection() {
 
       <div className="container mx-auto px-6 relative z-10 text-center">
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-white mb-4">
-          Ready to Transform Your{" "}
-          <span className="bg-gradient-to-r from-[#DC143C] via-purple-400 to-[#003893] bg-clip-text text-transparent">
+          Ready to Transform Your&nbps;
+          <span className="bg-gradient-to-r from-[#DC143C] via-purple-400 to-[#4078d3] bg-clip-text text-transparent">
             Banking Experience
           </span>
           ?
