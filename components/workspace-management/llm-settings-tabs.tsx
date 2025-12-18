@@ -30,6 +30,7 @@ import {
   PROVIDER_CONFIG,
   type ProviderConfig,
 } from "@/constants/models";
+import { encryptWithPublicKey } from "@/lib/encrypt";
 
 interface LLMConfigFormData {
   provider: string;
@@ -100,15 +101,30 @@ export default function LLMConfigPage() {
   // Get available models from provider config
   const availableChatModels = providerConfig?.chatModels ?? [];
   const availableEmbeddingModels = providerConfig?.embeddingModels ?? [];
+  const publicKeyPem = process.env.NEXT_PUBLIC_ENCRYPT_KEY;
 
-  const onSubmit = (data: LLMConfigFormData) => {
+  const onSubmit = async (data: LLMConfigFormData) => {
+    let encryptedApiKey = "";
+
+    // Only encrypt if the provider requires an API key
+    if (providerConfig?.requiresApiKey && data.apiKey) {
+      try {
+        encryptedApiKey = await encryptWithPublicKey(
+          publicKeyPem!,
+          data.apiKey
+        );
+      } catch (err) {
+        console.error("Failed to encrypt API key:", err);
+        return;
+      }
+    }
     updateWorkspaceSetting.mutate({
       provider: data.provider,
       llmModel: data.chatModel,
       embeddingModel: data.embeddingModel,
       maxTokensPerQuery: Number(data.maxTokens),
       temperature: parseFloat(data.temperature),
-      apiKey: data.apiKey,
+      apiKey: encryptedApiKey,
     });
   };
 
