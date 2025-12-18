@@ -22,13 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import ConfirmDelete from "@/components/documents/DeleteModal";
-// import ConfirmDelete from "../documents/DeleteModal";
 
 export default function SlackIntegrationGuide() {
   const [activeTab, setActiveTab] = useState<"channel" | "events">("channel");
   const [selectedChannelId, setSelectedChannelId] = useState<string>("");
-  const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
 
   const { workSpaceSlug }: { workSpaceSlug: string } = useParams();
 
@@ -42,7 +39,8 @@ export default function SlackIntegrationGuide() {
     workSpaceSlug!
   );
   const { data: workspaceStatus } = useSlackWorkspaceByIdentifier(
-    currentWorkspace?.id as string
+    currentWorkspace?.id as string,
+    workSpaceSlug
   );
 
   const { mutate: installSlackOAuth } = useSlackOAuthInstall(workSpaceSlug);
@@ -57,7 +55,6 @@ export default function SlackIntegrationGuide() {
     useInstallSlackChannel(workSpaceSlug);
 
   const connectedChannels = slackChannels?.filter((ch) => ch.is_member);
-  console.log(connectedChannels, "ddd");
   const availableChannels = slackChannels?.filter((ch) => !ch.is_member);
 
   const handleInstallSlack = () => {
@@ -65,7 +62,6 @@ export default function SlackIntegrationGuide() {
       onSuccess: (data) => {
         if (data && data.installUrl) {
           window.location.href = data.installUrl;
-          // window.open(data.installUrl, "_blank", "noopener,noreferrer");
         }
       },
     });
@@ -100,28 +96,32 @@ export default function SlackIntegrationGuide() {
         </Card>
 
         <>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">
-              Integrated
-            </span>
-            <Switch
-              onCheckedChange={() =>
-                toggleSlackWorkspace(currentWorkspace?.id!)
-              }
-              checked={workspaceStatus?.status}
-              className="data-[state=checked]:bg-[#5b47db] cursor-pointer"
-            />
-          </div>
+          {workspaceStatus && (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Integrated
+                </span>
+                <Switch
+                  onCheckedChange={() =>
+                    toggleSlackWorkspace(currentWorkspace?.id!)
+                  }
+                  checked={workspaceStatus?.status}
+                  className="data-[state=checked]:bg-[#5b47db] cursor-pointer"
+                />
+              </div>
 
-          <Button
-            onClick={() => removeSlackWorkspace(currentWorkspace?.id!)}
-            // onClick={() => setOpenDeleteModal(true)}
-            variant="outline"
-            className="w-full justify-start gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 bg-transparent"
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete
-          </Button>
+              <Button
+                onClick={() => removeSlackWorkspace(currentWorkspace?.id!)}
+                disabled={isRemovingSlackWorkspace}
+                variant="outline"
+                className="w-full justify-start gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 bg-transparent"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </Button>
+            </>
+          )}
         </>
       </div>
 
@@ -136,7 +136,7 @@ export default function SlackIntegrationGuide() {
         </div>
 
         <Button
-          className="w-fit bg-[#5b47db] px-6 py-2.5 text-white hover:bg-[#4c3bc2] disabled:bg-gray-300 disabled:text-gray-500"
+          className="w-fit bg-[#5b47db] px-6 py-2.5 text-white hover:bg-[#4c3bc2] disabled:bg-gray-300 disabled:text-gray-500 cursor-pointer"
           size="lg"
           onClick={() => {
             handleInstallSlack();
@@ -146,111 +146,105 @@ export default function SlackIntegrationGuide() {
           Connect to Slack
         </Button>
 
-        <div className="flex flex-col gap-6">
-          {/* Tabs */}
-          <div className="flex gap-8 border-b border-gray-200">
-            <button
-              onClick={() => setActiveTab("channel")}
-              className={`relative pb-3 text-sm font-medium transition-colors ${
-                activeTab === "channel"
-                  ? "text-[#5b47db]"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Channel
-              {activeTab === "channel" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#5b47db]" />
-              )}
-            </button>
-          </div>
-
-          {/* Channel Tab Content */}
-          {activeTab === "channel" && (
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-0">
-                <h2 className="text-lg font-semibold text-foreground">
-                  Add Bot to Slack Public Channels
-                </h2>
-                <div className="text-sm text-muted-foreground">
-                  For private channels, please invite the bot manually.
-                </div>
-              </div>
-              {/* Connected Channels */}
-              {connectedChannels && connectedChannels.length > 0 && (
-                <div className="flex flex-wrap gap-2 pb-2">
-                  {connectedChannels.map((channel) => (
-                    <div
-                      key={channel.id}
-                      className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-1.5"
-                    >
-                      <span className="text-sm font-medium text-foreground">
-                        # {channel.name}
-                      </span>
-                      <button
-                        // onClick={() => handleDisconnectChannel(channel.id)}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Channel Select and Connect Button */}
-              {availableChannels ? (
-                <div className="flex items-center gap-3 max-w-md">
-                  <Select
-                    value={selectedChannelId}
-                    onValueChange={setSelectedChannelId}
+        <>
+          {workspaceStatus && (
+            <>
+              <div className="flex flex-col gap-6">
+                {/* Tabs */}
+                <div className="flex gap-8 border-b border-gray-200">
+                  <button
+                    onClick={() => setActiveTab("channel")}
+                    className={`relative pb-3 text-sm font-medium transition-colors ${
+                      activeTab === "channel"
+                        ? "text-[#5b47db]"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
                   >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select channel" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableChannels?.map((channel) => (
-                        <SelectItem key={channel.id} value={channel.id}>
-                          # {channel.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    onClick={handleConnectChannel}
-                    disabled={!selectedChannelId}
-                    className="bg-[#5b47db] text-white hover:bg-[#4c3bc2] disabled:bg-gray-300 disabled:text-gray-500"
-                  >
-                    {isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                        Connecting
-                      </>
-                    ) : (
-                      "Connect"
+                    Channel
+                    {activeTab === "channel" && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#5b47db]" />
                     )}
-                  </Button>
+                  </button>
                 </div>
-              ) : (
-                <div className="text-sm text-muted-foreground">
-                  No available channels to connect.
-                </div>
-              )}
-            </div>
+
+                {/* Channel Tab Content */}
+                {activeTab === "channel" && (
+                  <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-0">
+                      <h2 className="text-lg font-semibold text-foreground">
+                        Add Bot to Slack Public Channels
+                      </h2>
+                      <div className="text-sm text-muted-foreground">
+                        For private channels, please invite the bot manually.
+                      </div>
+                    </div>
+                    {/* Connected Channels */}
+                    {connectedChannels && connectedChannels.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pb-2">
+                        {connectedChannels.map((channel) => (
+                          <div
+                            key={channel.id}
+                            className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-1.5"
+                          >
+                            <span className="text-sm font-medium text-foreground">
+                              # {channel.name}
+                            </span>
+                            <button
+                              // onClick={() => handleDisconnectChannel(channel.id)}
+                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Channel Select and Connect Button */}
+                    {availableChannels ? (
+                      <div className="flex items-center gap-3 max-w-md">
+                        <Select
+                          value={selectedChannelId}
+                          onValueChange={setSelectedChannelId}
+                        >
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Select channel" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableChannels?.map((channel) => (
+                              <SelectItem key={channel.id} value={channel.id}>
+                                # {channel.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          onClick={handleConnectChannel}
+                          disabled={!selectedChannelId}
+                          className="bg-[#5b47db] text-white hover:bg-[#4c3bc2] disabled:bg-gray-300 disabled:text-gray-500"
+                        >
+                          {isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                              Connecting
+                            </>
+                          ) : (
+                            "Connect"
+                          )}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">
+                        No available channels to connect.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
           )}
-        </div>
+        </>
       </div>
-      {/* <div>
-        <ConfirmDelete
-          open={openDeleteModal}
-          setIsOpen={setOpenDeleteModal}
-          onConfirm={removeSlackWorkspace(currentWorkspace?.id!)}
-          isDeleting={isRemovingSlackWorkspace}
-          item={"this Slack workspace"}
-        />
-      </div> */}
     </div>
   );
 }
-// http://localhost:3000/admin/workspaces/eb6076e5-45b5-4dd1-acfe-0e1e36200132/integrations/slack?widgetWorkspaceId=T090RAVH3S7&workspaceId=eb6076e5-45b5-4dd1-acfe-0e1e36200132
-// http://localhost:3000/admin/workspaces/rumsan-workspace-1766037505586/integrations/slack?widgetWorkspaceId=T090RAVH3S7&workspaceId=eb6076e5-45b5-4dd1-acfe-0e1e36200132
-// rumsan-workspace-1766037505586
