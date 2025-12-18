@@ -215,16 +215,6 @@ export default function DocumentsPage() {
                                 }
                                 disabled={trainingDocumentId === doc.id}
                               />
-                              {/* {trainingDocumentId === doc.id && (
-                                <RotateCcw className="w-4 h-4 animate-spin" />
-                              )}
-                              <span className="text-sm text-muted-foreground">
-                                {trainingDocumentId === doc.id
-                                  ? "Training..."
-                                  : doc.status === "PENDING"
-                                  ? "Train"
-                                  : "Trained"}
-                              </span> */}
                             </div>
                             <Button
                               variant="outline"
@@ -236,7 +226,6 @@ export default function DocumentsPage() {
                                 });
                                 setOpenDeleteModal(true);
                               }}
-                              // onClick={() => handleDelete(doc.id, doc.fileName)}
                               className="text-red-600 hover:text-red-700"
                               disabled={deleteMutation.isPending}
                             >

@@ -60,7 +60,10 @@ export default function WorkspaceDetailPage({
               asChild
               className="bg-green-600 hover:bg-green-700 text-white"
             >
-              <Link href={`/dashboard/workspace/${workspace.slug}`}>
+              <Link
+                href={`/dashboard/workspace/${workspace.slug}`}
+                target="_blank"
+              >
                 <ExternalLink className="h-4 w-4 mr-2" /> Open Workspace
               </Link>
             </Button>
