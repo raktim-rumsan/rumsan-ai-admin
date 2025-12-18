@@ -1,12 +1,12 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { use, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Member, Workspace } from "@/types/workspace-types";
+import { Workspace } from "@/types/workspace-types";
 import MembersTab from "@/components/workspace-management/members-tabs";
 import LLMSettingsTab from "@/components/workspace-management/llm-settings-tabs";
 import KnowledgebaseTab from "@/components/workspace-management/knowledegebase-tabs";
@@ -25,7 +25,6 @@ export default function WorkspaceDetailPage({
   params: Promise<{ workSpaceSlug: string }>;
 }) {
   const { workSpaceSlug } = use(params);
-  const [members, setMembers] = useState<Member[]>([]);
   const router = useRouter();
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
   let filterWorkspace: WorkspaceQueryType | undefined;
@@ -85,9 +84,7 @@ export default function WorkspaceDetailPage({
           {tablist.map((tab) => (
             <TabsContent value={tab.value} key={tab.value}>
               {tab.value === "general" && <GeneralTab />}
-              {tab.value === "members" && (
-                <MembersTab members={members} setMembers={setMembers} />
-              )}
+              {tab.value === "members" && <MembersTab />}
               {tab.value === "llm" && <LLMSettingsTab />}
               {tab.value === "knowledgebase" && <KnowledgebaseTab />}
               {tab.value === "integrations" && (

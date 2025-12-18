@@ -1,5 +1,5 @@
 "use client";
-import { FolderKanbanIcon, Users } from "lucide-react";
+import { Building2, FolderKanbanIcon, Users } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { useWorkspaceQuery } from "@/queries/workspaceQuery";

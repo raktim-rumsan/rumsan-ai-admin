@@ -45,6 +45,11 @@ import { useWorkspaceRole } from "@/hooks/useOrganizationContext";
 import ConfirmDelete from "../documents/DeleteModal";
 
 export default function MembersTab() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const orgId = searchParams.get("orgId") || "";
+  const workSpaceSlug = params?.workSpaceSlug as string;
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
@@ -59,10 +64,6 @@ export default function MembersTab() {
     null
   );
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const params = useParams();
-  const searchParams = useSearchParams();
-  const orgId = searchParams.get("orgId") || "";
-  const workSpaceSlug = params?.workSpaceSlug as string;
 
   // Fetch all workspaces to get the current workspace ID from slug
   const { data: workspaceData } = useWorkspaceQuery();

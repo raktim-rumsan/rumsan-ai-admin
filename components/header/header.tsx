@@ -73,7 +73,7 @@ export function MainHeader({
   const workspaceInitial = workspaceDisplayName.charAt(0) || "W";
 
   return (
-    <header className="bg-white border-b border-gray-200 p-[14px] lg:px-6">
+    <header className="bg-white border-b border-gray-200 p-3.5 lg:px-6">
       <div className="flex items-center justify-between">
         {/* Left side - Logo, Hamburger menu, and Workspace Image */}
         <div className="flex items-center">
@@ -117,18 +117,18 @@ export function MainHeader({
           {shouldShowWorkspaceLogo && (
             <div className="flex justify-center">
               {isLoading ? (
-                <Skeleton className="w-[250px] h-[40px] mb-[4px] rounded-md" />
+                <Skeleton className="w-[250px] h-10 mb-1 rounded-md" />
               ) : workspaceImageUrl ? (
                 <Image
                   width={250}
                   height={40}
                   src={workspaceImageUrl}
                   alt="Workspace Logo"
-                  className="w-[250px] h-[40px] object-contain rounded-md"
+                  className="w-[250px] h-10 object-contain rounded-md"
                 />
               ) : (
-                <div className="inline-flex items-center gap-3 rounded-2xl bg-gradient-to-br from-slate-50 via-white to-blue-50 px-3 py-2 text-slate-900 shadow-sm ring-1 ring-blue-100">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-sm ring-2 ring-blue-200">
+                <div className="inline-flex items-center gap-3 rounded-2xl bg-linear-to-br from-slate-50 via-white to-blue-50 px-3 py-2 text-slate-900 shadow-sm ring-1 ring-blue-100">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-sm ring-2 ring-blue-200">
                     <span className="text-lg font-bold leading-none">
                       {workspaceInitial}
                     </span>

@@ -101,7 +101,7 @@ function PreviewChat({
 
   return (
     <div className="flex flex-col bg-muted/30 rounded-lg border border-border h-full overflow-hidden">
-      <div className="flex justify-between items-center p-4 border-b border-border flex-shrink-0">
+      <div className="flex justify-between items-center p-4 border-b border-border shrink-0">
         <div className="text-sm font-medium text-foreground">Preview Chat</div>
 
         <div className="flex items-center ">
@@ -237,7 +237,7 @@ function PreviewChat({
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="border-t border-border p-4 flex-shrink-0">
+          <div className="border-t border-border p-4 shrink-0">
             <div className="flex items-center space-x-2">
               <Input
                 value={chatMessage}

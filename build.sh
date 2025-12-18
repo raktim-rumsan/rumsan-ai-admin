@@ -13,8 +13,8 @@ echo "🚀 Building Rumsan AI Admin Panel Docker Image..."
 if [ ! -f .env.prod ]; then
     echo "⚠️  Warning: .env.prod file not found. Creating from .env.example..."
     if [ -f env.example ]; then
-        cp env.example .env
-        echo "📝 Please edit .env file with your actual values before building"
+        cp env.example .env.prod
+        echo "📝 Please edit .env.prod file with your actual values before building"
         exit 1
     fi
 fi
@@ -27,7 +27,7 @@ if [ -f .env.prod ]; then
 fi
 
 # Check required environment variables
-required_vars=("NEXT_PUBLIC_SUPABASE_URL" "NEXT_PUBLIC_SUPABASE_ANON_KEY")
+required_vars=("NEXT_PUBLIC_SUPABASE_URL" "NEXT_PUBLIC_SUPABASE_ANON_KEY" "NEXT_PUBLIC_ENCRYPT_KEY")
 missing_vars=()
 
 for var in "${required_vars[@]}"; do
@@ -39,7 +39,7 @@ done
 if [ ${#missing_vars[@]} -ne 0 ]; then
     echo "❌ Missing required environment variables:"
     printf '%s\n' "${missing_vars[@]}"
-    echo "Please set these variables in your .env file"
+    echo "Please set these variables in your .env.prod file"
     exit 1
 fi
 
@@ -52,6 +52,7 @@ docker buildx build \
     --build-arg NEXT_PUBLIC_URL="$NEXT_PUBLIC_URL" \
     --build-arg NEXT_PUBLIC_SERVER_API="$NEXT_PUBLIC_SERVER_API" \
     --build-arg NEXT_PUBLIC_INDUSTRY_VALUES="$NEXT_PUBLIC_INDUSTRY_VALUES" \
+    --build-arg NEXT_PUBLIC_ENCRYPT_KEY="$NEXT_PUBLIC_ENCRYPT_KEY" \
     -t rumsan/ai-admin:latest \
     .
 

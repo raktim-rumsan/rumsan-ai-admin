@@ -27,7 +27,7 @@ export default function IntegrationLists({
           <section>
             <div className="mb-6">
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                <div className="p-2 bg-linear-to-br from-blue-500 to-indigo-600 rounded-lg">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">Widgets</h2>
@@ -51,7 +51,7 @@ export default function IntegrationLists({
             <section>
               <div className="mb-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg">
+                  <div className="p-2 bg-linear-to-br from-emerald-500 to-teal-600 rounded-lg">
                     <Layers className="w-5 h-5 text-white" />
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900">Services</h2>

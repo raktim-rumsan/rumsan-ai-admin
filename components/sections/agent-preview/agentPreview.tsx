@@ -83,7 +83,7 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
         <div className="h-full  overflow-hidden">
           {/* Agent Configuration Section */}
           <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex space-x-1 mb-6 bg-muted p-1 rounded-lg w-fit flex-shrink-0">
+            <div className="flex space-x-1 mb-6 bg-muted p-1 rounded-lg w-fit shrink-0">
               {["Prompt", "Knowledge"].map((tab) => (
                 <button
                   key={tab}
@@ -101,7 +101,7 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
             </div>
             {activeTab === "Prompt" && (
               <>
-                <div className="bg-muted/50 rounded-lg border border-border p-4 flex-1 min-h-0 overflow-hidden flex-shrink-0">
+                <div className="bg-muted/50 rounded-lg border border-border p-4 flex-1 min-h-0 overflow-hidden shrink-0">
                   <Textarea
                     value={promptContent}
                     onChange={(e) => setPromptContent(e.target.value)}
