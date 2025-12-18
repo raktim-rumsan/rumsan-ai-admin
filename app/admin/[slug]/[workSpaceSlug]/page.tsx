@@ -1,10 +1,11 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Member, Workspace } from "@/types/workspace-types";
 import MembersTab from "@/components/workspace-management/members-tabs";
 import LLMSettingsTab from "@/components/workspace-management/llm-settings-tabs";
@@ -25,6 +26,7 @@ export default function WorkspaceDetailPage({
 }) {
   const { workSpaceSlug } = use(params);
   const [members, setMembers] = useState<Member[]>([]);
+  const router = useRouter();
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
   let filterWorkspace: WorkspaceQueryType | undefined;
 
@@ -34,6 +36,13 @@ export default function WorkspaceDetailPage({
     );
   }
 
+  // Redirect if user is WORKSPACE_MEMBER
+  useEffect(() => {
+    if (!isLoading && filterWorkspace?.userRole === "WORKSPACE_MEMBER") {
+      router.push("/admin");
+    }
+  }, [isLoading, filterWorkspace, router]);
+
   const workspace: Workspace = {
     id: filterWorkspace?.id || "",
     name: filterWorkspace?.name || "",
@@ -42,6 +51,11 @@ export default function WorkspaceDetailPage({
     color: "bg-blue-500",
     slug: filterWorkspace?.slug || "",
   };
+
+  // Don't render if user is WORKSPACE_MEMBER
+  if (!isLoading && filterWorkspace?.userRole === "WORKSPACE_MEMBER") {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-muted/30">

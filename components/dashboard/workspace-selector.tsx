@@ -1,5 +1,7 @@
 "use client";
-import { Building2, ArrowRight, Users } from "lucide-react";
+import { FolderKanbanIcon, Users } from "lucide-react";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 import {
   Card,
@@ -8,12 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
 import { clearChatHistory } from "@/queries/chatQuery";
 import DashboardLoader from "./dashboard-loading";
 
 export default function WorkspaceSelectorPage() {
-  const router = useRouter();
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
 
   if (typeof window !== "undefined") {
@@ -42,51 +42,64 @@ export default function WorkspaceSelectorPage() {
 
           {/* Workspaces Grid */}
           <div className="container mx-auto px-6 py-8">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {workspaceData?.data?.myWorkspaces?.map((workspace) => {
-                const Icon = Building2;
-
                 return (
-                  <Card
+                  <Link
                     key={workspace.id}
-                    className="group h-full transition-all relative hover:shadow-lg hover:border-primary/50 cursor-pointer"
-                    onClick={() => {
-                      router.push(`/dashboard/workspace/${workspace.slug}`);
-                    }}
+                    href={`/dashboard/workspace/${workspace.slug}`}
                   >
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-lg bg-muted p-3 group-hover:bg-primary/10">
-                            <Icon className="h-6 w-6" />
+                    <Card className="group h-full transition-all hover:shadow-lg hover:border-primary/50">
+                      <CardHeader>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start gap-3">
+                            <div className="rounded-lg bg-teal-500 p-3">
+                              <FolderKanbanIcon className="h-6 w-6 text-white" />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                              <CardTitle className="text-lg">
+                                {workspace.name}
+                              </CardTitle>
+                              {workspace.organization?.name && (
+                                <p className="text-xs text-muted-foreground">
+                                  {workspace.organization.name}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <CardTitle className="text-lg">
-                              {workspace.name}
-                            </CardTitle>
-                            {workspace.sector && (
-                              <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 mt-1">
-                                {workspace.sector}
-                              </span>
-                            )}
-                          </div>
+                          <Badge
+                            variant={
+                              workspace.isActive ? "default" : "secondary"
+                            }
+                          >
+                            {workspace.isActive ? "Active" : "Inactive"}
+                          </Badge>
                         </div>
-                        <ArrowRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <CardDescription className="flex text-sm leading-relaxed mb-4">
-                        {workspace.description}
-                      </CardDescription>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Users className="h-3.5 w-3.5" />
-                        <span>
-                          {workspace._count?.users}{" "}
-                          {workspace._count?.users === 1 ? "member" : "members"}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
+                        {workspace.description && (
+                          <CardDescription className="text-sm leading-relaxed mt-2">
+                            {workspace.description}
+                          </CardDescription>
+                        )}
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Users className="h-4 w-4 mr-1" />
+                            <span>
+                              {workspace._count?.users === 1
+                                ? "member"
+                                : "members"}
+                            </span>
+                          </div>
+                          {workspace.sector && (
+                            <Badge variant="outline" className="text-xs">
+                              {workspace.sector}
+                            </Badge>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 );
               })}
             </div>

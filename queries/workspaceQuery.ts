@@ -25,6 +25,11 @@ export interface Workspace {
   _count?: {
     users: number;
   };
+  userRole: string;
+  organization?: {
+    name: string;
+    slug: string;
+  };
 }
 
 export interface WorkspaceMember {

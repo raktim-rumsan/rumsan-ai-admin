@@ -21,7 +21,10 @@ export default function AdminDashboard() {
   const { data: workspaceData, isLoading: workspaceLoading } =
     useWorkspaceQuery();
 
-  const workspaceCount = workspaceData?.data?.myWorkspaces.length || 0;
+  const workspaceCount =
+    workspaceData?.data?.myWorkspaces.filter(
+      (workspace) => workspace.userRole !== "WORKSPACE_MEMBER"
+    ).length || 0;
 
   const getCardStats = (card: any) => {
     if (card.slug === "workspaces") {
