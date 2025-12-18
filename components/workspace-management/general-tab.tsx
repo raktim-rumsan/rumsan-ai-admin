@@ -67,6 +67,7 @@ export default function GeneralTab() {
   const [description, setDescription] = useState<string>();
   const [botName, setBotName] = useState<string>();
   const [sector, setSector] = useState<string>();
+  const [isSectorAlertOpen, setIsSectorAlertOpen] = useState(false);
 
   // Compute values for inputs: prefer edited value, fallback to query, fallback to empty
   const workspaceName = name ?? currentWorkspace?.name ?? "";
@@ -75,8 +76,7 @@ export default function GeneralTab() {
   const workspaceBotName = botName ?? currentWorkspace?.botName ?? "";
   const workspaceSector = sector ?? currentWorkspace?.sector ?? "";
 
-  const handleSave = () => {
-    if (!workSpaceSlug) return;
+  const performUpdate = () => {
     updateWorkspace.mutate({
       id: currentWorkspace?.id as string,
       payload: {
@@ -86,6 +86,16 @@ export default function GeneralTab() {
         sector: workspaceSector,
       },
     });
+  };
+  const handleSave = () => {
+    if (!workSpaceSlug) return;
+
+    if (workspaceSector !== currentWorkspace?.sector) {
+      setIsSectorAlertOpen(true);
+      return;
+    }
+
+    performUpdate();
   };
 
   const handleDeleteWorkspace = () => {
@@ -224,6 +234,42 @@ export default function GeneralTab() {
                     Save Changes
                   </Button>
                 </div>
+                <AlertDialog
+                  open={isSectorAlertOpen}
+                  onOpenChange={setIsSectorAlertOpen}
+                >
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Change Workspace Sector?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Changing the sector will unlink all existing
+                        industry-specific knowledgebase links for the previous
+                        sector. The system will now show documents for the new
+                        sector. Do you want to continue?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel
+                        onClick={() => {
+                          setIsSectorAlertOpen(false);
+                          setSector(currentWorkspace?.sector || "");
+                        }}
+                      >
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => {
+                          setIsSectorAlertOpen(false);
+                          performUpdate(); // Call the mutation here
+                        }}
+                      >
+                        Continue
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </CardContent>
           </Card>

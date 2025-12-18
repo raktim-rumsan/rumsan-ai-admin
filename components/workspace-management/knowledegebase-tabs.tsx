@@ -16,10 +16,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 
 import KnowledgebaseStats from "./knowlege-stats";
-import {
-  useOrganizationContext,
-  useWorkspaceRole,
-} from "@/hooks/useOrganizationContext";
+import { useWorkspaceRole } from "@/hooks/useOrganizationContext";
 import {
   KnowledgebaseError,
   KnowledgebaseLoading,
@@ -28,8 +25,6 @@ import { useParams } from "next/navigation";
 import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 
 export default function KnowledgebaseTab() {
-  const { workspaces } = useOrganizationContext();
-  const sector = workspaces?.[0]?.sector;
   const params = useParams();
   const workSpaceSlug = params?.workSpaceSlug as string;
 
@@ -39,18 +34,21 @@ export default function KnowledgebaseTab() {
     (w) => w.slug === workSpaceSlug
   );
   const workspaceId = currentWorkspace?.id || "";
+  const sector = currentWorkspace?.sector;
 
   const {
     data: fetchedDocs = [],
     isLoading,
+    isFetched,
     error,
   } = useKnowledgebaseQuery(workSpaceSlug, sector!);
 
   const { isAdmin } = useWorkspaceRole(workspaceId || "");
 
+  const processedDocs = fetchedDocs.filter((doc) => doc.status === "PROCESSED");
   const visibleDocs = isAdmin
-    ? fetchedDocs
-    : fetchedDocs.filter((doc) => doc.enabled);
+    ? processedDocs
+    : processedDocs.filter((doc) => doc.enabled);
 
   const toggleMutation = useToggleDocumentStatusMutation(workSpaceSlug);
   const handleToggle = (documentId: string) => {
@@ -59,9 +57,9 @@ export default function KnowledgebaseTab() {
 
   if (error) return <KnowledgebaseError error={error} />;
 
-  return isLoading ? (
-    <KnowledgebaseLoading />
-  ) : (
+  if (!isFetched || isLoading) return <KnowledgebaseLoading />;
+
+  return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
@@ -136,7 +134,7 @@ export default function KnowledgebaseTab() {
           </div>
         </CardContent>
       </Card>
-      <KnowledgebaseStats knowledgebase={fetchedDocs} />
+      <KnowledgebaseStats knowledgebase={processedDocs} />
     </div>
   );
 }
