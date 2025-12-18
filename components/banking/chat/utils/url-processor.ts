@@ -40,7 +40,5 @@ export function processMessageContent(content: string): string {
       replacement +
       result.substring(index + url.length);
   }
-  console.log({ result });
-
   return result;
 }
