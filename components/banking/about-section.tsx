@@ -36,11 +36,11 @@ export function AboutSection() {
           <div className="flex justify-center lg:justify-end">
             <div className="absolute inset-0 bg-gradient-to-r from-[#DC143C]/20 to-[#003893]/20 rounded-full blur-3xl scale-75" />
             <Image
-              src="https://assets.rumsan.net/rumsan-group/nepali-robot.png"
+              src="https://assets.rumsan.net/rumsan-group/about-chatty-rumsan.png"
               alt="Rumsan Ai Bot"
               width={500}
               height={300}
-              className="h-auto object-cover"
+              className="h-auto object-cover rounded-md"
             />
           </div>
         </div>
