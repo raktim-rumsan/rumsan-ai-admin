@@ -139,16 +139,9 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
     <div className="relative mt-4">
       {!currentApiKey && !isLoading ? (
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 p-8 bg-muted rounded-lg text-center">
-          <span className="text-muted-foreground">
-            You have not created an API key yet
+          <span className="text-black font-semibold">
+            You currently don’t have an API key. Please contact your admin.
           </span>
-          <Button
-            onClick={() => (window.location.href = "/dashboard/settings")}
-            variant="outline"
-            size="sm"
-          >
-            Create API Key
-          </Button>
         </div>
       ) : (
         <Tabs

@@ -56,7 +56,7 @@ export default function GeneralTab() {
   );
   const updateWorkspace = useUpdateWorkspace(workSpaceSlug as string);
   const deleteWorkspace = useDeleteWorkspaceMutation();
-  const uploadMutation = useImageUploadMutation(workSpaceSlug as string);
+  const uploadMutation = useImageUploadMutation(currentWorkspace?.id as string);
   const removeMutation = removeWorkspaceImage();
   const currentImageUrl = currentWorkspace?.url
     ? getBackendFileUrl(currentWorkspace?.url)!
@@ -192,7 +192,7 @@ export default function GeneralTab() {
                         currentImageUrl={currentImageUrl!}
                         uploadMutation={uploadMutation}
                         removeMutation={removeMutation}
-                        deleteId={workSpaceSlug as string}
+                        deleteId={currentWorkspace?.id as string}
                       />
                     </div>
                   </div>

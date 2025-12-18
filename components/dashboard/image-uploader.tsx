@@ -132,7 +132,7 @@ export default function LogoUploader({
     <Card className="max-w-xs rounded-lg overflow-hidden">
       {/* Top: logo display area */}
       <div
-        className="p-6 bg-gray-50 flex items-center justify-center"
+        className="p-6 h-[200px] bg-gray-50 flex items-center justify-center"
         onClick={() => fileInputRef.current?.click()}
         role="button"
         aria-label="Select logo"
@@ -148,7 +148,7 @@ export default function LogoUploader({
             />
           ) : (
             <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
-              <ImageUp className="w-6 h-6 text-gray-600" />
+              <ImageUp className="w-16 h-16 text-gray-600" />
             </div>
           )}
         </div>
