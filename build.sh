@@ -21,7 +21,9 @@ fi
 
 # Load environment variables
 if [ -f .env.prod ]; then
-    export $(cat .env.prod | grep -v '^#' | xargs)
+    set -a
+    source .env.prod
+    set +a
     echo "📋 Loaded environment variables:"
     echo "  NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL"
 fi

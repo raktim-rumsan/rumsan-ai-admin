@@ -53,13 +53,10 @@ RUN \
 FROM node:24-alpine AS runner
 WORKDIR /app
 
-# Required for sharp at build time
+# Install runtime dependencies for sharp
 RUN apk add --no-cache \
   libc6-compat \
-  vips-dev \
-  build-base \
-  python3 \
-  && npm install --arch=x64 --platform=linux --libc=musl sharp
+  vips-dev
 
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs
