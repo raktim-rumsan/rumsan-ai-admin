@@ -49,7 +49,7 @@ function AdminIntegrations() {
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      <div className="">{selectedItem?.component}</div>
+      <div>{selectedItem?.component}</div>
     </div>
   );
 }

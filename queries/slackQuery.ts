@@ -11,6 +11,7 @@ export interface SlackWorkspaceResponse {
   teamId: string;
   teamName?: string;
   installedAt?: string;
+  status: boolean;
 }
 
 export interface ToggleWorkspaceResponse {
@@ -130,11 +131,11 @@ export type SlackChannel = {
 
 // Get Slack workspace by internal workspace ID or slug
 export function useSlackWorkspaceByIdentifier(
-  identifier: string,
+  workspaceId: string,
   workspaceSlug?: string
 ) {
   return useQuery({
-    queryKey: ["slack", "workspace", identifier, workspaceSlug],
+    queryKey: ["slack", "workspace", workspaceId, workspaceSlug],
     queryFn: async (): Promise<SlackWorkspaceResponse> => {
       const access_token = getAuthToken();
 
@@ -143,7 +144,7 @@ export function useSlackWorkspaceByIdentifier(
       }
 
       const res = await fetch(
-        ROUTES.SLACK_WORKSPACE_BY_IDENTIFIER(identifier),
+        ROUTES.SLACK_WORKSPACE_BY_IDENTIFIER(workspaceId),
         {
           method: "GET",
           headers: {
@@ -162,7 +163,7 @@ export function useSlackWorkspaceByIdentifier(
       }
       return data;
     },
-    enabled: !!identifier,
+    enabled: !!workspaceId,
     staleTime: 2 * 60 * 1000,
   });
 }
@@ -202,7 +203,7 @@ export function useSlackChannels(workspaceId: string, workspaceSlug?: string) {
   });
 }
 
-// Install bot to a channel
+// Install bot to a channel(connect/install)
 export function useInstallSlackChannel(workspaceSlug?: string) {
   const queryClient = useQueryClient();
 
@@ -259,7 +260,7 @@ export function useInstallSlackChannel(workspaceSlug?: string) {
   });
 }
 
-// Uninstall bot from a channel
+// Uninstall bot from a channel (muilti select uninstall)
 export function useUninstallSlackChannel(workspaceSlug?: string) {
   const queryClient = useQueryClient();
 
