@@ -13,6 +13,11 @@ export interface SlackWorkspaceResponse {
   installedAt?: string;
 }
 
+export interface ToggleWorkspaceResponse {
+  status: boolean;
+  message: string;
+}
+
 // Initiate Slack OAuth installation
 export function useSlackOAuthInstall(workspaceSlug?: string) {
   return useMutation({
@@ -163,9 +168,9 @@ export function useSlackWorkspaceByIdentifier(
 }
 
 // Get channels for a Slack workspace
-export function useSlackChannels(teamId: string, workspaceSlug?: string) {
+export function useSlackChannels(workspaceId: string, workspaceSlug?: string) {
   return useQuery({
-    queryKey: ["slack", "channels", teamId, workspaceSlug],
+    queryKey: ["slack", "channels", workspaceId, workspaceSlug],
     queryFn: async (): Promise<SlackChannel[] | undefined> => {
       const access_token = getAuthToken();
 
@@ -173,7 +178,7 @@ export function useSlackChannels(teamId: string, workspaceSlug?: string) {
         throw new Error("Missing authentication credentials");
       }
 
-      const res = await fetch(ROUTES.SLACK_CHANNELS(teamId), {
+      const res = await fetch(ROUTES.SLACK_CHANNELS(workspaceId), {
         method: "GET",
         headers: {
           access_token: access_token || "",
@@ -192,7 +197,7 @@ export function useSlackChannels(teamId: string, workspaceSlug?: string) {
 
       return data;
     },
-    enabled: !!teamId,
+    enabled: !!workspaceId,
     staleTime: 2 * 60 * 1000,
   });
 }
@@ -203,10 +208,10 @@ export function useInstallSlackChannel(workspaceSlug?: string) {
 
   return useMutation({
     mutationFn: async ({
-      teamId,
+      workspaceId,
       channelId,
     }: {
-      teamId: string;
+      workspaceId: string;
       channelId: string;
     }) => {
       const access_token = getAuthToken();
@@ -215,14 +220,17 @@ export function useInstallSlackChannel(workspaceSlug?: string) {
         throw new Error("Missing authentication credentials");
       }
 
-      const res = await fetch(ROUTES.SLACK_INSTALL_CHANNEL(teamId, channelId), {
-        method: "POST",
-        headers: {
-          access_token: access_token || "",
-          "x-tenant-id": workspaceSlug || "",
-          accept: "application/json",
-        },
-      });
+      const res = await fetch(
+        ROUTES.SLACK_INSTALL_CHANNEL(workspaceId, channelId),
+        {
+          method: "POST",
+          headers: {
+            access_token: access_token || "",
+            "x-tenant-id": workspaceSlug || "",
+            accept: "application/json",
+          },
+        }
+      );
 
       const data = await res.json();
       if (!res.ok) {
@@ -235,7 +243,7 @@ export function useInstallSlackChannel(workspaceSlug?: string) {
     onSuccess: (_, variables) => {
       // Invalidate channels query to refetch updated channel status
       queryClient.invalidateQueries({
-        queryKey: ["slack", "channels", variables.teamId],
+        queryKey: ["slack", "channels", variables.workspaceId],
       });
       toastUtils.generic.success(
         "Channel installed",
@@ -257,10 +265,10 @@ export function useUninstallSlackChannel(workspaceSlug?: string) {
 
   return useMutation({
     mutationFn: async ({
-      teamId,
+      workspaceId,
       channelId,
     }: {
-      teamId: string;
+      workspaceId: string;
       channelId: string;
     }) => {
       const access_token = getAuthToken();
@@ -270,7 +278,7 @@ export function useUninstallSlackChannel(workspaceSlug?: string) {
       }
 
       const res = await fetch(
-        ROUTES.SLACK_UNINSTALL_CHANNEL(teamId, channelId),
+        ROUTES.SLACK_UNINSTALL_CHANNEL(workspaceId, channelId),
         {
           method: "POST",
           headers: {
@@ -291,7 +299,7 @@ export function useUninstallSlackChannel(workspaceSlug?: string) {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["slack", "channels", variables.teamId],
+        queryKey: ["slack", "channels", variables.workspaceId],
       });
       toastUtils.generic.success(
         "Channel uninstalled",
@@ -307,19 +315,69 @@ export function useUninstallSlackChannel(workspaceSlug?: string) {
   });
 }
 
-// Uninstall workspace (remove bot from all channels and disconnect)
-export function useUninstallSlackWorkspace(workspaceSlug?: string) {
+// Toggle Slack workspace status (active/inactive)
+export function useToggleSlackWorkspace(workspaceSlug?: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (teamId: string) => {
+    mutationFn: async (
+      workspaceId: string
+    ): Promise<ToggleWorkspaceResponse> => {
       const access_token = getAuthToken();
 
       if (!access_token) {
         throw new Error("Missing authentication credentials");
       }
 
-      const res = await fetch(ROUTES.SLACK_UNINSTALL_WORKSPACE(teamId), {
+      const res = await fetch(ROUTES.SLACK_TOGGLE_WORKSPACE(workspaceId), {
+        method: "PATCH",
+        headers: {
+          access_token: access_token || "",
+          "x-tenant-id": workspaceSlug || "",
+          accept: "application/json",
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+      return data;
+    },
+    onSuccess: (_, workspaceId) => {
+      // Invalidate workspace query to refetch updated status
+      queryClient.invalidateQueries({
+        queryKey: ["slack", "workspace"],
+      });
+      toastUtils.generic.success(
+        "Workspace status updated",
+        "Slack workspace status has been toggled successfully"
+      );
+    },
+    onError: (error: Error) => {
+      toastUtils.generic.error(
+        "Failed to toggle workspace status",
+        error.message || "Something went wrong. Please try again."
+      );
+    },
+  });
+}
+
+// Uninstall workspace (remove bot from all channels and disconnect)
+export function useUninstallSlackWorkspace(workspaceSlug?: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (workspaceId: string) => {
+      const access_token = getAuthToken();
+
+      if (!access_token) {
+        throw new Error("Missing authentication credentials");
+      }
+
+      const res = await fetch(ROUTES.SLACK_UNINSTALL_WORKSPACE(workspaceId), {
         method: "DELETE",
         headers: {
           access_token: access_token || "",
@@ -338,7 +396,7 @@ export function useUninstallSlackWorkspace(workspaceSlug?: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["slack", "workspaces"],
+        queryKey: ["slack", "workspace"],
       });
       toastUtils.generic.success(
         "Workspace uninstalled",
