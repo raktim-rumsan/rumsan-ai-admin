@@ -106,9 +106,9 @@ export function useDocDeleteMutation(
   });
 }
 
-export function useKnowledgebaseQuery(workspaceSlug: string, sector: string) {
+export function useKnowledgebaseQuery(workspaceSlug: string, sector?: string) {
   return useQuery({
-    queryKey: ["knowledgebase", workspaceSlug],
+    queryKey: ["knowledgebase", workspaceSlug, sector ?? ""],
     queryFn: async (): Promise<Doc[]> => {
       const access_token = getAuthToken();
 
@@ -142,6 +142,9 @@ export function useKnowledgebaseQuery(workspaceSlug: string, sector: string) {
 
       return data.data || [];
     },
+    // Only run the query on the client, when workspaceSlug exists and sector is defined.
+    enabled:
+      typeof window !== "undefined" && !!workspaceSlug && sector !== undefined,
     staleTime: 10_000,
   });
 }
