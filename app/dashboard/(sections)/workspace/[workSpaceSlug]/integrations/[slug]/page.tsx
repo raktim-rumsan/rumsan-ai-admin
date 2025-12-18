@@ -6,7 +6,6 @@ import { notFound, useParams, useRouter } from "next/navigation";
 export default function IntegrationDetail() {
   const router = useRouter();
   const { slug, workspaceId } = useParams();
-
   const item = integrationItem.slugsItems.find((item) => item.slug === slug);
   if (!item) return notFound();
   return (

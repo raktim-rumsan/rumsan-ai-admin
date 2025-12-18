@@ -1,8 +1,12 @@
+"use client";
 import AdminDashboardHeader from "@/components/admin-dashboard/admin-dashboard-header";
-import React from "react";
+import AdminIntegrations from "@/components/sections/integrations/admin-integratons";
 
-function page() {
-  return <AdminDashboardHeader />;
+export default function page() {
+  return (
+    <>
+      <AdminDashboardHeader />
+      <AdminIntegrations />
+    </>
+  );
 }
-
-export default page;
