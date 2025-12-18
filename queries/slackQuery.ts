@@ -134,6 +134,7 @@ export function useSlackWorkspaceByIdentifier(
   workspaceId: string,
   workspaceSlug?: string
 ) {
+  console.log("workspaceId", workspaceId);
   return useQuery({
     queryKey: ["slack", "workspace", workspaceId, workspaceSlug],
     queryFn: async (): Promise<SlackWorkspaceResponse> => {
@@ -393,11 +394,15 @@ export function useUninstallSlackWorkspace(workspaceSlug?: string) {
           data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
         throw new Error(errorMessage);
       }
-      return data;
+      return { data, workspaceId, workspaceSlug };
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      console.log(data, variables, "data");
       queryClient.invalidateQueries({
-        queryKey: ["slack", "workspace"],
+        queryKey: ["slack", "workspace", data.workspaceId, data.workspaceSlug],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["slack", "channels", data.workspaceId, data.workspaceSlug],
       });
       toastUtils.generic.success(
         "Workspace uninstalled",
