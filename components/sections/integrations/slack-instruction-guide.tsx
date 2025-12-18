@@ -22,10 +22,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import ConfirmDelete from "@/components/documents/DeleteModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 export default function SlackIntegrationGuide() {
   const [activeTab, setActiveTab] = useState<"channel" | "events">("channel");
   const [selectedChannelId, setSelectedChannelId] = useState<string>("");
+  const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
 
   const { workSpaceSlug }: { workSpaceSlug: string } = useParams();
 
@@ -79,6 +91,13 @@ export default function SlackIntegrationGuide() {
       }
     );
   };
+  const deleteWorkspace = () => {
+    removeSlackWorkspace(currentWorkspace?.id!, {
+      onSuccess: () => {
+        setOpenDeleteModal(false);
+      },
+    });
+  };
 
   return (
     <div className="flex items-start gap-8">
@@ -112,8 +131,11 @@ export default function SlackIntegrationGuide() {
               </div>
 
               <Button
-                onClick={() => removeSlackWorkspace(currentWorkspace?.id!)}
+                // onClick={() => removeSlackWorkspace(currentWorkspace?.id!)}
                 disabled={isRemovingSlackWorkspace}
+                onClick={() => {
+                  setOpenDeleteModal(true);
+                }}
                 variant="outline"
                 className="w-full justify-start gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 bg-transparent"
               >
@@ -244,6 +266,15 @@ export default function SlackIntegrationGuide() {
             </>
           )}
         </>
+      </div>
+      <div>
+        <ConfirmDelete
+          isOpen={openDeleteModal}
+          setIsOpen={setOpenDeleteModal}
+          onConfirm={() => deleteWorkspace()}
+          isDeleting={isRemovingSlackWorkspace}
+          item={"this Slack workspace"}
+        />
       </div>
     </div>
   );
