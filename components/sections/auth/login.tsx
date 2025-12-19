@@ -41,10 +41,7 @@ export default function AuthLogin() {
 
     startTransition(async () => {
       try {
-        loginMutation.mutate(email);
-        if (error) {
-          throw error;
-        }
+        await loginMutation.mutateAsync(email);
         router.push("/auth/verify-otp?email=" + encodeURIComponent(email));
       } catch (error: unknown) {
         setError(error instanceof Error ? error.message : "An error occurred");
