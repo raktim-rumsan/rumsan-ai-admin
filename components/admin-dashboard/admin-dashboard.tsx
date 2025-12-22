@@ -26,7 +26,7 @@ export default function AdminDashboard() {
       (workspace) => workspace.userRole !== "WORKSPACE_MEMBER"
     ).length || 0;
 
-  const getCardStats = (card: any) => {
+  const getCardStats = (card: { slug: string; stats: string }) => {
     if (card.slug === "workspaces") {
       if (workspaceLoading) return "Loading...";
       return `${workspaceCount} Active Workspace${

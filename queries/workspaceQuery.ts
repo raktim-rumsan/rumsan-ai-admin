@@ -196,28 +196,36 @@ export function useUpdateWorkspace(workspaceSlug?: string) {
       await queryClient.cancelQueries({ queryKey: ["workspaces", params.id] });
 
       // Snapshot previous value
-      const previousWorkspaces = queryClient.getQueryData<any>(["workspaces"]);
-      const previousWorkspace = queryClient.getQueryData<any>([
+      const previousWorkspaces = queryClient.getQueryData<Workspace>([
+        "workspaces",
+      ]);
+      const previousWorkspace = queryClient.getQueryData<Workspace>([
         "workspaces",
         params.id,
       ]);
 
       // Optimistically update the workspace
-      queryClient.setQueryData(["workspaces", params.id], (old: any) => ({
-        ...old,
-        data: {
-          ...old?.data,
-          ...params.payload,
-        },
-      }));
+      queryClient.setQueryData(
+        ["workspaces", params.id],
+        (old: { data?: Workspace }) => ({
+          ...old,
+          data: {
+            ...old?.data,
+            ...params.payload,
+          },
+        })
+      );
 
-      queryClient.setQueryData(["workspaces"], (old: any) => {
-        if (!old) return old;
-        const updated = old.data?.myWorkspaces?.map((w: any) =>
-          w.id === params.id ? { ...w, ...params.payload } : w
-        );
-        return { ...old, data: { ...old.data, myWorkspaces: updated } };
-      });
+      queryClient.setQueryData(
+        ["workspaces"],
+        (old: { data: { myWorkspaces: Workspace[] } }) => {
+          if (!old) return old;
+          const updated = old.data?.myWorkspaces?.map((w) =>
+            w.id === params.id ? { ...w, ...params.payload } : w
+          );
+          return { ...old, data: { ...old.data, myWorkspaces: updated } };
+        }
+      );
 
       return { previousWorkspaces, previousWorkspace };
     },
@@ -225,7 +233,14 @@ export function useUpdateWorkspace(workspaceSlug?: string) {
       toastUtils.generic.success("Workspace updated successfully");
     },
 
-    onError: (err, _variables, context: any) => {
+    onError: (
+      err,
+      _variables,
+      context?: {
+        previousWorkspaces?: Workspace;
+        previousWorkspace?: Workspace;
+      }
+    ) => {
       toastUtils.generic.error(err.message || "Failed to update workspace");
       // Rollback cache
       if (context?.previousWorkspace) {

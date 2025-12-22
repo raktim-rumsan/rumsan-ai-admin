@@ -1,4 +1,5 @@
 "use client";
+import { ApiError } from "@/types/error";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -12,10 +13,13 @@ export default function QueryProvider({
       new QueryClient({
         defaultOptions: {
           queries: {
-            retry: (failureCount, error: any) => {
-              if (error?.status >= 400 && error?.status < 500) {
-                return false;
+            retry: (failureCount, error) => {
+              if (error instanceof ApiError) {
+                if (error?.status >= 400 && error?.status < 500) {
+                  return false;
+                }
               }
+
               return failureCount < 3;
             },
             refetchOnWindowFocus: false,
