@@ -67,11 +67,6 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // If user is authenticated and visiting /auth/login, redirect to dashboard
-  // if (user && request.nextUrl.pathname.startsWith("/auth")) {
-  //   return NextResponse.redirect(new URL("/dashboard", request.url));
-  // }
-
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
   // If you're creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:

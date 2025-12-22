@@ -11,6 +11,16 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // Check if user has organization context (fully logged in)
+  const organizationContext = getOrganizationContext(request);
+
+  // If user is fully logged in (has org context) and trying to access auth routes, redirect to dashboard
+  if (organizationContext && pathname.startsWith("/auth")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
   // Allow auth and public routes to pass through without organization context checks
   // Note: API routes are excluded from middleware via the matcher config
   if (
