@@ -96,8 +96,8 @@ export default function WorkspacesPage() {
                             <Users className="h-4 w-4 mr-1" />
                             <span>
                               {workspace._count?.users === 1
-                                ? "member"
-                                : "members"}
+                                ? `${workspace._count?.users} member`
+                                : `${workspace._count?.users} members`}
                             </span>
                           </div>
                           {workspace.sector && (
