@@ -1,5 +1,13 @@
-import { Linkedin, Mail, MapPin, Phone, Youtube, Bot } from "lucide-react";
+import {
+  Linkedin,
+  Mail,
+  MapPin,
+  Phone,
+  Youtube,
+  HelpCircle,
+} from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export function Footer() {
   return (
@@ -56,12 +64,24 @@ export function Footer() {
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-primary mt-0.5 hrink-0" />
+                <MapPin className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-medium">Location</p>
                   <p className="text-sm text-muted-foreground">
                     Sanepa, Lalitpur, Nepal
                   </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <HelpCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">Support</p>
+                  <Link
+                    href="/support"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Get Help & Support
+                  </Link>
                 </div>
               </div>
             </div>
@@ -94,9 +114,16 @@ export function Footer() {
         </div>
 
         <div className="pt-8 border-t border-border">
-          <p className="text-center text-sm text-muted-foreground">
-            © 2025 Rumsan. Built in Nepal.
-          </p>
+          <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
+            <span>© 2025 Rumsan. Built in Nepal.</span>
+            <span className="h-4 w-px bg-border"></span>
+            <Link
+              href="/privacy-policy"
+              className="hover:underline transition-colors"
+            >
+              Privacy Policy
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
