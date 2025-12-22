@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCopy } from "@/lib/hooks/use-copy";
 import { useApiKeys } from "@/queries/apiKeysQuery";
 import { WidgetConfig } from "./widget-customization";
+import { useParams } from "next/navigation";
 
 interface CodeSnippetProps {
   config: WidgetConfig;
@@ -15,9 +16,9 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
   const [selectedTab, setSelectedTab] = useState("react");
   const [isMounted, setIsMounted] = useState(false);
   const { isCopied, setIsCopied, copyContent } = useCopy();
-
+  const { workSpaceSlug }: { workSpaceSlug: string } = useParams();
   // Only fetch API keys after component is mounted to prevent hydration issues
-  const { data: apiKeys = [], isLoading } = useApiKeys();
+  const { data: apiKeys = [], isLoading } = useApiKeys(workSpaceSlug);
 
   // Ensure component only renders fully after hydration
   useEffect(() => {
