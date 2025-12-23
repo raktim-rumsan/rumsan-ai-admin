@@ -245,6 +245,7 @@ export default function LLMConfigPage() {
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
+                          disabled={true}
                         >
                           <SelectTrigger
                             id="embedding-model"
