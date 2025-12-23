@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,8 @@ export default function LLMConfigPage() {
 
   const { control, handleSubmit, watch, reset, setValue } = form;
   const provider = watch("provider");
+  const [isTestSuccessful, setIsTestSuccessful] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   // Get provider configuration - returns undefined if provider not found
   const providerConfig: ProviderConfig | undefined = provider
@@ -118,14 +120,19 @@ export default function LLMConfigPage() {
         return;
       }
     }
-    updateWorkspaceSetting.mutate({
-      provider: data.provider,
-      llmModel: data.chatModel,
-      embeddingModel: data.embeddingModel,
-      maxTokensPerQuery: Number(data.maxTokens),
-      temperature: parseFloat(data.temperature),
-      apiKey: encryptedApiKey,
-    });
+    updateWorkspaceSetting.mutate(
+      {
+        provider: data.provider,
+        llmModel: data.chatModel,
+        embeddingModel: data.embeddingModel,
+        maxTokensPerQuery: Number(data.maxTokens),
+        temperature: parseFloat(data.temperature),
+        apiKey: encryptedApiKey,
+      },
+      {
+        onSuccess: () => setIsSaved(true),
+      }
+    );
   };
 
   return (
@@ -339,19 +346,26 @@ export default function LLMConfigPage() {
               <div className="flex gap-4 pt-4">
                 <Button
                   onClick={handleSubmit(onSubmit)}
-                  disabled={updateWorkspaceSetting.isPending}
-                  className="h-12 px-8"
-                  size="lg"
+                  disabled={
+                    (providerConfig?.requiresApiKey && !isTestSuccessful) ||
+                    updateWorkspaceSetting.isPending
+                  }
                 >
                   {updateWorkspaceSetting.isPending
                     ? "Saving..."
                     : "Save Configuration"}
                 </Button>
 
-                {providerConfig?.requiresApiKey ? (
+                {providerConfig?.requiresApiKey && !isSaved && (
                   <Button
                     onClick={() =>
-                      testConnection({ apiKey: form.getValues("apiKey") })
+                      testConnection(
+                        { apiKey: form.getValues("apiKey") },
+                        {
+                          onSuccess: () => setIsTestSuccessful(true),
+                          onError: () => setIsTestSuccessful(false),
+                        }
+                      )
                     }
                     disabled={isTesting}
                     variant="outline"
@@ -360,7 +374,7 @@ export default function LLMConfigPage() {
                   >
                     {isTesting ? "Testing..." : "Test Connection"}
                   </Button>
-                ) : null}
+                )}
               </div>
             </div>
           </CardContent>
