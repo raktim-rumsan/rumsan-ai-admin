@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -61,13 +61,24 @@ export default function LLMConfigPage() {
     },
   });
 
-  const { control, handleSubmit, watch, reset, setValue } = form;
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    setValue,
+    formState: { isDirty },
+  } = form;
   const provider = watch("provider");
+  const [isTestSuccessful, setIsTestSuccessful] = useState(false);
 
   // Get provider configuration - returns undefined if provider not found
   const providerConfig: ProviderConfig | undefined = provider
     ? PROVIDER_CONFIG[provider]
     : undefined;
+  const showTestButton = providerConfig?.requiresApiKey && isDirty;
+
+  const saveDisabled = providerConfig?.requiresApiKey && !isTestSuccessful;
 
   // Initialize form with workspace settings
   useEffect(() => {
@@ -118,14 +129,22 @@ export default function LLMConfigPage() {
         return;
       }
     }
-    updateWorkspaceSetting.mutate({
-      provider: data.provider,
-      llmModel: data.chatModel,
-      embeddingModel: data.embeddingModel,
-      maxTokensPerQuery: Number(data.maxTokens),
-      temperature: parseFloat(data.temperature),
-      apiKey: encryptedApiKey,
-    });
+    updateWorkspaceSetting.mutate(
+      {
+        provider: data.provider,
+        llmModel: data.chatModel,
+        embeddingModel: data.embeddingModel,
+        maxTokensPerQuery: Number(data.maxTokens),
+        temperature: parseFloat(data.temperature),
+        apiKey: encryptedApiKey,
+      },
+      {
+        onSuccess: () => {
+          setIsTestSuccessful(false);
+          reset(form.getValues());
+        },
+      }
+    );
   };
 
   return (
@@ -318,6 +337,9 @@ export default function LLMConfigPage() {
                         required: providerConfig.requiresApiKey
                           ? "API Key is required"
                           : false,
+                        onChange: (e) => {
+                          setIsTestSuccessful(false);
+                        },
                       })}
                       className="h-12 w-full"
                     />
@@ -339,7 +361,7 @@ export default function LLMConfigPage() {
               <div className="flex gap-4 pt-4">
                 <Button
                   onClick={handleSubmit(onSubmit)}
-                  disabled={updateWorkspaceSetting.isPending}
+                  disabled={saveDisabled || updateWorkspaceSetting.isPending}
                   className="h-12 px-8"
                   size="lg"
                 >
@@ -348,10 +370,15 @@ export default function LLMConfigPage() {
                     : "Save Configuration"}
                 </Button>
 
-                {providerConfig?.requiresApiKey ? (
+                {showTestButton && providerConfig?.requiresApiKey ? (
                   <Button
                     onClick={() =>
-                      testConnection({ apiKey: form.getValues("apiKey") })
+                      testConnection(
+                        { apiKey: form.getValues("apiKey") },
+                        {
+                          onSuccess: () => setIsTestSuccessful(true),
+                        }
+                      )
                     }
                     disabled={isTesting}
                     variant="outline"
