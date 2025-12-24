@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ import {
   type ProviderConfig,
 } from "@/constants/models";
 import { encryptWithPublicKey } from "@/lib/encrypt";
+import * as yup from "yup";
 
 interface LLMConfigFormData {
   provider: string;
@@ -41,7 +42,51 @@ interface LLMConfigFormData {
   apiKey: string;
 }
 
+const useYupValidationResolver = (validationSchema: any) =>
+  useCallback(
+    async (data: any) => {
+      try {
+        const values = await validationSchema.validate(data, {
+          abortEarly: false,
+        });
+        return { values, errors: {} };
+      } catch (err: any) {
+        return {
+          values: {},
+          errors: err.inner.reduce(
+            (allErrors: any, currentError: any) => ({
+              ...allErrors,
+              [currentError.path]: {
+                type: currentError.type ?? "validation",
+                message: currentError.message,
+              },
+            }),
+            {}
+          ),
+        };
+      }
+    },
+    [validationSchema]
+  );
+
+const validationSchema = yup.object({
+  provider: yup.string().required(),
+  apiKey: yup.string().when("provider", {
+    is: (val: string) => val !== "ollama",
+    then: (schema) =>
+      schema
+        .required("API Key is required")
+        .test("is-valid-key", "API key must start with sk-", (value) => {
+          if (!value) return false;
+          // Allow if it's the long encrypted string OR starts with sk-
+          return value.length > 50 || value.startsWith("sk-");
+        }),
+    otherwise: (schema) => schema.notRequired().nullable(),
+  }),
+});
+
 export default function LLMConfigPage() {
+  const resolver = useYupValidationResolver(validationSchema);
   const params = useParams();
   const workSpaceSlug = params?.workSpaceSlug as string;
 
@@ -59,28 +104,43 @@ export default function LLMConfigPage() {
       maxTokens: "",
       apiKey: "",
     },
+    resolver,
   });
 
-  const {
-    control,
-    handleSubmit,
-    watch,
-    reset,
-    setValue,
-    formState: { isDirty },
-  } = form;
+  const { control, handleSubmit, watch, reset, setValue } = form;
   const provider = watch("provider");
-  const [isTestSuccessful, setIsTestSuccessful] = useState(false);
 
+  // Track the specific API key that was successfully tested
+  const [lastTestedKey, setLastTestedKey] = useState<string | null>(null);
   // Get provider configuration - returns undefined if provider not found
   const providerConfig: ProviderConfig | undefined = provider
     ? PROVIDER_CONFIG[provider]
     : undefined;
-  const showTestButton = providerConfig?.requiresApiKey && isDirty;
 
-  const saveDisabled = providerConfig?.requiresApiKey && !isTestSuccessful;
+  const apiKeyValue = watch("apiKey") || "";
+  const originalApiKey = workspaceSettings?.data?.apiKey || "";
 
-  // Initialize form with workspace settings
+  // Logic Helpers
+  const isKeyChanged = apiKeyValue !== originalApiKey;
+  const isNewRawKey = apiKeyValue.startsWith("sk-");
+  const isCurrentlyTested = lastTestedKey === apiKeyValue;
+
+  // Show Test Button: Provider needs key + key is new + key hasn't been tested yet
+  const showTestButton =
+    providerConfig?.requiresApiKey &&
+    isKeyChanged &&
+    isNewRawKey &&
+    !isCurrentlyTested &&
+    !updateWorkspaceSetting.isPending;
+
+  // Save Disabled:
+  const saveDisabled =
+    updateWorkspaceSetting.isPending ||
+    (providerConfig?.requiresApiKey &&
+      isKeyChanged &&
+      isNewRawKey &&
+      !isCurrentlyTested);
+
   useEffect(() => {
     if (workspaceSettings?.data) {
       reset({
@@ -91,6 +151,8 @@ export default function LLMConfigPage() {
         provider: workspaceSettings.data.provider,
         apiKey: workspaceSettings.data.apiKey || "",
       });
+      // Clear test state when data is freshly loaded
+      setLastTestedKey(null);
     }
   }, [workspaceSettings, reset]);
 
@@ -109,21 +171,17 @@ export default function LLMConfigPage() {
     setValue("embeddingModel", embeddingModel);
   }, [provider, workspaceSettings, setValue, providerConfig]);
 
-  // Get available models from provider config
   const availableChatModels = providerConfig?.chatModels ?? [];
   const availableEmbeddingModels = providerConfig?.embeddingModels ?? [];
   const publicKeyPem = process.env.NEXT_PUBLIC_ENCRYPT_KEY;
 
   const onSubmit = async (data: LLMConfigFormData) => {
-    let encryptedApiKey = "";
+    let finalApiKey = data.apiKey;
 
-    // Only encrypt if the provider requires an API key
-    if (providerConfig?.requiresApiKey && data.apiKey) {
+    // Only encrypt if it's a NEW raw key that differs from original
+    if (providerConfig?.requiresApiKey && isKeyChanged && isNewRawKey) {
       try {
-        encryptedApiKey = await encryptWithPublicKey(
-          publicKeyPem!,
-          data.apiKey
-        );
+        finalApiKey = await encryptWithPublicKey(publicKeyPem!, data.apiKey);
       } catch (err) {
         console.error("Failed to encrypt API key:", err);
         return;
@@ -136,11 +194,10 @@ export default function LLMConfigPage() {
         embeddingModel: data.embeddingModel,
         maxTokensPerQuery: Number(data.maxTokens),
         temperature: parseFloat(data.temperature),
-        apiKey: encryptedApiKey,
+        apiKey: finalApiKey,
       },
       {
         onSuccess: () => {
-          setIsTestSuccessful(false);
           reset(form.getValues());
         },
       }
@@ -245,7 +302,6 @@ export default function LLMConfigPage() {
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
-                          disabled={true}
                         >
                           <SelectTrigger
                             id="embedding-model"
@@ -334,14 +390,7 @@ export default function LLMConfigPage() {
                     <Input
                       id="api-key"
                       type="password"
-                      {...form.register("apiKey", {
-                        required: providerConfig.requiresApiKey
-                          ? "API Key is required"
-                          : false,
-                        onChange: (e) => {
-                          setIsTestSuccessful(false);
-                        },
-                      })}
+                      {...form.register("apiKey")}
                       className="h-12 w-full"
                     />
                     {form.formState.errors.apiKey && (
@@ -349,11 +398,15 @@ export default function LLMConfigPage() {
                         {form.formState.errors.apiKey.message}
                       </p>
                     )}
-                    <p className="text-sm text-gray-500">
-                      Enter your API key to enable&nbsp;
-                      {PROVIDER.find((p) => p.value === provider)?.label ||
-                        "provider"}
-                      &nbsp;services.
+                    <p className="text-sm text-gray-500 leading-relaxed">
+                      Enter your API key to enable{" "}
+                      <span className="font-medium">
+                        {PROVIDER.find((p) => p.value === provider)?.label ||
+                          "provider"}
+                      </span>{" "}
+                      services. For your security, the key is{" "}
+                      <strong>encrypted before being saved</strong> and will
+                      appear in its protected, encrypted format once stored.
                     </p>
                   </div>
                 )}
@@ -362,7 +415,7 @@ export default function LLMConfigPage() {
               <div className="flex gap-4 pt-4">
                 <Button
                   onClick={handleSubmit(onSubmit)}
-                  disabled={saveDisabled || updateWorkspaceSetting.isPending}
+                  disabled={saveDisabled}
                   className="h-12 px-8"
                   size="lg"
                 >
@@ -371,14 +424,12 @@ export default function LLMConfigPage() {
                     : "Save Configuration"}
                 </Button>
 
-                {showTestButton && providerConfig?.requiresApiKey ? (
+                {showTestButton && (
                   <Button
                     onClick={() =>
                       testConnection(
-                        { apiKey: form.getValues("apiKey") },
-                        {
-                          onSuccess: () => setIsTestSuccessful(true),
-                        }
+                        { apiKey: apiKeyValue },
+                        { onSuccess: () => setLastTestedKey(apiKeyValue) }
                       )
                     }
                     disabled={isTesting}
@@ -388,7 +439,7 @@ export default function LLMConfigPage() {
                   >
                     {isTesting ? "Testing..." : "Test Connection"}
                   </Button>
-                ) : null}
+                )}
               </div>
             </div>
           </CardContent>
