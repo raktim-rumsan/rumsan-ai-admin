@@ -41,10 +41,10 @@ export const ROUTES = {
   AUTH_REGISTER: `${API_BASE_URL}/auth/register`,
 
   //org-api-key routes
-  ORG_API_KEYS: `${API_BASE_URL}/organization-api-key`,
-  CREATE_ORG_API_KEY: `${API_BASE_URL}/organization-api-key/create`,
+  ORG_API_KEYS: `${API_BASE_URL}/workspace-api-key`,
+  CREATE_ORG_API_KEY: `${API_BASE_URL}/workspace-api-key/create`,
   DELETE_ORG_API_KEY: (apiKeyId: string) =>
-    `${API_BASE_URL}/organization-api-key/${apiKeyId}`,
+    `${API_BASE_URL}/workspace-api-key/${apiKeyId}`,
 
   //query routes
   QUERY: `${API_BASE_URL}/rag/query`,
