@@ -19,17 +19,117 @@ import { useSignUpMutation } from "@/queries/loginQuery";
 
 export default function AuthSignUp() {
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [name, setName] = useState("");
+  const [nameError, setNameError] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const signUpMutation = useSignUpMutation();
 
+  const validateEmail = (
+    emailValue: string,
+    checkFormat: boolean = false
+  ): boolean => {
+    if (!emailValue.trim()) {
+      setEmailError("Email is required");
+      return false;
+    }
+    // Check if email contains only allowed characters: a-z, 0-9, ., and @
+    const allowedCharsRegex = /^[a-z0-9.@]+$/i;
+    if (!allowedCharsRegex.test(emailValue)) {
+      setEmailError(
+        "Sorry, only letters (a-z), numbers (0-9), and periods (.) are allowed"
+      );
+      return false;
+    }
+    // Check for multiple @ symbols
+    const atSymbolCount = (emailValue.match(/@/g) || []).length;
+    if (atSymbolCount > 1) {
+      setEmailError("Email can only contain one @ symbol");
+      return false;
+    }
+    // Only validate email format on blur or submit
+    if (checkFormat) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailValue)) {
+        setEmailError("Please enter a valid email address");
+        return false;
+      }
+    }
+    setEmailError("");
+    return true;
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+    // Only check for invalid characters while typing, not email format
+    if (value.trim()) {
+      const allowedCharsRegex = /^[a-z0-9.@]+$/i;
+      if (!allowedCharsRegex.test(value)) {
+        setEmailError(
+          "Sorry, only letters (a-z), numbers (0-9), and periods (.) are allowed"
+        );
+      } else {
+        // Check for multiple @ symbols
+        const atSymbolCount = (value.match(/@/g) || []).length;
+        if (atSymbolCount > 1) {
+          setEmailError("Email can only contain one @ symbol");
+        } else {
+          setEmailError("");
+        }
+      }
+    } else {
+      setEmailError("");
+    }
+  };
+
+  const validateName = (value: string) => {
+    if (!value.trim()) {
+      setNameError("Full name is required");
+      return false;
+    }
+    // Only allow letters and spaces
+    const lettersOnlyRegex = /^[a-zA-Z\s]+$/;
+    if (!lettersOnlyRegex.test(value)) {
+      setNameError(
+        "Only letters are allowed. Numbers and special characters are not permitted."
+      );
+      return false;
+    }
+    setNameError("");
+    return true;
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setName(value);
+    if (value.trim()) {
+      const lettersOnlyRegex = /^[a-zA-Z\s]+$/;
+      if (!lettersOnlyRegex.test(value)) {
+        setNameError(
+          "Only letters are allowed. Numbers and special characters are not permitted."
+        );
+      } else {
+        setNameError("");
+      }
+    } else {
+      setNameError("");
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+
+    if (!validateName(name) || !validateEmail(email, true)) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       await signUpMutation.mutateAsync({
         fullName: name,
@@ -80,9 +180,13 @@ export default function AuthSignUp() {
                   placeholder="John Doe"
                   required
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="h-11"
+                  onChange={handleNameChange}
+                  onBlur={() => validateName(name)}
+                  className={`h-11 ${nameError ? "border-red-500" : ""}`}
                 />
+                {nameError && (
+                  <p className="text-sm text-red-500">{nameError}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
@@ -94,9 +198,13 @@ export default function AuthSignUp() {
                   placeholder="m@example.com"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-11"
+                  onChange={handleEmailChange}
+                  onBlur={() => validateEmail(email, true)}
+                  className={`h-11 ${emailError ? "border-red-500" : ""}`}
                 />
+                {emailError && (
+                  <p className="text-sm text-red-500">{emailError}</p>
+                )}
               </div>
               {error && (
                 <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
@@ -106,7 +214,7 @@ export default function AuthSignUp() {
               <Button
                 type="submit"
                 className="w-full h-11 bg-black hover:bg-gray-800"
-                disabled={isLoading}
+                disabled={isLoading || !!nameError || !!emailError}
               >
                 {isLoading ? "Creating account..." : "Sign Up"}
               </Button>

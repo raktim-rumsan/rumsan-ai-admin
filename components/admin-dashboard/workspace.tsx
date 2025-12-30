@@ -58,8 +58,8 @@ export default function WorkspacesPage() {
                     key={workspace.id}
                     href={`/admin/workspaces/${workspace.slug}`}
                   >
-                    <Card className="group h-full transition-all hover:shadow-lg hover:border-primary/50">
-                      <CardHeader>
+                    <Card className="group h-full transition-all hover:shadow-lg hover:border-primary/50 flex flex-col">
+                      <CardHeader className="flex-1">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-start gap-3">
                             <div className="rounded-lg bg-teal-500 p-3">
@@ -90,7 +90,7 @@ export default function WorkspacesPage() {
                           </CardDescription>
                         )}
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="mt-auto">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center text-sm text-muted-foreground">
                             <Users className="h-4 w-4 mr-1" />
