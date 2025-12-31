@@ -18,6 +18,7 @@ import {
 } from "@/queries/workspaceQuery";
 import IntegrationLists from "@/components/sections/integrations/integration-list";
 import { tablist } from "@/constants/workspace-tabs";
+import AiToolsManagementTab from "@/components/workspace-management/ai-tool-management-tabs";
 
 export default function WorkspaceDetailPage({
   params,
@@ -87,9 +88,11 @@ export default function WorkspaceDetailPage({
               {tab.value === "members" && <MembersTab />}
               {tab.value === "llm" && <LLMSettingsTab />}
               {tab.value === "knowledgebase" && <KnowledgebaseTab />}
+
               {tab.value === "integrations" && (
                 <IntegrationLists isAdminPanel={true} />
               )}
+              {tab.value ==="realtimedata" && <AiToolsManagementTab/>}
             </TabsContent>
           ))}
         </Tabs>
