@@ -10,6 +10,7 @@ import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOrgSettings } from "@/queries/orgSettingsQuery";
 import { useUpdateSystemPrompt } from "@/queries/orgSettingsQuery";
+import { set } from "date-fns";
 
 export default function AgentPreview() {
   const defaultPrompt = `## Task
@@ -65,7 +66,7 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
 
   // Handle reset button click
   const handleReset = () => {
-    setPromptContent("");
+    setPromptContent(orgSettings?.systemPrompt ?? defaultPrompt);
   };
 
   return (
