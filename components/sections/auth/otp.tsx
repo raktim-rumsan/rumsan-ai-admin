@@ -20,6 +20,7 @@ import { initializeAuthAfterLogin } from "@/lib/store-hydration";
 import { getRedirectPath } from "@/stores/organizationStore";
 import { getAuthToken } from "@/lib/utils";
 import { ROUTES } from "@/constants";
+import { BotMessageSquare, ArrowLeft } from "lucide-react";
 
 export default function AuthOtp() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -220,16 +221,20 @@ export default function AuthOtp() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-md">
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-gray-600 hover:text-black hover:bg-transparent cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+        </div>
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center">
-              <svg
-                viewBox="0 0 24 24"
-                className="w-6 h-6 text-white"
-                fill="currentColor"
-              >
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
+              <BotMessageSquare color="white" />
             </div>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Rumsan AI</h1>
@@ -283,7 +288,7 @@ export default function AuthOtp() {
               <Button
                 onClick={handleResendOtp}
                 variant="link"
-                className="font-medium text-black hover:underline"
+                className="font-medium text-black hover:underline cursor-pointer"
                 disabled={isResendPending}
               >
                 {isResendPending ? "Sending..." : "Try again"}
