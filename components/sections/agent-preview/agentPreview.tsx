@@ -126,7 +126,9 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
                   <Button
                     className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-2  ml-4 w-3xs"
                     onClick={handleSave}
-                    disabled={updateSystemPrompt.isPending}
+                    disabled={
+                      updateSystemPrompt.isPending || !promptContent.trim()
+                    }
                   >
                     {updateSystemPrompt.isPending ? "Saving..." : "Save"}
                   </Button>
