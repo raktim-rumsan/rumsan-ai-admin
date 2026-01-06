@@ -100,21 +100,24 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {/* Navigation */}
           <ScrollArea className="flex-1 px-3 py-4">
             <nav className="space-y-1">
-              {filteredNavigationItems.map((item) => (
-                <Link
-                  key={item.title}
-                  href={`/dashboard/workspace/${workspaceSlug}/${item.slug}`}
-                  className={cn(
-                    "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                    pathname === item.slug
-                      ? "bg-gray-100 text-gray-900"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  )}
-                >
-                  <item.icon className="mr-3 h-4 w-4" />
-                  {item.title}
-                </Link>
-              ))}
+              {filteredNavigationItems.map((item) => {
+                const isActive = pathname.includes(item.slug);
+                return (
+                  <Link
+                    key={item.title}
+                    href={`/dashboard/workspace/${workspaceSlug}${item.slug}`}
+                    className={cn(
+                      "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                      isActive
+                        ? "bg-gray-600 text-white"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    )}
+                  >
+                    <item.icon className="mr-3 h-4 w-4" />
+                    {item.title}
+                  </Link>
+                );
+              })}
             </nav>
           </ScrollArea>
           <div className="mt-auto w-full px-4 pb-6 flex justify-center">

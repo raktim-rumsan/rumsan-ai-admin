@@ -16,7 +16,6 @@ import { useCreateWorkspace } from "@/queries/workspaceQuery";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
-import { se } from "date-fns/locale";
 import { SECTORS } from "@/constants/sector";
 import {
   Select,
@@ -27,19 +26,83 @@ import {
 } from "../ui/select";
 import { useOrganizationContext } from "@/hooks/useOrganizationContext";
 
-export default function WorkspaceCreateDialog() {
+interface WorkspaceCreateDialogProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  trigger?: React.ReactNode;
+}
+
+export default function WorkspaceCreateDialog({
+  open: externalOpen,
+  onOpenChange: externalOnOpenChange,
+  trigger,
+}: WorkspaceCreateDialogProps = {}) {
   const router = useRouter();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const isDialogOpen = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setIsDialogOpen = externalOnOpenChange || setInternalOpen;
   const [workspaceName, setWorkspaceName] = useState("");
+  const [workspaceNameError, setWorkspaceNameError] = useState("");
   const [sector, setSector] = useState("");
 
   const [workspaceDescription, setWorkspaceDescription] = useState("");
+  const [workspaceDescriptionError, setWorkspaceDescriptionError] =
+    useState("");
 
   const createWorkspace = useCreateWorkspace();
   const organizationContext = useOrganizationContext();
 
+  const validateWorkspaceName = (value: string) => {
+    if (value.length > 50) {
+      setWorkspaceNameError("Workspace name cannot exceed 50 characters");
+      return false;
+    }
+    setWorkspaceNameError("");
+    return true;
+  };
+
+  const validateDescription = (value: string) => {
+    if (value.length > 250) {
+      setWorkspaceDescriptionError("Description cannot exceed 250 characters");
+      return false;
+    }
+    setWorkspaceDescriptionError("");
+    return true;
+  };
+
+  const handleWorkspaceNameChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = e.target.value;
+    setWorkspaceName(value);
+    if (value.length > 50) {
+      setWorkspaceNameError("Workspace name cannot exceed 50 characters");
+    } else {
+      setWorkspaceNameError("");
+    }
+  };
+
+  const handleDescriptionChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    const value = e.target.value;
+    setWorkspaceDescription(value);
+    if (value.length > 250) {
+      setWorkspaceDescriptionError("Description cannot exceed 250 characters");
+    } else {
+      setWorkspaceDescriptionError("");
+    }
+  };
+
   const handleCreateWorkspace = () => {
-    if (!workspaceName.trim()) return;
+    if (
+      !workspaceName.trim() ||
+      !validateWorkspaceName(workspaceName) ||
+      !validateDescription(workspaceDescription)
+    ) {
+      return;
+    }
     createWorkspace.mutate(
       {
         name: workspaceName.trim(),
@@ -50,7 +113,9 @@ export default function WorkspaceCreateDialog() {
         onSuccess: ({ data }) => {
           setIsDialogOpen(false);
           setWorkspaceName("");
+          setWorkspaceNameError("");
           setWorkspaceDescription("");
+          setWorkspaceDescriptionError("");
           organizationContext.refetch();
           router.push(`/admin/workspaces/${data.slug}`);
         },
@@ -59,13 +124,30 @@ export default function WorkspaceCreateDialog() {
   };
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogTrigger asChild>
-        <Button className="mt-6 mx-auto" size="lg">
-          <Plus className="h-4 w-4 mr-2" />
-          Create Workspace
-        </Button>
-      </DialogTrigger>
+    <Dialog
+      open={isDialogOpen}
+      onOpenChange={(open) => {
+        setIsDialogOpen(open);
+        if (!open) {
+          setWorkspaceName("");
+          setWorkspaceNameError("");
+          setWorkspaceDescription("");
+          setWorkspaceDescriptionError("");
+          setSector("");
+        }
+      }}
+    >
+      {externalOpen === undefined &&
+        (trigger ? (
+          <DialogTrigger asChild>{trigger}</DialogTrigger>
+        ) : (
+          <DialogTrigger asChild>
+            <Button className="mt-6 mx-auto" size="lg">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Workspace
+            </Button>
+          </DialogTrigger>
+        ))}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Workspace</DialogTitle>
@@ -80,8 +162,12 @@ export default function WorkspaceCreateDialog() {
               id="workspace-name-2"
               placeholder="e.g., Marketing Team"
               value={workspaceName}
-              onChange={(e) => setWorkspaceName(e.target.value)}
+              onChange={handleWorkspaceNameChange}
+              className={workspaceNameError ? "border-red-500" : ""}
             />
+            {workspaceNameError && (
+              <p className="text-sm text-red-500">{workspaceNameError}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -110,9 +196,15 @@ export default function WorkspaceCreateDialog() {
               id="workspace-description-2"
               placeholder="Describe the purpose of this workspace..."
               value={workspaceDescription}
-              onChange={(e) => setWorkspaceDescription(e.target.value)}
+              onChange={handleDescriptionChange}
               rows={3}
+              className={workspaceDescriptionError ? "border-red-500" : ""}
             />
+            {workspaceDescriptionError && (
+              <p className="text-sm text-red-500">
+                {workspaceDescriptionError}
+              </p>
+            )}
           </div>
         </div>
         <DialogFooter>
@@ -121,7 +213,11 @@ export default function WorkspaceCreateDialog() {
           </Button>
           <Button
             onClick={handleCreateWorkspace}
-            disabled={!workspaceName.trim()}
+            disabled={
+              !workspaceName.trim() ||
+              !!workspaceNameError ||
+              !!workspaceDescriptionError
+            }
           >
             Create Workspace
           </Button>
