@@ -3,8 +3,12 @@
 import type React from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { usePathname } from "next/navigation";
 
 export function WelcomeScreen() {
+  const pathname = usePathname();
+  const workspaceSlug = pathname.split("/")[3];
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
       {/* Chat Interface */}
@@ -26,7 +30,7 @@ export function WelcomeScreen() {
               <p className="mb-4">
                 Start by uploading documents to build your knowledge base.
                 <Link
-                  href="/dashboard/documents"
+                  href={`/dashboard/workspace/${workspaceSlug}/documents`}
                   className="inline-flex items-center font-medium text-blue-600 dark:text-blue-500 hover:underline ml-2"
                 >
                   Link
@@ -58,7 +62,7 @@ export function WelcomeScreen() {
                 Customize your AI by writing what the AI should do and how it
                 should respond.
                 <Link
-                  href="/dashboard/agent-preview"
+                  href={`/dashboard/workspace/${workspaceSlug}/agent-preview`}
                   className="inline-flex items-center font-medium text-blue-600 dark:text-blue-500 hover:underline ml-2"
                 >
                   Link

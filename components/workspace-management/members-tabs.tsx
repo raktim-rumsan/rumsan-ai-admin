@@ -264,7 +264,7 @@ export default function MembersTab() {
                         <Badge variant="outline">
                           {formatRole(member.role)}
                         </Badge>
-                        {isAdmin && (
+                        {isAdmin && member.role !== "WORKSPACE_ADMIN" && (
                           <Button
                             variant="ghost"
                             size="sm"
