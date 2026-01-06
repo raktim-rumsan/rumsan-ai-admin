@@ -11,6 +11,7 @@ export const OPENAI_CHAT_MODELS = [
   { value: "gpt-5", label: "GPT-5" },
 ];
 export const OPENAI_EMBEDDING_MODELS = [
+  { value: "nomic-embed-text:latest", label: "nomic-embed-text:latest" },
   { value: "text-embedding-3-small", label: "text-embedding-3-small" },
   { value: "text-embedding-3-large", label: "text-embedding-3-large" },
   { value: "text-embedding-ada-002", label: "text-embedding-ada-002" },
@@ -36,7 +37,7 @@ export const PROVIDER_CONFIG: Record<string, ProviderConfig> = {
     chatModels: OPENAI_CHAT_MODELS,
     embeddingModels: OPENAI_EMBEDDING_MODELS,
     defaultChatModel: "gpt-4.1-2025-04-14",
-    defaultEmbeddingModel: "text-embedding-3-small",
+    defaultEmbeddingModel: "nomic-embed-text:latest",
     requiresApiKey: true,
     apiKeyLabel: "OpenAI API Key",
   },

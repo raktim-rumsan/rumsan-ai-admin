@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -31,62 +32,44 @@ import {
   type ProviderConfig,
 } from "@/constants/models";
 import { encryptWithPublicKey } from "@/lib/encrypt";
-import * as yup from "yup";
+import { z } from "zod";
 
-interface LLMConfigFormData {
-  provider: string;
-  chatModel: string;
-  embeddingModel: string;
-  temperature: string;
-  maxTokens: string;
-  apiKey: string;
-}
-
-const useYupValidationResolver = (validationSchema: any) =>
-  useCallback(
-    async (data: any) => {
-      try {
-        const values = await validationSchema.validate(data, {
-          abortEarly: false,
+const validationSchema = z
+  .object({
+    provider: z.string().min(1, "Provider is required"),
+    chatModel: z.string().optional(),
+    embeddingModel: z.string().optional(),
+    temperature: z.string().optional(),
+    maxTokens: z.string().optional(),
+    apiKey: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.provider !== "ollama") {
+      if (!data.apiKey) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["apiKey"],
+          message: "API Key is required",
         });
-        return { values, errors: {} };
-      } catch (err: any) {
-        return {
-          values: {},
-          errors: err.inner.reduce(
-            (allErrors: any, currentError: any) => ({
-              ...allErrors,
-              [currentError.path]: {
-                type: currentError.type ?? "validation",
-                message: currentError.message,
-              },
-            }),
-            {}
-          ),
-        };
+        return;
       }
-    },
-    [validationSchema]
-  );
 
-const validationSchema = yup.object({
-  provider: yup.string().required(),
-  apiKey: yup.string().when("provider", {
-    is: (val: string) => val !== "ollama",
-    then: (schema) =>
-      schema
-        .required("API Key is required")
-        .test("is-valid-key", "API key must start with sk-", (value) => {
-          if (!value) return false;
-          // Allow if it's the long encrypted string OR starts with sk-
-          return value.length > 50 || value.startsWith("sk-");
-        }),
-    otherwise: (schema) => schema.notRequired().nullable(),
-  }),
-});
+      const isValidKey =
+        data.apiKey.length > 50 || data.apiKey.startsWith("sk-");
+
+      if (!isValidKey) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["apiKey"],
+          message: "API key must start with sk-",
+        });
+      }
+    }
+  });
+
+type LLMConfigFormData = z.infer<typeof validationSchema>;
 
 export default function LLMConfigPage() {
-  const resolver = useYupValidationResolver(validationSchema);
   const params = useParams();
   const workSpaceSlug = params?.workSpaceSlug as string;
 
@@ -104,7 +87,7 @@ export default function LLMConfigPage() {
       maxTokens: "",
       apiKey: "",
     },
-    resolver,
+    resolver: zodResolver(validationSchema),
   });
 
   const { control, handleSubmit, watch, reset, setValue } = form;
