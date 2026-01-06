@@ -344,9 +344,16 @@ export default function LLMConfigPage() {
                       step="0.1"
                       min="0"
                       max="1"
-                      {...form.register("temperature")}
+                      {...form.register("temperature", {
+                        required: "Temperature is required",
+                      })}
                       className="h-12"
                     />
+                    {form.formState.errors.temperature && (
+                      <p className="text-sm text-red-500">
+                        {form.formState.errors.temperature.message}
+                      </p>
+                    )}
                     <p className="text-sm text-gray-500">
                       Higher values make output more random (0-1)
                     </p>
@@ -364,13 +371,29 @@ export default function LLMConfigPage() {
                       id="max-tokens"
                       type="number"
                       step="1"
-                      min="100"
-                      max="8000"
-                      {...form.register("maxTokens")}
+                      min="2000"
+                      max="4000"
+                      {...form.register("maxTokens", {
+                        required: "Max Tokens is required",
+                        validate: (value) => {
+                          const num = Number(value);
+                          if (isNaN(num)) return "Max Tokens must be a number";
+                          if (num < 2000)
+                            return "Max Tokens cannot be less than 2000";
+                          if (num > 4000)
+                            return "Max Tokens cannot be greater than 4000";
+                          return true;
+                        },
+                      })}
                       className="h-12"
                     />
+                    {form.formState.errors.maxTokens && (
+                      <p className="text-sm text-red-500">
+                        {form.formState.errors.maxTokens.message}
+                      </p>
+                    )}
                     <p className="text-sm text-gray-500">
-                      Maximum length of generated response
+                      Maximum length of generated response (2000-4000)
                     </p>
                   </div>
                 </div>
