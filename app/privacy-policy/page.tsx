@@ -35,7 +35,7 @@ export default function PrivacyPolicyPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-5 h-5" />
-                <span>Effective Date: 20-12-2026</span>
+                <span>Effective Date: 20-12-2025</span>
               </div>
             </div>
             <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto mt-6 leading-relaxed">
