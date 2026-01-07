@@ -53,63 +53,66 @@ export default function WorkspacesPage() {
           <>
             {adminWorkspaces.length > 0 && (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {adminWorkspaces.map((workspace) => (
-                  <Link
-                    key={workspace.id}
-                    href={`/admin/workspaces/${workspace.slug}`}
-                  >
-                    <Card className="group h-full transition-all hover:shadow-lg hover:border-primary/50 flex flex-col">
-                      <CardHeader className="flex-1">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-start gap-3">
-                            <div className="rounded-lg bg-teal-500 p-3">
-                              <FolderKanban className="h-6 w-6 text-white" />
+                {adminWorkspaces
+                  ?.slice()
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((workspace) => (
+                    <Link
+                      key={workspace.id}
+                      href={`/admin/workspaces/${workspace.slug}`}
+                    >
+                      <Card className="group h-full flex flex-col transition-all hover:shadow-lg hover:border-primary/50">
+                        <CardHeader>
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-start gap-3">
+                              <div className="rounded-lg bg-teal-500 p-3">
+                                <FolderKanban className="h-6 w-6 text-white" />
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <CardTitle className="text-lg">
+                                  {workspace.name}
+                                </CardTitle>
+                                {workspace.organization?.name && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {workspace.organization.name}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex flex-col gap-1.5">
-                              <CardTitle className="text-lg">
-                                {workspace.name}
-                              </CardTitle>
-                              {workspace.organization?.name && (
-                                <p className="text-xs text-muted-foreground">
-                                  {workspace.organization.name}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <Badge
-                            variant={
-                              workspace.isActive ? "default" : "secondary"
-                            }
-                          >
-                            {workspace.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                        </div>
-                        {workspace.description && (
-                          <CardDescription className="text-sm leading-relaxed mt-2">
-                            {workspace.description}
-                          </CardDescription>
-                        )}
-                      </CardHeader>
-                      <CardContent className="mt-auto">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Users className="h-4 w-4 mr-1" />
-                            <span>
-                              {workspace._count?.users === 1
-                                ? `${workspace._count?.users} member`
-                                : `${workspace._count?.users} members`}
-                            </span>
-                          </div>
-                          {workspace.sector && (
-                            <Badge variant="outline" className="text-xs">
-                              {workspace.sector}
+                            <Badge
+                              variant={
+                                workspace.isActive ? "default" : "secondary"
+                              }
+                            >
+                              {workspace.isActive ? "Active" : "Inactive"}
                             </Badge>
+                          </div>
+                          {workspace.description && (
+                            <CardDescription className="text-sm leading-relaxed mt-2">
+                              {workspace.description}
+                            </CardDescription>
                           )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
+                        </CardHeader>
+                        <CardContent className="mt-auto">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Users className="h-4 w-4 mr-1" />
+                              <span>
+                                {workspace._count?.users === 1
+                                  ? `${workspace._count?.users} member`
+                                  : `${workspace._count?.users} members`}
+                              </span>
+                            </div>
+                            {workspace.sector && (
+                              <Badge variant="outline" className="text-xs">
+                                {workspace.sector}
+                              </Badge>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
               </div>
             )}
 

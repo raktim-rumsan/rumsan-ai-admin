@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bell, CheckCircle2, XCircle, Handshake } from "lucide-react";
+import { Bell, CheckCircle2, Handshake } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { formatRole } from "@/lib/utils";
 import { PendingInvitation } from "@/stores";
@@ -30,18 +30,15 @@ interface InvitationsProps {
   invitations: PendingInvitation[];
   isLoading: boolean;
   onAccept: (inv: InvitationWithToken) => void;
-  onDecline: (id: string) => void;
 }
 
 export function Invitations({
   invitations,
   isLoading,
   onAccept,
-  onDecline,
 }: InvitationsProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
-  const [decliningId, setDecliningId] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
     try {
@@ -122,8 +119,7 @@ export function Invitations({
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="divide-y divide-gray-200">
             {invitations.map((inv) => {
-              const isProcessing =
-                acceptingId === inv.id || decliningId === inv.id;
+              const isProcessing = acceptingId === inv.id;
 
               return (
                 <div
@@ -150,8 +146,13 @@ export function Invitations({
                     <p className="text-sm text-gray-600 line-clamp-1">
                       You’ve been invited as{" "}
                       <span className="font-medium capitalize">
-                        {formatRole(inv.role)}
+                        {formatRole(inv.role)} &nbsp;
                       </span>
+                      in &nbsp;
+                      <span className="font-medium uppercase">
+                        {inv?.workspace?.name} &nbsp;
+                      </span>
+                      Workspace.
                     </p>
                   </div>
 
@@ -163,10 +164,6 @@ export function Invitations({
                       {formatRole(inv.role)}
                     </Badge>
 
-                    <span className="text-xs text-gray-500 whitespace-nowrap">
-                      {formatDate(inv.invitedAt)}
-                    </span>
-
                     {hoveredId === inv.id && (
                       <div className="flex items-center gap-2 ml-2">
                         <Button
@@ -177,7 +174,7 @@ export function Invitations({
                             setAcceptingId(null);
                           }}
                           disabled={isProcessing || !inv.token}
-                          className="bg-green-600 hover:bg-green-700 text-white h-7 px-3 text-xs"
+                          className="bg-green-600 hover:bg-green-700 text-white h-7 px-3 text-xs cursor-pointer"
                         >
                           {acceptingId === inv.id ? (
                             <>
@@ -188,30 +185,6 @@ export function Invitations({
                             <>
                               <CheckCircle2 className="w-3 h-3 mr-1.5" />
                               Accept
-                            </>
-                          )}
-                        </Button>
-
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={async () => {
-                            setDecliningId(inv.id);
-                            await onDecline(inv.id);
-                            setDecliningId(null);
-                          }}
-                          disabled={isProcessing}
-                          className="border-red-200 text-red-600 hover:bg-red-50 h-7 px-3 text-xs"
-                        >
-                          {decliningId === inv.id ? (
-                            <>
-                              <div className="w-3 h-3 border-2 border-red-600 border-t-transparent rounded-full animate-spin mr-1.5" />
-                              Declining
-                            </>
-                          ) : (
-                            <>
-                              <XCircle className="w-3 h-3 mr-1.5" />
-                              Decline
                             </>
                           )}
                         </Button>
