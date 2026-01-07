@@ -1,7 +1,6 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
 
-import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -15,9 +14,12 @@ import { useWorkspaceQuery } from "@/queries/workspaceQuery";
 import { InfoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminDashboardHeader from "./admin-dashboard-header";
+import WorkspaceCreateDialog from "./workspace-create-dialog";
+import { useState } from "react";
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const [isWorkspaceDialogOpen, setIsWorkspaceDialogOpen] = useState(false);
   const { data: workspaceData, isLoading: workspaceLoading } =
     useWorkspaceQuery();
 
@@ -129,12 +131,12 @@ export default function AdminDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Link
-                  href="/admin/workspaces"
-                  className="text-sm text-primary hover:underline"
+                <button
+                  onClick={() => setIsWorkspaceDialogOpen(true)}
+                  className="text-sm text-primary hover:underline cursor-pointer"
                 >
                   + New Workspace
-                </Link>
+                </button>
               </CardContent>
             </Card>
 
@@ -158,6 +160,10 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+      <WorkspaceCreateDialog
+        open={isWorkspaceDialogOpen}
+        onOpenChange={setIsWorkspaceDialogOpen}
+      />
     </div>
   );
 }

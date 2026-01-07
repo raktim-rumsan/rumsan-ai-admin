@@ -16,9 +16,9 @@ export default function WorkspacesPage() {
   const { data: workspaceData, isLoading } = useWorkspaceQuery();
 
   const adminWorkspaces =
-    workspaceData?.data?.myWorkspaces?.filter(
-      (workspace) => workspace.userRole !== "WORKSPACE_MEMBER"
-    ) ?? [];
+    workspaceData?.data?.myWorkspaces
+      ?.filter((workspace) => workspace.userRole !== "WORKSPACE_MEMBER")
+      .sort((a, b) => a.name.localeCompare(b.name)) ?? [];
 
   return (
     <div className="min-h-screen bg-muted/30">

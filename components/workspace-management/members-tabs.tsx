@@ -52,6 +52,7 @@ export default function MembersTab() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [role, setRole] = useState("member");
   const [resendingInvitationId, setResendingInvitationId] = useState<
     string | null
@@ -84,6 +85,64 @@ export default function MembersTab() {
 
   const workspaceResendInvitation = useResendInvitation(workSpaceSlug || "");
 
+  const validateEmail = (
+    emailValue: string,
+    checkFormat: boolean = false
+  ): boolean => {
+    if (!emailValue.trim()) {
+      setEmailError("Email is required");
+      return false;
+    }
+    // Check if email contains only allowed characters: a-z, 0-9, ., and @
+    const allowedCharsRegex = /^[a-z0-9.@]+$/i;
+    if (!allowedCharsRegex.test(emailValue)) {
+      setEmailError(
+        "Sorry, only letters (a-z), numbers (0-9), and periods (.) are allowed"
+      );
+      return false;
+    }
+    // Check for multiple @ symbols
+    const atSymbolCount = (emailValue.match(/@/g) || []).length;
+    if (atSymbolCount > 1) {
+      setEmailError("Email can only contain one @ symbol");
+      return false;
+    }
+    // Only validate email format on blur or submit
+    if (checkFormat) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailValue)) {
+        setEmailError("Please enter a valid email address");
+        return false;
+      }
+    }
+    setEmailError("");
+    return true;
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+    // Only check for invalid characters while typing, not email format
+    if (value.trim()) {
+      const allowedCharsRegex = /^[a-z0-9.@]+$/i;
+      if (!allowedCharsRegex.test(value)) {
+        setEmailError(
+          "Sorry, only letters (a-z), numbers (0-9), and periods (.) are allowed"
+        );
+      } else {
+        // Check for multiple @ symbols
+        const atSymbolCount = (value.match(/@/g) || []).length;
+        if (atSymbolCount > 1) {
+          setEmailError("Email can only contain one @ symbol");
+        } else {
+          setEmailError("");
+        }
+      }
+    } else {
+      setEmailError("");
+    }
+  };
+
   const removeMember = async (email: string) => {
     if (!workspaceId) return;
     try {
@@ -100,7 +159,7 @@ export default function MembersTab() {
   };
 
   const handleSendInvitation = async () => {
-    if (!email || !role) {
+    if (!validateEmail(email, true) || !role) {
       return;
     }
     try {
@@ -110,6 +169,7 @@ export default function MembersTab() {
       });
       // Reset form and close dialog on success
       setEmail("");
+      setEmailError("");
       setRole("member");
       setIsDialogOpen(false);
     } catch (error) {
@@ -180,7 +240,17 @@ export default function MembersTab() {
                 </CardDescription>
               </div>
               {isAdmin && (
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <Dialog
+                  open={isDialogOpen}
+                  onOpenChange={(open) => {
+                    setIsDialogOpen(open);
+                    if (!open) {
+                      setEmail("");
+                      setEmailError("");
+                      setRole("member");
+                    }
+                  }}
+                >
                   <DialogTrigger asChild>
                     <Button>
                       <Plus className="h-4 w-4 mr-2" />
@@ -203,8 +273,13 @@ export default function MembersTab() {
                             type="email"
                             placeholder="member@example.com"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={handleEmailChange}
+                            onBlur={() => validateEmail(email, true)}
+                            className={emailError ? "border-red-500" : ""}
                           />
+                          {emailError && (
+                            <p className="text-sm text-red-500">{emailError}</p>
+                          )}
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="role">Role</Label>
@@ -225,7 +300,10 @@ export default function MembersTab() {
                         }`}
                         onClick={handleSendInvitation}
                         disabled={
-                          !email || !role || invitationMutation.isPending
+                          !email ||
+                          !role ||
+                          !!emailError ||
+                          invitationMutation.isPending
                         }
                       >
                         <Mail className="h-4 w-4 mr-2" />
@@ -264,7 +342,7 @@ export default function MembersTab() {
                         <Badge variant="outline">
                           {formatRole(member.role)}
                         </Badge>
-                        {isAdmin && (
+                        {isAdmin && member.role !== "WORKSPACE_ADMIN" && (
                           <Button
                             variant="ghost"
                             size="sm"
