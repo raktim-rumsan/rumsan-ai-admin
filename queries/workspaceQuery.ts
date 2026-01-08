@@ -94,6 +94,40 @@ interface DeleteMemberPayload {
   email: string;
 }
 
+export interface McpServerToolsResponse {
+  data: {
+    servers?: Array<{
+      id: string;
+      name: string;
+      url?: string;
+      sectorName?: string;
+      isActive: boolean;
+      mcpTools?: Array<{
+        id: string;
+        name: string;
+        description: string;
+        isActive: boolean;
+      }>;
+    }>;
+  };
+}
+
+export interface ToggleMcpToolPayload {
+  toolId: string;
+  payload: {
+    enabled: boolean;
+  };
+  workspaceId: string;
+}
+
+export interface ToggleMcpToolResponse {
+  data: {
+    id: string;
+    isActive: boolean;
+    workspaceId?: string;
+  };
+}
+
 type DeleteMemberResponse = void; // since the API returns nothing on success
 
 export function useWorkspaceQuery() {
@@ -483,6 +517,184 @@ export function useDeleteWorkspaceMutation() {
         "Error deleting workspace",
         error.message || "Something went wrong. Please try again."
       );
+    },
+  });
+}
+
+export interface McpServerToolsResponse {
+  data: {
+    servers?: Array<{
+      id: string;
+      name: string;
+      url?: string;
+      sectorName?: string;
+      isActive: boolean;
+      mcpTools?: Array<{
+        id: string;
+        name: string;
+        description: string;
+        isActive: boolean;
+      }>;
+    }>;
+  };
+}
+
+export function useMcpServerToolsQuery(workspaceId: string) {
+  return useQuery({
+    queryKey: ["workspaces", workspaceId, "mcp-server-tools"],
+    enabled: !!workspaceId, // Only run query if workspaceId is provided
+    queryFn: async (): Promise<McpServerToolsResponse> => {
+      const access_token = getAuthToken();
+      const res = await fetch(ROUTES.MCP_SERVER_TOOLS(workspaceId), {
+        method: "GET",
+        headers: {
+          access_token: access_token || "",
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+      return data;
+    },
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useToggleMcpToolsMutation(workspaceSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation<ToggleMcpToolResponse, Error, ToggleMcpToolPayload>({
+    mutationFn: async ({
+      workspaceId,
+      toolId,
+      payload,
+    }: ToggleMcpToolPayload) => {
+      const access_token = getAuthToken();
+      if (!access_token) throw new Error("Missing auth token");
+      if (!workspaceId) throw new Error("Missing workspace ID");
+
+      const res = await fetch(
+        ROUTES.MCP_SERVER_TOOL_TOGGLE(workspaceId, toolId),
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            accept: "application/json",
+            access_token: access_token,
+            "x-tenant-id": workspaceSlug,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        const errorMessage =
+          data?.message ||
+          data?.error ||
+          `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+      return data;
+    },
+
+    // Optimistic update
+    onMutate: async ({
+      toolId,
+      payload,
+      workspaceId,
+    }: ToggleMcpToolPayload) => {
+      const queryKey = ["workspaces", workspaceId, "mcp-server-tools"];
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousData =
+        queryClient.getQueryData<McpServerToolsResponse>(queryKey);
+
+      // Optimistically update the cache
+      queryClient.setQueryData<McpServerToolsResponse>(
+        queryKey,
+        (old: McpServerToolsResponse | undefined) => {
+          if (!old?.data?.servers) return old;
+
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              servers: old.data.servers.map(
+                (server: {
+                  id: string;
+                  name: string;
+                  url?: string;
+                  sectorName?: string;
+                  isActive: boolean;
+                  mcpTools?: Array<{
+                    id: string;
+                    name: string;
+                    description: string;
+                    isActive: boolean;
+                  }>;
+                }) => ({
+                  ...server,
+                  mcpTools: server.mcpTools?.map(
+                    (tool: {
+                      id: string;
+                      name: string;
+                      description: string;
+                      isActive: boolean;
+                    }) => (tool.id === toolId ? { ...tool, ...payload } : tool)
+                  ),
+                })
+              ),
+            },
+          };
+        }
+      );
+
+      return { previousData };
+    },
+
+    onError: (
+      err: Error,
+      _variables: ToggleMcpToolPayload,
+      context?: { previousData?: McpServerToolsResponse }
+    ) => {
+      // Rollback to previous state
+      if (context?.previousData) {
+        queryClient.setQueryData(
+          ["workspaces", _variables.workspaceId, "mcp-server-tools"],
+          context.previousData
+        );
+      }
+      const message =
+        err instanceof Error ? err.message : "Failed to toggle MCP tool";
+      toastUtils.generic.error(message);
+    },
+
+    onSettled: (
+      data: ToggleMcpToolResponse | undefined,
+      error: Error | null,
+      variables: ToggleMcpToolPayload
+    ) => {
+      // Always refetch to sync with server
+      const workspaceId = data?.data?.workspaceId || variables.workspaceId;
+      queryClient.invalidateQueries({
+        queryKey: ["workspaces", workspaceId, "mcp-server-tools"],
+      });
+    },
+
+    onSuccess: (
+      data: ToggleMcpToolResponse,
+      variables: ToggleMcpToolPayload
+    ) => {
+      const workspaceId = data?.data?.workspaceId || variables.workspaceId;
+      queryClient.invalidateQueries({
+        queryKey: ["workspaces", workspaceId, "mcp-server-tools"],
+      });
+      toastUtils.generic.success("MCP Tool toggled successfully");
     },
   });
 }

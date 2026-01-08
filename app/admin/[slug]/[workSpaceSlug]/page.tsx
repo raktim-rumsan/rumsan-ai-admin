@@ -18,6 +18,7 @@ import {
 } from "@/queries/workspaceQuery";
 import IntegrationLists from "@/components/sections/integrations/integration-list";
 import { tablist } from "@/constants/workspace-tabs";
+import McpServerTabs from "@/components/workspace-management/mcp-server-tabs";
 
 export default function WorkspaceDetailPage({
   params,
@@ -90,6 +91,7 @@ export default function WorkspaceDetailPage({
               {tab.value === "integrations" && (
                 <IntegrationLists isAdminPanel={true} />
               )}
+              {tab.value === "mcp-servers" && <McpServerTabs />}
             </TabsContent>
           ))}
         </Tabs>

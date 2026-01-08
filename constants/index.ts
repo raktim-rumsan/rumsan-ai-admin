@@ -25,7 +25,10 @@ export const ROUTES = {
     `${API_BASE_URL}/workspaces/${workspaceId}/photo`,
   WORKSPACE_IMAGE_REMOVE: (workspaceId: string) =>
     `${API_BASE_URL}/workspaces/${workspaceId}/remove-image`,
-
+  MCP_SERVER_TOOLS: (workspaceId: string) =>
+    `${API_BASE_URL}/workspaces/${workspaceId}/tools`,
+  MCP_SERVER_TOOL_TOGGLE: (workspaceId: string, toolId: string) =>
+    `${API_BASE_URL}/workspaces/${workspaceId}/tools/${toolId}`,
   //organization routes
   ORGANIZATIONS: `${API_BASE_URL}/organizations`,
   ORGANIZATION_CONTEXT: `${API_BASE_URL}/organizations/context`,
