@@ -70,12 +70,10 @@ export default function McpServerTabs() {
     toolId: string,
     workspaceId: string
   ) => {
-    // Find the current tool state
     const server = servers.find((s: McpServer) => s.id === serverId);
     const tool = server?.mcpTools?.find((t: McpTool) => t.id === toolId);
     const newEnabledState = !tool?.enabled;
 
-    // Optimistically update local state
     const updatedServers = servers.map((server: McpServer) => {
       if (server.id === serverId && server.mcpTools) {
         return {
@@ -89,7 +87,6 @@ export default function McpServerTabs() {
     });
     setLocalServers(updatedServers);
 
-    // Call the mutation
     toggleToolMutation.mutate({
       toolId,
       payload: {
@@ -107,7 +104,6 @@ export default function McpServerTabs() {
     try {
       await navigator.clipboard.writeText(url);
       setCopiedServerId(serverId);
-      // Reset to Copy icon after 2 seconds
       setTimeout(() => {
         setCopiedServerId(null);
       }, 2000);
@@ -119,14 +115,10 @@ export default function McpServerTabs() {
   const handleRefreshServer = async (serverId: string) => {
     setRefreshingServerId(serverId);
 
-    // Ensure the server is expanded to show the refreshing message
     if (expandedServerId !== serverId) {
       setExpandedServerId(serverId);
     }
 
-    // TODO: Add mutation to refresh tools from server
-    // For now, refetch the query
-    // In a real implementation, this would trigger a refetch or mutation
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     setRefreshingServerId(null);

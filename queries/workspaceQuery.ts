@@ -602,7 +602,6 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
       return data;
     },
 
-    // Optimistic update
     onMutate: async ({
       toolId,
       payload,
@@ -614,7 +613,6 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
       const previousData =
         queryClient.getQueryData<McpServerToolsResponse>(queryKey);
 
-      // Optimistically update the cache
       queryClient.setQueryData<McpServerToolsResponse>(
         queryKey,
         (old: McpServerToolsResponse | undefined) => {
@@ -662,7 +660,6 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
       _variables: ToggleMcpToolPayload,
       context?: { previousData?: McpServerToolsResponse }
     ) => {
-      // Rollback to previous state
       if (context?.previousData) {
         queryClient.setQueryData(
           ["workspaces", _variables.workspaceId, "mcp-server-tools"],
@@ -679,7 +676,6 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
       error: Error | null,
       variables: ToggleMcpToolPayload
     ) => {
-      // Always refetch to sync with server
       const workspaceId = data?.data?.workspaceId || variables.workspaceId;
       queryClient.invalidateQueries({
         queryKey: ["workspaces", workspaceId, "mcp-server-tools"],
