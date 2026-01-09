@@ -17,23 +17,10 @@ import {
   useWorkspaceQuery,
   useToggleMcpToolsMutation,
   type Workspace,
+  McpServer,
+  McpTool,
 } from "@/queries/workspaceQuery";
-
-interface McpTool {
-  id: string;
-  name: string;
-  description: string;
-  enabled: boolean;
-}
-
-interface McpServer {
-  id: string;
-  name: string;
-  url?: string;
-  sectorName?: string;
-  enabled: boolean;
-  mcpTools?: McpTool[];
-}
+import { useWorkspaceRole } from "@/hooks/useOrganizationContext";
 
 export default function McpServerTabs() {
   const { workSpaceSlug } = useParams();
@@ -41,18 +28,29 @@ export default function McpServerTabs() {
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
     (w: Workspace) => w.slug === workSpaceSlug
   );
+
+  const { isAdmin } = useWorkspaceRole(currentWorkspace?.id || "");
+
   const {
     data: mcpServerTools,
     isLoading: isLoadingTools,
     error: toolsError,
+    refetch,
   } = useMcpServerToolsQuery(currentWorkspace?.id as string);
 
-  // Use API data directly, with local state for optimistic updates
-  const apiServers = mcpServerTools?.data || [];
-  const [localServers, setLocalServers] = useState<McpServer[]>(apiServers);
+  const servers: McpServer[] = mcpServerTools?.data ?? [];
+  const serversWithVisibleTools = servers.map((server) => {
+    const visibleTools = isAdmin
+      ? server.mcpTools ?? [] // Admin sees all tools
+      : (server.mcpTools ?? []).filter(
+          (tool) => tool.enabled && server.isActive
+        ); // Members see only enabled tools on active servers
 
-  // Use API data if available, otherwise use local state
-  const servers = apiServers.length > 0 ? apiServers : localServers;
+    return {
+      ...server,
+      mcpTools: visibleTools, // replace mcpTools with filtered ones
+    };
+  });
 
   // Mutation for toggling tool state
   const toggleToolMutation = useToggleMcpToolsMutation(
@@ -70,22 +68,9 @@ export default function McpServerTabs() {
     toolId: string,
     workspaceId: string
   ) => {
-    const server = servers.find((s: McpServer) => s.id === serverId);
+    const server = servers?.find((s: McpServer) => s.id === serverId);
     const tool = server?.mcpTools?.find((t: McpTool) => t.id === toolId);
     const newEnabledState = !tool?.enabled;
-
-    const updatedServers = servers.map((server: McpServer) => {
-      if (server.id === serverId && server.mcpTools) {
-        return {
-          ...server,
-          mcpTools: server.mcpTools.map((tool: McpTool) =>
-            tool.id === toolId ? { ...tool, enabled: newEnabledState } : tool
-          ),
-        };
-      }
-      return server;
-    });
-    setLocalServers(updatedServers);
 
     toggleToolMutation.mutate({
       toolId,
@@ -112,15 +97,14 @@ export default function McpServerTabs() {
     }
   };
 
-  const handleRefreshServer = async (serverId: string) => {
+  const handleRefreshServer = (serverId: string) => {
     setRefreshingServerId(serverId);
 
     if (expandedServerId !== serverId) {
       setExpandedServerId(serverId);
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
+    refetch();
     setRefreshingServerId(null);
   };
 
@@ -132,7 +116,9 @@ export default function McpServerTabs() {
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-semibold">AI Tools Management</h1>
             <h3 className="text-sm text-muted-foreground">
-              Manage MCP tools that the AI can reference.
+              {isAdmin
+                ? "Manage MCP tools that the AI can reference."
+                : "View MCP tools that the AI can reference."}
             </h3>
           </div>
         </div>
@@ -156,7 +142,7 @@ export default function McpServerTabs() {
               <p>No MCP servers available</p>
             </div>
           ) : (
-            servers.map((server: McpServer) => (
+            serversWithVisibleTools.map((server: McpServer) => (
               <div
                 key={server.id}
                 className="rounded-lg border bg-card overflow-hidden"
@@ -271,20 +257,26 @@ export default function McpServerTabs() {
                                   {humanizeToolName(tool.name)}
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                  {tool.description}
+                                  {tool.description
+                                    ?.replace(/Args:\s*/i, "")
+                                    .replace(/Returns:\s*/i, "")
+                                    .replace(/\[Note:[^\]]*\]/i, "")
+                                    .trim()}
                                 </div>
                               </div>
 
-                              <Switch
-                                checked={tool.enabled}
-                                onCheckedChange={() =>
-                                  handleToggleTool(
-                                    server.id,
-                                    tool.id,
-                                    currentWorkspace?.id
-                                  )
-                                }
-                              />
+                              {isAdmin && (
+                                <Switch
+                                  checked={tool.enabled}
+                                  onCheckedChange={() =>
+                                    handleToggleTool(
+                                      server.id,
+                                      tool.id,
+                                      currentWorkspace?.id as string
+                                    )
+                                  }
+                                />
+                              )}
                             </div>
                           ))
                         )}
