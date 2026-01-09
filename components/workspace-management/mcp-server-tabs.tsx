@@ -35,6 +35,7 @@ export default function McpServerTabs() {
     data: mcpServerTools,
     isLoading: isLoadingTools,
     error: toolsError,
+    refetch,
   } = useMcpServerToolsQuery(currentWorkspace?.id as string);
 
   const servers: McpServer[] = mcpServerTools?.data ?? [];
@@ -96,15 +97,14 @@ export default function McpServerTabs() {
     }
   };
 
-  const handleRefreshServer = async (serverId: string) => {
+  const handleRefreshServer = (serverId: string) => {
     setRefreshingServerId(serverId);
 
     if (expandedServerId !== serverId) {
       setExpandedServerId(serverId);
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
+    refetch();
     setRefreshingServerId(null);
   };
 
