@@ -29,7 +29,6 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
     setSelectedTab(value);
   };
 
-  const workspaceId = isMounted ? localStorage.getItem("workspaceId") : null;
   const BASE_URL = process.env.NEXT_PUBLIC_URL!;
 
   // Get the first available API key
@@ -39,7 +38,7 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
     if (!currentApiKey) return null;
 
     const params = new URLSearchParams({
-      user: workspaceId || "",
+      user: workSpaceSlug || "",
       apiKey: currentApiKey,
       title: config.title,
       color: config.color,
@@ -86,7 +85,7 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
   ">
 </iframe>`,
     };
-  }, [workspaceId, currentApiKey, BASE_URL, config]);
+  }, [workSpaceSlug, currentApiKey, BASE_URL, config]);
 
   const handleCopy = () => {
     if (
@@ -179,7 +178,7 @@ export function CodeSnippet({ config }: CodeSnippetProps) {
               variant="secondary"
               className="absolute right-3 top-2 border-2 cursor-pointer"
               onClick={handleCopy}
-              disabled={isLoading || !workspaceId || !currentApiKey}
+              disabled={isLoading || !workSpaceSlug || !currentApiKey}
             >
               {isCopied ? (
                 <>
