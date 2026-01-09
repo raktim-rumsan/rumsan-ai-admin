@@ -10,7 +10,7 @@ import { RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOrgSettings } from "@/queries/orgSettingsQuery";
 import { useUpdateSystemPrompt } from "@/queries/orgSettingsQuery";
-import { set } from "date-fns";
+import McpServerTabs from "@/components/workspace-management/mcp-server-tabs";
 
 export default function AgentPreview() {
   const defaultPrompt = `## Task
@@ -29,7 +29,6 @@ Q: What services do you offer?
 A: We specialize in AI Agent development, primarily through our platform Agentive. If you're interested in building AI agents for your business please provide some information on the project you have in mind.
 Alternatively, if you'd like to speak to our team for a consultation you can provide your name and email and we'll be in touch to book in a call.`;
   const [activeTab, setActiveTab] = useState("Prompt");
-  const [documentsEnabled, setDocumentsEnabled] = useState(true);
   const [promptContent, setPromptContent] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const { workSpaceSlug } = useParams();
@@ -85,7 +84,7 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
           {/* Agent Configuration Section */}
           <div className="flex flex-col h-full overflow-hidden">
             <div className="flex space-x-1 mb-6 bg-muted p-1 rounded-lg w-fit shrink-0">
-              {["Prompt", "Knowledge"].map((tab) => (
+              {["Prompt", "MCP Tools"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -137,48 +136,7 @@ Alternatively, if you'd like to speak to our team for a consultation you can pro
               </>
             )}
 
-            {activeTab === "Knowledge" && (
-              <div className="bg-background rounded-lg border border-border p-6 flex-1 min-h-0 overflow-y-auto">
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-medium text-foreground mb-4">
-                      Document Data Usage
-                    </h3>
-                    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          Enable Documents
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Allow the agent to use uploaded documents as knowledge
-                          base
-                        </p>
-                      </div>
-                      <Switch
-                        checked={documentsEnabled}
-                        onCheckedChange={setDocumentsEnabled}
-                        disabled
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="border border-border rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="justify-between p-4 bg-muted/50 rounded-lg">
-                          <p className="text-sm font-medium text-foreground">
-                            Notes
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Documents uploaded in one workspace wont be
-                            available in the another workspace
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            {activeTab === "MCP Tools" && <McpServerTabs />}
           </div>
         </div>
       </div>

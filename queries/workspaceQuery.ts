@@ -95,21 +95,24 @@ interface DeleteMemberPayload {
 }
 
 export interface McpServerToolsResponse {
-  data: {
-    servers?: Array<{
-      id: string;
-      name: string;
-      url?: string;
-      sectorName?: string;
-      isActive: boolean;
-      mcpTools?: Array<{
-        id: string;
-        name: string;
-        description: string;
-        isActive: boolean;
-      }>;
-    }>;
-  };
+  data: McpServer[];
+}
+
+export interface McpServer {
+  id: string;
+  name: string;
+  url?: string;
+  sectorName?: string;
+  isActive: boolean;
+  mcpTools?: McpTool[];
+}
+
+export interface McpTool {
+  id: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+  enabled?: boolean;
 }
 
 export interface ToggleMcpToolPayload {
@@ -521,24 +524,6 @@ export function useDeleteWorkspaceMutation() {
   });
 }
 
-export interface McpServerToolsResponse {
-  data: {
-    servers?: Array<{
-      id: string;
-      name: string;
-      url?: string;
-      sectorName?: string;
-      isActive: boolean;
-      mcpTools?: Array<{
-        id: string;
-        name: string;
-        description: string;
-        isActive: boolean;
-      }>;
-    }>;
-  };
-}
-
 export function useMcpServerToolsQuery(workspaceId: string) {
   return useQuery({
     queryKey: ["workspaces", workspaceId, "mcp-server-tools"],
@@ -613,44 +598,19 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
       const previousData =
         queryClient.getQueryData<McpServerToolsResponse>(queryKey);
 
-      queryClient.setQueryData<McpServerToolsResponse>(
-        queryKey,
-        (old: McpServerToolsResponse | undefined) => {
-          if (!old?.data?.servers) return old;
+      queryClient.setQueryData<McpServerToolsResponse>(queryKey, (old) => {
+        if (!old?.data) return old;
 
-          return {
-            ...old,
-            data: {
-              ...old.data,
-              servers: old.data.servers.map(
-                (server: {
-                  id: string;
-                  name: string;
-                  url?: string;
-                  sectorName?: string;
-                  isActive: boolean;
-                  mcpTools?: Array<{
-                    id: string;
-                    name: string;
-                    description: string;
-                    isActive: boolean;
-                  }>;
-                }) => ({
-                  ...server,
-                  mcpTools: server.mcpTools?.map(
-                    (tool: {
-                      id: string;
-                      name: string;
-                      description: string;
-                      isActive: boolean;
-                    }) => (tool.id === toolId ? { ...tool, ...payload } : tool)
-                  ),
-                })
-              ),
-            },
-          };
-        }
-      );
+        return {
+          ...old,
+          data: old.data.map((server) => ({
+            ...server,
+            mcpTools: server.mcpTools?.map((tool) =>
+              tool.id === toolId ? { ...tool, ...payload } : tool
+            ),
+          })),
+        };
+      });
 
       return { previousData };
     },
