@@ -11,6 +11,7 @@ import {
   useSlackOAuthInstall,
   useSlackWorkspaceByIdentifier,
   useToggleSlackWorkspace,
+  useUninstallSlackChannel,
   useUninstallSlackWorkspace,
 } from "@/queries/slackQuery";
 import { useParams } from "next/navigation";
@@ -28,11 +29,12 @@ export default function SlackIntegrationGuide() {
   const [activeTab, setActiveTab] = useState<"channel" | "events">("channel");
   const [selectedChannelId, setSelectedChannelId] = useState<string>("");
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
-
+  const [deleteType, setDeleteType] = useState<"channel" | "workspace" | null>(
+    null
+  );
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const { workSpaceSlug }: { workSpaceSlug: string } = useParams();
-
   const { data: workspaceData } = useWorkspaceQuery();
-
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
     (w) => w.slug === workSpaceSlug
   );
@@ -55,6 +57,11 @@ export default function SlackIntegrationGuide() {
 
   const { mutate: installSlackChannel, isPending } =
     useInstallSlackChannel(workSpaceSlug);
+
+  const {
+    mutate: uninstallSlackChannel,
+    isPending: isUninstallingSlackChannel,
+  } = useUninstallSlackChannel(workSpaceSlug);
 
   const connectedChannels = slackChannels?.filter((ch) => ch.is_member);
   const availableChannels = slackChannels?.filter((ch) => !ch.is_member);
@@ -89,6 +96,20 @@ export default function SlackIntegrationGuide() {
     });
   };
 
+  const handleDisconnectChannel = (channelId: string) => {
+    uninstallSlackChannel(
+      {
+        workspaceId: currentWorkspace?.id!,
+        channelId: channelId,
+      },
+      {
+        onSuccess: () => {
+          setOpenDeleteModal(false);
+        },
+      }
+    );
+  };
+
   return (
     <div className="flex items-start gap-8">
       {/* Left Sidebar */}
@@ -121,13 +142,14 @@ export default function SlackIntegrationGuide() {
               </div>
 
               <Button
-                // onClick={() => removeSlackWorkspace(currentWorkspace?.id!)}
                 disabled={isRemovingSlackWorkspace}
                 onClick={() => {
+                  setDeleteType("workspace");
+                  setDeleteTarget(currentWorkspace?.id!);
                   setOpenDeleteModal(true);
                 }}
                 variant="outline"
-                className="w-full justify-start gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 bg-transparent"
+                className="w-full justify-start gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 bg-transparent cursor-pointer"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete
@@ -202,8 +224,12 @@ export default function SlackIntegrationGuide() {
                               # {channel.name}
                             </span>
                             <button
-                              // onClick={() => handleDisconnectChannel(channel.id)}
-                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                              onClick={() => {
+                                setDeleteType("channel");
+                                setDeleteTarget(channel.id);
+                                setOpenDeleteModal(true);
+                              }}
+                              className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                             >
                               <X className="h-4 w-4" />
                             </button>
@@ -261,9 +287,19 @@ export default function SlackIntegrationGuide() {
         <ConfirmDelete
           isOpen={openDeleteModal}
           setIsOpen={setOpenDeleteModal}
-          onConfirm={() => deleteSlackWorkspace()}
-          isDeleting={isRemovingSlackWorkspace}
-          item={"this Slack workspace"}
+          onConfirm={() => {
+            if (deleteType === "workspace" && deleteTarget) {
+              deleteSlackWorkspace();
+            } else if (deleteType === "channel" && deleteTarget) {
+              handleDisconnectChannel(deleteTarget);
+            }
+          }}
+          isDeleting={isRemovingSlackWorkspace || isUninstallingSlackChannel}
+          item={
+            deleteType === "channel"
+              ? "bot from this Slack channel"
+              : "bot from this Slack workspace"
+          }
         />
       </div>
     </div>
