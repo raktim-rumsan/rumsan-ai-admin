@@ -100,10 +100,17 @@ export default function SlackIntegrationGuide() {
   };
 
   const handleDisconnectChannel = (channelId: string) => {
-    uninstallSlackChannel({
-      workspaceId: currentWorkspace?.id!,
-      channelId: channelId,
-    });
+    uninstallSlackChannel(
+      {
+        workspaceId: currentWorkspace?.id!,
+        channelId: channelId,
+      },
+      {
+        onSuccess: () => {
+          setOpenDeleteModal(false);
+        },
+      }
+    );
   };
 
   return (
@@ -298,8 +305,8 @@ export default function SlackIntegrationGuide() {
           isDeleting={isRemovingSlackWorkspace || isUninstallingSlackChannel}
           item={
             deleteType === "channel"
-              ? "this Slack channel"
-              : "this Slack workspace"
+              ? "bot from this Slack channel"
+              : "bot from this Slack workspace"
           }
         />
       </div>
