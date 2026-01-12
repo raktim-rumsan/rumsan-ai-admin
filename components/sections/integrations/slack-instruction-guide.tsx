@@ -33,11 +33,8 @@ export default function SlackIntegrationGuide() {
     null
   );
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-
   const { workSpaceSlug }: { workSpaceSlug: string } = useParams();
-
   const { data: workspaceData } = useWorkspaceQuery();
-
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
     (w) => w.slug === workSpaceSlug
   );
@@ -145,11 +142,7 @@ export default function SlackIntegrationGuide() {
               </div>
 
               <Button
-                // onClick={() => removeSlackWorkspace(currentWorkspace?.id!)}
                 disabled={isRemovingSlackWorkspace}
-                // onClick={() => {
-                //   setOpenDeleteModal(true);
-                // }}
                 onClick={() => {
                   setDeleteType("workspace");
                   setDeleteTarget(currentWorkspace?.id!);
@@ -299,7 +292,6 @@ export default function SlackIntegrationGuide() {
               deleteSlackWorkspace();
             } else if (deleteType === "channel" && deleteTarget) {
               handleDisconnectChannel(deleteTarget);
-              // setOpenDeleteModal(false);
             }
           }}
           isDeleting={isRemovingSlackWorkspace || isUninstallingSlackChannel}
