@@ -156,7 +156,7 @@ export default function SlackIntegrationGuide() {
                   setOpenDeleteModal(true);
                 }}
                 variant="outline"
-                className="w-full justify-start gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 bg-transparent"
+                className="w-full justify-start gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 bg-transparent cursor-pointer"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete
@@ -236,7 +236,7 @@ export default function SlackIntegrationGuide() {
                                 setDeleteTarget(channel.id);
                                 setOpenDeleteModal(true);
                               }}
-                              className="text-gray-400 hover:text-gray-600 transition-colors"
+                              className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                             >
                               <X className="h-4 w-4" />
                             </button>
