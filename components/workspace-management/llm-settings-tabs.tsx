@@ -329,14 +329,16 @@ export default function LLMConfigPage() {
                         required: "Temperature is required",
                       }}
                       render={({ field }) => {
-                        const value = field.value
+                        const rawValue = field.value
                           ? parseFloat(field.value)
                           : 0.5;
+                        // Clamp value between 0.1 and 1
+                        const value = Math.max(0.1, Math.min(1, rawValue));
                         return (
                           <div className="space-y-3 mt-2">
                             <Slider
                               id="temperature"
-                              min={0}
+                              min={0.1}
                               max={1}
                               step={0.1}
                               value={[value]}
