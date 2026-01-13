@@ -331,7 +331,7 @@ export default function LLMConfigPage() {
                       render={({ field }) => {
                         const rawValue = field.value
                           ? parseFloat(field.value)
-                          : 0.5;
+                          : 0.7;
                         // Clamp value between 0.1 and 1
                         const value = Math.max(0.1, Math.min(1, rawValue));
                         return (
