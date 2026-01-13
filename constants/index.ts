@@ -1,5 +1,7 @@
 const serverAPI = process.env.NEXT_PUBLIC_SERVER_API!;
+const scraperURL = process.env.NEXT_PUBLIC_SCRAPER_URL!;
 
+const SCRAPER_API_BASE_URL = `${scraperURL}/md`;
 const API_BASE_URL = `${serverAPI}/api/v1`;
 
 export const ROUTES = {
@@ -91,6 +93,9 @@ export const ROUTES = {
     `${API_BASE_URL}/widgets/slack/workspaces/${workspaceId}/channels/${channelId}/uninstall`,
   SLACK_UNINSTALL_WORKSPACE: (workspaceId: string) =>
     `${API_BASE_URL}/widgets/slack/workspaces/${workspaceId}`,
+
+  //scraper routes
+  SCRAPER_URL: `${SCRAPER_API_BASE_URL}`,
 };
 
 export default API_BASE_URL;
