@@ -31,6 +31,18 @@ import {
 } from "@/components/ui/table";
 import ReactMarkdown from "react-markdown";
 import { useScrapeWebsiteMutation } from "@/queries/workspaceQuery";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  useCreateWebDocumentMutation,
+  useUpdateWebDocumentMutation,
+  useWebDocDeleteMutation,
+  useWebDocEmbeddingMutation,
+  useWebDocumentsQuery,
+  useWebDocUnembeddingMutation,
+} from "@/queries/webDocuments";
+import { dismissToast, toastUtils } from "@/lib/toast-utils";
+import { useParams } from "next/navigation";
+import ConfirmDelete from "@/components/documents/DeleteModal";
 
 interface CapturedContent {
   id: string;
@@ -57,6 +69,8 @@ interface ScrapeWebsiteResponse {
 }
 
 export default function WebDocumentsPage() {
+  const { workSpaceSlug } = useParams();
+
   const [urlInput, setUrlInput] = useState("");
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
   const [capturedContents, setCapturedContents] = useState<CapturedContent[]>(
@@ -70,7 +84,30 @@ export default function WebDocumentsPage() {
   const [tempContentForTraining, setTempContentForTraining] =
     useState<CapturedContent | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [currentDeleteInfo, setCurrentDeleteInfo] = useState<{
+    id: string;
+    url: string;
+  } | null>(null);
 
+  const { data: response } = useWebDocumentsQuery(workSpaceSlug as string);
+  const webDocuments = response?.data;
+  const createWebDocumentMutation = useCreateWebDocumentMutation(
+    workSpaceSlug as string
+  );
+  const updateWebDocumentMutation = useUpdateWebDocumentMutation(
+    workSpaceSlug as string
+  );
+  const deleteMutation = useWebDocDeleteMutation(
+    workSpaceSlug as string,
+    () => {
+      toastUtils.data.deleteSuccess("webDocuments");
+    }
+  );
+  const embeddingMutation = useWebDocEmbeddingMutation(workSpaceSlug as string);
+  const unEmbeddingMutation = useWebDocUnembeddingMutation(
+    workSpaceSlug as string
+  );
   const { mutate: scrapeWebsite, isPending: isScraping } =
     useScrapeWebsiteMutation();
 
@@ -107,6 +144,18 @@ export default function WebDocumentsPage() {
     return sections;
   };
 
+  const serializeSectionsToMarkdown = (
+    sections: CapturedContent["sections"]
+  ) => {
+    return sections
+      .map((section) =>
+        section.title
+          ? `## ${section.title}\n${section.content}`
+          : section.content
+      )
+      .join("\n\n");
+  };
+
   const extractTitleFromMarkdown = (markdown: string, url: string): string => {
     const lines = markdown.split("\n");
     for (const line of lines) {
@@ -116,6 +165,33 @@ export default function WebDocumentsPage() {
       }
     }
     return new URL(url).hostname;
+  };
+
+  const handleLoadContentForEdit = (doc: {
+    id: string;
+    url: string;
+    content: string;
+    createdAt: string;
+    isActive: boolean;
+  }) => {
+    const sections = parseMarkdownIntoSections(doc.content);
+    const pageTitle = extractTitleFromMarkdown(doc.content, doc.url);
+
+    const contentForUI: CapturedContent = {
+      id: doc.id,
+      url: doc.url,
+      title: pageTitle,
+      date: new Date(doc.createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }),
+      sections,
+      enabled: doc.isActive,
+    };
+
+    setSelectedContent(contentForUI);
+    setIsEditDialogOpen(true);
   };
 
   const is404Page = (markdown: string): boolean => {
@@ -182,7 +258,7 @@ export default function WebDocumentsPage() {
           });
 
           const newContent: CapturedContent = {
-            id: `content-${Date.now()}`,
+            id: undefined as unknown as string,
             url: urlInput,
             title: pageTitle,
             date: dateStr,
@@ -261,29 +337,53 @@ export default function WebDocumentsPage() {
     }
   };
 
-  const handleSaveEdits = () => {
-    if (selectedContent && selectedContent.sections.length === 0) {
-      toast.error("Cannot save with no sections");
+  const handleSaveEdits = async () => {
+    if (!selectedContent) return;
+    if (selectedContent.sections.length === 0) {
+      toast.error("Cannot save content with no sections");
       return;
     }
 
-    if (selectedContent) {
-      if (
-        tempContentForTraining &&
-        tempContentForTraining.id === selectedContent.id
-      ) {
-        setCapturedContents([selectedContent, ...capturedContents]);
-        setTempContentForTraining(null);
-      } else {
-        setCapturedContents(
-          capturedContents.map((content) =>
-            content.id === selectedContent.id ? selectedContent : content
+    const mergedMarkdown = serializeSectionsToMarkdown(
+      selectedContent.sections
+    );
+
+    try {
+      if (selectedContent.id) {
+        updateWebDocumentMutation.mutate({
+          id: selectedContent.id,
+          body: {
+            url: selectedContent.url,
+            content: mergedMarkdown,
+          },
+        });
+
+        toast.success("Content updated successfully");
+
+        setCapturedContents((prev) =>
+          prev.map((c) =>
+            c.id === selectedContent.id
+              ? { ...c, sections: selectedContent.sections }
+              : c
           )
         );
+      } else {
+        const created = await createWebDocumentMutation.mutateAsync({
+          url: selectedContent.url,
+          content: mergedMarkdown,
+        });
+
+        toast.success("Content created successfully");
+
+        setCapturedContents((prev) => [
+          { ...selectedContent, id: created.id },
+          ...prev,
+        ]);
       }
 
       setIsEditDialogOpen(false);
-      toast.success("Content saved successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save content");
     }
   };
 
@@ -388,44 +488,62 @@ CTO & Lead Developer`;
     }
   };
 
-  const handleToggle = async (id: string) => {
-    const content = capturedContents.find((c) => c.id === id);
-    if (!content) return;
-
-    if (!content.enabled) {
-      setCapturedContents(
-        capturedContents.map((content) =>
-          content.id === id ? { ...content, enabled: true } : content
-        )
-      );
-
-      setTrainingId(id);
-      toast.loading("Training document...");
-
-      try {
-        const randomDuration = Math.random() * 2000 + 3000;
-        await new Promise((resolve) => setTimeout(resolve, randomDuration));
-
-        toast.success("Training completed successfully");
-      } catch {
-        toast.error("Training failed");
-      } finally {
-        setTrainingId(null);
-      }
-    } else {
-      setCapturedContents(
-        capturedContents.map((content) =>
-          content.id === id ? { ...content, enabled: false } : content
-        )
-      );
-    }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
-  const handleDelete = (id: string) => {
-    setCapturedContents(
-      capturedContents.filter((content) => content.id !== id)
-    );
-    toast.success("Content deleted successfully");
+  //   const content = capturedContents.find((c) => c.id === id);
+  //   if (!content) return;
+
+  //   if (!content.enabled) {
+  //     setCapturedContents(
+  //       capturedContents.map((content) =>
+  //         content.id === id ? { ...content, enabled: true } : content
+  //       )
+  //     );
+
+  //     setTrainingId(id);
+  //     toast.loading("Training document...");
+
+  //     try {
+  //       const randomDuration = Math.random() * 2000 + 3000;
+  //       await new Promise((resolve) => setTimeout(resolve, randomDuration));
+
+  //       toast.success("Training completed successfully");
+  //     } catch {
+  //       toast.error("Training failed");
+  //     } finally {
+  //       setTrainingId(null);
+  //     }
+  //   } else {
+  //     setCapturedContents(
+  //       capturedContents.map((content) =>
+  //         content.id === id ? { ...content, enabled: false } : content
+  //       )
+  //     );
+  //   }
+  // };
+
+  const handleDelete = async () => {
+    if (!currentDeleteInfo) return; // safety
+    const loadingToastId = toastUtils.generic.loading("Deleting document...");
+
+    deleteMutation.mutate(currentDeleteInfo.id, {
+      onError: (error: unknown) => {
+        dismissToast(loadingToastId);
+        const errorMessage = error instanceof Error ? error.message : undefined;
+        toastUtils.data.deleteError(errorMessage);
+      },
+      onSuccess: () => {
+        dismissToast(loadingToastId);
+        setOpenDeleteModal(false);
+        setCurrentDeleteInfo(null);
+      },
+    });
   };
 
   const getMarkdownPreview = () => {
@@ -441,6 +559,44 @@ CTO & Lead Developer`;
       .join("\n\n");
   };
 
+  const handleEmbedding = async (webDocumentId: string, isRetrain: boolean) => {
+    const action = isRetrain ? "Retraining" : "Training";
+    const loadingToastId = toastUtils.generic.loading(
+      `${action} document. Please wait a moment.`
+    );
+
+    // Set the training document ID to show loading state for this specific document
+    setTrainingId(webDocumentId);
+
+    // const mutation = isRetrain ? unEmbeddingMutation : embeddingMutation;
+    const mutation = isRetrain ? unEmbeddingMutation : embeddingMutation;
+    mutation.mutate(webDocumentId, {
+      onError: (error: unknown) => {
+        dismissToast(loadingToastId);
+        setTrainingId(null); // Clear training state
+
+        let errorTitle = `${action} failed`;
+
+        if (error instanceof Error) {
+          // Check for specific error types to provide better user guidance
+          if (error.message.includes("Failed to parse PDF")) {
+            errorTitle = "Document Processing Error";
+          } else if (
+            error.message.includes("invalid top-level pages dictionary")
+          ) {
+            errorTitle = "PDF Format Error";
+          }
+        }
+
+        toastUtils.generic.error(errorTitle);
+      },
+      onSuccess: () => {
+        dismissToast(loadingToastId);
+        setTrainingId(null); // Clear training state
+      },
+    });
+  };
+
   const cropUrl = (url: string) => {
     const maxChars = 25;
     if (url.length <= maxChars) return url;
@@ -453,7 +609,7 @@ CTO & Lead Developer`;
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="p-6 space-y-6 max-w-7xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Web Content Capture</h1>
@@ -469,142 +625,149 @@ CTO & Lead Developer`;
         </Button>
       </div>
 
-      <div className="border-border rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>TITLE</TableHead>
-              <TableHead>URL</TableHead>
-              <TableHead>DATE</TableHead>
-              <TableHead>ACTIONS</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {capturedContents.length > 0 ? (
-              capturedContents.map((content) => (
-                <TableRow key={content.id}>
-                  <TableCell className="font-medium">{content.title}</TableCell>
-                  <TableCell>
-                    <div
-                      className="text-muted-foreground text-sm max-w-xs cursor-pointer hover:text-foreground transition-colors"
-                      title={content.url}
-                      onClick={() => window.open(content.url, "_blank")}
-                    >
-                      {cropUrl(content.url)}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {content.date}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedContent(content);
-                                setIsEditDialogOpen(true);
-                              }}
-                              className="text-muted-foreground hover:text-foreground cursor-pointer"
-                              disabled={
-                                trainingId === content.id ||
-                                refreshingId === content.id
-                              }
-                            >
-                              <FileText className="size-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>View & Edit</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+      <Card>
+        <CardContent>
+          <div className="mt-6">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>DATE</TableHead>
+                  <TableHead>URL</TableHead>
 
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRefresh(content)}
-                              disabled={
-                                refreshingId === content.id ||
-                                trainingId === content.id
-                              }
-                              className="text-muted-foreground hover:text-foreground cursor-pointer"
-                            >
-                              <RefreshCw className="size-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Refresh</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="inline-flex cursor-pointer">
-                              <Switch
-                                checked={content.enabled}
-                                onCheckedChange={() => handleToggle(content.id)}
-                                disabled={
-                                  trainingId === content.id ||
-                                  refreshingId === content.id
-                                }
-                                className={
-                                  trainingId === content.id ||
-                                  refreshingId === content.id
-                                    ? "cursor-not-allowed"
-                                    : "cursor-pointer"
-                                }
-                              />
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {content.enabled
-                              ? "Disable Training"
-                              : "Enable Training"}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(content.id)}
-                              className="text-destructive hover:text-destructive cursor-pointer"
-                              disabled={
-                                trainingId === content.id ||
-                                refreshingId === content.id
-                              }
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Delete</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </TableCell>
+                  <TableHead>ACTIONS</TableHead>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  No websites captured yet. Add one to get started.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              </TableHeader>
+              <TableBody>
+                {webDocuments?.length > 0 ? (
+                  webDocuments?.map((doc) => (
+                    <TableRow key={doc.id}>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {formatDate(doc.createdAt)}
+                      </TableCell>
+                      <TableCell>
+                        <div
+                          className="text-muted-foreground text-sm max-w-xs cursor-pointer hover:text-foreground transition-colors"
+                          title={doc.url}
+                          onClick={() => window.open(doc.url, "_blank")}
+                        >
+                          {cropUrl(doc.url)}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                {/* <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedContent(doc);
+                                    setIsEditDialogOpen(true);
+                                  }}
+                                  className="text-muted-foreground hover:text-foreground cursor-pointer"
+                                  disabled={
+                                    trainingId === doc.id ||
+                                    refreshingId === doc.id
+                                  }
+                                >
+                                  <FileText className="size-4" />
+                                </Button> */}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleLoadContentForEdit(doc)}
+                                >
+                                  <FileText className="size-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>View & Edit</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRefresh(doc)}
+                                  disabled={
+                                    refreshingId === doc.id ||
+                                    trainingId === doc.id
+                                  }
+                                  className="text-muted-foreground hover:text-foreground cursor-pointer"
+                                >
+                                  <RefreshCw className="size-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Refresh</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="inline-flex cursor-pointer">
+                                  <Switch
+                                    checked={doc.status !== "PENDING"}
+                                    onCheckedChange={(checked) =>
+                                      handleEmbedding(doc.id, !checked)
+                                    }
+                                    disabled={trainingId === doc.id}
+                                  />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {doc.isActive
+                                  ? "Disable Training"
+                                  : "Enable Training"}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setCurrentDeleteInfo({
+                                      id: doc.id,
+                                      fileName: doc.fileName,
+                                    });
+                                    setOpenDeleteModal(true);
+                                  }}
+                                  className="text-destructive hover:text-destructive cursor-pointer"
+                                  disabled={deleteMutation.isPending}
+                                >
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Delete</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="h-24 text-center text-muted-foreground"
+                    >
+                      No websites captured yet. Add one to get started.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       <Dialog open={isUrlModalOpen} onOpenChange={setIsUrlModalOpen}>
         <DialogContent className="sm:max-w-md">
@@ -794,6 +957,13 @@ CTO & Lead Developer`;
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ConfirmDelete
+        isOpen={openDeleteModal}
+        setIsOpen={setOpenDeleteModal}
+        onConfirm={handleDelete}
+        isDeleting={deleteMutation.isPending}
+        item={selectedContent?.url || ""}
+      />
     </div>
   );
 }

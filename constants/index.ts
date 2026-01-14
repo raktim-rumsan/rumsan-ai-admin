@@ -96,6 +96,16 @@ export const ROUTES = {
 
   //scraper routes
   SCRAPER_URL: `${SCRAPER_API_BASE_URL}`,
+
+  //web document
+  WEB_DOCUMENTS: `${API_BASE_URL}/web-docs`,
+  CREATE_WEB_DOCUMENT: `${API_BASE_URL}/web-docs`,
+  UPDATE_WEB_DOCUMENT: (webDocumentId: string) =>
+    `${API_BASE_URL}/web-docs/${webDocumentId}`,
+  DELETE_WEB_DOCUMENT: (webDocumentId: string) =>
+    `${API_BASE_URL}/web-docs/${webDocumentId}`,
+  WEB_DOCUMENT_EMBEDDINGS: `${API_BASE_URL}/embeddings/web-docs`,
+  WEB_DOCUMENT_UNEMBEDDINGS: `${API_BASE_URL}/embeddings/web-docs/unembed`,
 };
 
 export default API_BASE_URL;
