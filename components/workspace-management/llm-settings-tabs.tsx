@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import {
   Card,
   CardContent,
@@ -321,16 +322,47 @@ export default function LLMConfigPage() {
                     >
                       Temperature
                     </Label>
-                    <Input
-                      id="temperature"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="1"
-                      {...form.register("temperature", {
+                    <Controller
+                      name="temperature"
+                      control={control}
+                      rules={{
                         required: "Temperature is required",
-                      })}
-                      className="h-12"
+                      }}
+                      render={({ field }) => {
+                        const rawValue = field.value
+                          ? parseFloat(field.value)
+                          : 0.7;
+                        // Clamp value between 0.1 and 1
+                        const value = Math.max(0.1, Math.min(1, rawValue));
+                        return (
+                          <div className="space-y-3 mt-2">
+                            <Slider
+                              id="temperature"
+                              min={0.1}
+                              max={1}
+                              step={0.1}
+                              value={[value]}
+                              onValueChange={(values) => {
+                                field.onChange(values[0].toString());
+                              }}
+                              className="w-full"
+                            />
+                            <div className="flex justify-between items-center text-sm mb-2">
+                              <span className="text-gray-600 font-medium">
+                                More Focused
+                              </span>
+                              <span className="text-gray-500 font-mono">
+                                {value % 1 === 0
+                                  ? value.toString()
+                                  : value.toFixed(1)}
+                              </span>
+                              <span className="text-gray-600 font-medium">
+                                More Creative
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      }}
                     />
                     {form.formState.errors.temperature && (
                       <p className="text-sm text-red-500">
@@ -338,7 +370,9 @@ export default function LLMConfigPage() {
                       </p>
                     )}
                     <p className="text-sm text-gray-500">
-                      Higher values make output more random (0-1)
+                      Controls randomness: Lower values produce more focused and
+                      deterministic responses, while higher values generate more
+                      creative and varied outputs.
                     </p>
                   </div>
 
