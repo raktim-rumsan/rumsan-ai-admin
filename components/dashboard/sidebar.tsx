@@ -1,25 +1,74 @@
 "use client";
 
+import React from "react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FolderOpen, Bot, Plug, User, Factory } from "lucide-react";
+import {
+  FolderOpen,
+  Bot,
+  Plug,
+  User,
+  Factory,
+  FileText,
+  Globe,
+  ChevronDown,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+} from "@/components/ui/sidebar";
 import {
   getBackendFileUrl,
   useOrganizationById,
 } from "@/queries/organizationQuery";
 import Image from "next/image";
+
+interface NavigationItem {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  slug?: string;
+  submenu?: Array<{
+    title: string;
+    icon: React.ComponentType<{ className?: string }>;
+    slug: string;
+  }>;
+}
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const navigationItems = [
+interface CollapsibleMenuItemProps {
+  item: NavigationItem;
+  workspaceSlug: string;
+  pathname: string;
+}
+
+const navigationItems: NavigationItem[] = [
   {
     title: "My Resources",
     icon: FolderOpen,
-    slug: "/documents",
+    submenu: [
+      {
+        title: "PDF Documents",
+        icon: FileText,
+        slug: "/documents",
+      },
+      {
+        title: "Web Documents",
+        icon: Globe,
+        slug: "/web-documents",
+      },
+    ],
   },
   {
     title: "Prompt Management",
@@ -43,15 +92,67 @@ const navigationItems = [
   },
 ];
 
+function CollapsibleMenuItem({
+  item,
+  workspaceSlug,
+  pathname,
+}: CollapsibleMenuItemProps) {
+  const isSubmenuActive = item.submenu?.some((subitem) =>
+    pathname.includes(subitem.slug)
+  );
+  const [isOpen, setIsOpen] = React.useState(isSubmenuActive);
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger
+        className={cn(
+          "w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+          isSubmenuActive
+            ? "bg-gray-600 text-white"
+            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+        )}
+      >
+        <div className="flex items-center">
+          <item.icon className="mr-3 h-4 w-4" />
+          {item.title}
+        </div>
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 transition-transform",
+            isOpen && "transform rotate-180"
+          )}
+        />
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <SidebarMenuSub>
+          {item.submenu?.map((subitem) => {
+            const isSubActive = pathname.includes(subitem.slug);
+            return (
+              <SidebarMenuSubItem key={subitem.slug}>
+                <SidebarMenuSubButton asChild isActive={isSubActive}>
+                  <Link
+                    href={`/dashboard/workspace/${workspaceSlug}${subitem.slug}`}
+                  >
+                    <subitem.icon className="size-4" />
+                    <span>{subitem.title}</span>
+                  </Link>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            );
+          })}
+        </SidebarMenuSub>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { data: organization } = useOrganizationById();
   const orgUrl = organization?.data?.url;
   const pathname = usePathname();
 
   // Filter navigation items based on workspace type
-  const filteredNavigationItems = navigationItems.filter((item) => {
-    return true;
-  });
+  const filteredNavigationItems = navigationItems;
   const workspaceSlug = pathname.split("/")[3];
 
   return (
@@ -101,7 +202,20 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <ScrollArea className="flex-1 px-3 py-4">
             <nav className="space-y-1">
               {filteredNavigationItems.map((item) => {
-                const isActive = pathname.includes(item.slug);
+                // Check if item has submenu
+                if (item.submenu) {
+                  return (
+                    <CollapsibleMenuItem
+                      key={item.title}
+                      item={item}
+                      workspaceSlug={workspaceSlug}
+                      pathname={pathname}
+                    />
+                  );
+                }
+
+                // Regular menu item without submenu
+                const isActive = item.slug && pathname.includes(item.slug);
                 return (
                   <Link
                     key={item.title}

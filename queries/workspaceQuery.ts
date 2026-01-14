@@ -654,3 +654,32 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
     },
   });
 }
+
+//POST REQUEST TO SCRAPE A URL
+export function useScrapeWebsiteMutation() {
+  return useMutation({
+    mutationFn: async (payload: { url: string }) => {
+      // Use Next.js API route to proxy the request and avoid CORS issues
+      const res = await fetch("/api/scrape", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        const errorMessage =
+          errorData.error ||
+          errorData.message ||
+          `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      const data = await res.json();
+      return data;
+    },
+  });
+}
