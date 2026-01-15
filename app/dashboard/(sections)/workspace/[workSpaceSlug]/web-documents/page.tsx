@@ -206,84 +206,84 @@ export default function WebDocumentsPage() {
     return indicators.some((indicator) => lowerMarkdown.includes(indicator));
   };
 
-  const handleFetchContent = () => {
-    setUrlError(null);
+  // const handleFetchContent = () => {
+  //   setUrlError(null);
 
-    if (!urlInput.trim()) {
-      const errorMsg = "Please enter a valid URL";
-      setUrlError(errorMsg);
-      toast.error(errorMsg);
-      return;
-    }
+  //   if (!urlInput.trim()) {
+  //     const errorMsg = "Please enter a valid URL";
+  //     setUrlError(errorMsg);
+  //     toast.error(errorMsg);
+  //     return;
+  //   }
 
-    scrapeWebsite(
-      { url: urlInput },
-      {
-        onSuccess: (data: ScrapeWebsiteResponse) => {
-          // Assuming the API returns markdown content in data.markdown or data.content
-          const markdown =
-            data?.markdown ||
-            data?.content ||
-            data?.data?.markdown ||
-            data?.data?.content ||
-            "";
+  //   scrapeWebsite(
+  //     { url: urlInput },
+  //     {
+  //       onSuccess: (data: ScrapeWebsiteResponse) => {
+  //         // Assuming the API returns markdown content in data.markdown or data.content
+  //         const markdown =
+  //           data?.markdown ||
+  //           data?.content ||
+  //           data?.data?.markdown ||
+  //           data?.data?.content ||
+  //           "";
 
-          if (!markdown) {
-            const errorMsg = "No content found in the response";
-            setUrlError(errorMsg);
-            toast.error(errorMsg);
-            return;
-          }
+  //         if (!markdown) {
+  //           const errorMsg = "No content found in the response";
+  //           setUrlError(errorMsg);
+  //           toast.error(errorMsg);
+  //           return;
+  //         }
 
-          // Check if the response is a 404 page
-          if (is404Page(markdown)) {
-            const errorMsg =
-              "The requested page was not found (404). Please check the URL and try again.";
-            setUrlError(errorMsg);
-            toast.error(errorMsg);
-            return;
-          }
+  //         // Check if the response is a 404 page
+  //         if (is404Page(markdown)) {
+  //           const errorMsg =
+  //             "The requested page was not found (404). Please check the URL and try again.";
+  //           setUrlError(errorMsg);
+  //           toast.error(errorMsg);
+  //           return;
+  //         }
 
-          // Clear any previous errors on success
-          setUrlError(null);
+  //         // Clear any previous errors on success
+  //         setUrlError(null);
 
-          const sections = parseMarkdownIntoSections(markdown);
-          const pageTitle = extractTitleFromMarkdown(markdown, urlInput);
+  //         const sections = parseMarkdownIntoSections(markdown);
+  //         const pageTitle = extractTitleFromMarkdown(markdown, urlInput);
 
-          const now = new Date();
-          const dateStr = now.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          });
+  //         const now = new Date();
+  //         const dateStr = now.toLocaleDateString("en-US", {
+  //           year: "numeric",
+  //           month: "short",
+  //           day: "numeric",
+  //         });
 
-          const newContent: CapturedContent = {
-            id: undefined as unknown as string,
-            url: urlInput,
-            title: pageTitle,
-            date: dateStr,
-            sections,
-            enabled: false,
-            isTraining: false,
-          };
+  //         const newContent: CapturedContent = {
+  //           id: undefined as unknown as string,
+  //           url: urlInput,
+  //           title: pageTitle,
+  //           date: dateStr,
+  //           sections,
+  //           enabled: false,
+  //           isTraining: false,
+  //         };
 
-          setTempContentForTraining(newContent);
-          setSelectedContent(newContent);
-          setUrlInput("");
-          setIsUrlModalOpen(false);
-          setIsEditDialogOpen(true);
+  //         setTempContentForTraining(newContent);
+  //         setSelectedContent(newContent);
+  //         setUrlInput("");
+  //         setIsUrlModalOpen(false);
+  //         setIsEditDialogOpen(true);
 
-          toast.success("Content captured successfully");
-        },
-        onError: (error: Error) => {
-          const errorMsg =
-            error.message || "Failed to fetch content. Please check the URL.";
-          setUrlError(errorMsg);
-          toast.error(errorMsg);
-        },
-      }
-    );
-  };
+  //         toast.success("Content captured successfully");
+  //       },
+  //       onError: (error: Error) => {
+  //         const errorMsg =
+  //           error.message || "Failed to fetch content. Please check the URL.";
+  //         setUrlError(errorMsg);
+  //         toast.error(errorMsg);
+  //       },
+  //     }
+  //   );
+  // };
 
   const updateSection = (sectionId: string, newContent: string) => {
     if (selectedContent) {
@@ -427,65 +427,174 @@ export default function WebDocumentsPage() {
     }
   };
 
-  const handleRefresh = async (content: CapturedContent) => {
-    setRefreshingId(content.id);
-    toast.loading("Refreshing...");
+  // const handleRefresh = async (content: CapturedContent) => {
+  //   setRefreshingId(content.id);
+  //   toast.loading("Refreshing...");
 
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+  //   scrapeWebsite(
+  //     { url: content.url },
+  //     {
+  //       onSuccess: (data: ScrapeWebsiteResponse) => {
+  //         const markdown =
+  //           data?.markdown ||
+  //           data?.content ||
+  //           data?.data?.markdown ||
+  //           data?.data?.content ||
+  //           "";
 
-      const mockMarkdown = `# Rahat
+  //         if (!markdown) {
+  //           const errorMsg = "No content found in the response";
+  //           toast.error(errorMsg);
+  //           setRefreshingId(null);
+  //           return;
+  //         }
 
-Rahat (relief in Nepali) is an open-source blockchain-based financial access platform to support vulnerable communities.
+  //         if (is404Page(markdown)) {
+  //           const errorMsg =
+  //             "The requested page was not found (404). Please check the URL and try again.";
+  //           toast.error(errorMsg);
+  //           setRefreshingId(null);
+  //           return;
+  //         }
 
-We are building resilience against the impact of climate shocks through decentralized and transparent financial access.
+  //         const sections = parseMarkdownIntoSections(markdown);
+  //         const pageTitle = extractTitleFromMarkdown(markdown, content.url);
 
-## Our Mission
+  //         const updatedContent = {
+  //           ...content,
+  //           title: pageTitle,
+  //           sections,
+  //           enabled: false,
+  //         };
 
-To bridge the opportunity divide and break the poverty cycle by providing immediate access to financial aid, building financial resilience, and fostering digital financial literacy for the last billion.
+  //         setCapturedContents((prev) =>
+  //           prev.map((c) => (c.id === content.id ? updatedContent : c))
+  //         );
 
-## Our Vision
+  //         // Show the refreshed content in the edit dialog so user can review/save
+  //         setTempContentForTraining(updatedContent);
+  //         setSelectedContent(updatedContent);
+  //         setIsEditDialogOpen(true);
 
-Financial Inclusion & Access for the last billion.
+  //         toast.success("Content refreshed successfully");
+  //         setRefreshingId(null);
+  //       },
+  //       onError: (error: Error) => {
+  //         const errorMsg = error.message || "Failed to refresh content";
+  //         toast.error(errorMsg);
+  //         setRefreshingId(null);
+  //       },
+  //     }
+  //   );
+  // };
 
-## Our Team
+  const fetchOrRefreshContent = (
+    url: string,
+    existingContent?: CapturedContent
+  ) => {
+    setUrlError(null);
 
-### Rumee Singh
-
-CEO & Founder
-
-### Santosh Shrestha
-
-CTO & Lead Developer`;
-
-      const sections = parseMarkdownIntoSections(mockMarkdown);
-      const pageTitle = extractTitleFromMarkdown(mockMarkdown, content.url);
-
-      const updatedContent = {
-        ...content,
-        title: pageTitle,
-        sections,
-        enabled: false,
-      };
-
-      setCapturedContents(
-        capturedContents.map((c) => (c.id === content.id ? updatedContent : c))
-      );
-
-      if (selectedContent?.id === content.id) {
-        setSelectedContent(updatedContent);
-      }
-
-      if (tempContentForTraining?.id === content.id) {
-        setTempContentForTraining(updatedContent);
-      }
-
-      toast.success("Content refreshed successfully");
-    } catch {
-      toast.error("Failed to refresh content");
-    } finally {
-      setRefreshingId(null);
+    if (!url.trim()) {
+      const errorMsg = "Please enter a valid URL";
+      setUrlError(errorMsg);
+      toast.error(errorMsg);
+      return;
     }
+
+    const loadingToastId = toast.loading(
+      existingContent ? "Refreshing..." : "Capturing content..."
+    );
+
+    scrapeWebsite(
+      { url },
+      {
+        onSuccess: (data: ScrapeWebsiteResponse) => {
+          const markdown =
+            data?.markdown ||
+            data?.content ||
+            data?.data?.markdown ||
+            data?.data?.content ||
+            "";
+
+          if (!markdown) {
+            const errorMsg = "No content found in the response";
+            setUrlError(errorMsg);
+            toast.error(errorMsg);
+            toast.dismiss(loadingToastId);
+            return;
+          }
+
+          if (is404Page(markdown)) {
+            const errorMsg =
+              "The requested page was not found (404). Please check the URL and try again.";
+            setUrlError(errorMsg);
+            toast.error(errorMsg);
+            toast.dismiss(loadingToastId);
+            return;
+          }
+
+          const sections = parseMarkdownIntoSections(markdown);
+          const pageTitle = extractTitleFromMarkdown(markdown, url);
+
+          const now = new Date();
+          const dateStr = now.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
+
+          let newContent: CapturedContent;
+
+          if (existingContent) {
+            // Refreshing existing content
+            newContent = {
+              ...existingContent,
+              title: pageTitle,
+              sections,
+              enabled: false,
+            };
+            setCapturedContents((prev) =>
+              prev.map((c) => (c.id === existingContent.id ? newContent : c))
+            );
+          } else {
+            // New content capture
+            newContent = {
+              id: undefined as unknown as string,
+              url,
+              title: pageTitle,
+              date: dateStr,
+              sections,
+              enabled: false,
+              isTraining: false,
+            };
+          }
+
+          setTempContentForTraining(newContent);
+          setSelectedContent(newContent);
+
+          setIsEditDialogOpen(true);
+          if (!existingContent) setIsUrlModalOpen(false);
+          if (!existingContent) setUrlInput("");
+
+          toast.success(
+            existingContent
+              ? "Content refreshed successfully"
+              : "Content captured successfully"
+          );
+          toast.dismiss(loadingToastId);
+        },
+        onError: (error: Error) => {
+          const errorMsg =
+            error.message ||
+            (existingContent
+              ? "Failed to refresh content"
+              : "Failed to fetch content. Please check the URL.");
+          setUrlError(errorMsg);
+          toast.error(errorMsg);
+          toast.dismiss(loadingToastId);
+        },
+      }
+    );
   };
 
   const formatDate = (dateString: string) => {
@@ -692,7 +801,9 @@ CTO & Lead Developer`;
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleRefresh(doc)}
+                                  onClick={() =>
+                                    fetchOrRefreshContent(doc.url, doc)
+                                  }
                                   disabled={
                                     refreshingId === doc.id ||
                                     trainingId === doc.id
@@ -736,7 +847,7 @@ CTO & Lead Developer`;
                                   onClick={() => {
                                     setCurrentDeleteInfo({
                                       id: doc.id,
-                                      fileName: doc.fileName,
+                                      url: doc.url,
                                     });
                                     setOpenDeleteModal(true);
                                   }}
@@ -785,7 +896,7 @@ CTO & Lead Developer`;
                 placeholder="Enter website URL"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    handleFetchContent();
+                    fetchOrRefreshContent(urlInput);
                   }
                 }}
                 className={urlError ? "border-destructive" : ""}
@@ -809,7 +920,7 @@ CTO & Lead Developer`;
               Cancel
             </Button>
             <Button
-              onClick={handleFetchContent}
+              onClick={() => fetchOrRefreshContent(urlInput)}
               disabled={isScraping}
               className="cursor-pointer"
             >
