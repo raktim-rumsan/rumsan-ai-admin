@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, FileText, RefreshCw, Edit2 } from "lucide-react";
+import {
+  Trash2,
+  RefreshCw,
+  Edit2,
+  ExternalLink,
+  SquarePen,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
@@ -78,7 +84,6 @@ export default function WebDocumentsPage() {
     useState<CapturedContent | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isUrlModalOpen, setIsUrlModalOpen] = useState(false);
-  const [trainingId, setTrainingId] = useState<string | null>(null);
   const [tempContentForTraining, setTempContentForTraining] =
     useState<CapturedContent | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
@@ -285,7 +290,6 @@ export default function WebDocumentsPage() {
               )
             );
 
-            // Optionally trigger embedding if Save & Train
             if (shouldTrain) {
               embeddingMutation.mutate(documentId);
             }
@@ -461,15 +465,9 @@ export default function WebDocumentsPage() {
   };
 
   const handleEmbedding = (webDocumentId: string, isRetrain: boolean) => {
-    setTrainingId(webDocumentId);
-
     const mutation = isRetrain ? unEmbeddingMutation : embeddingMutation;
 
-    mutation.mutate(webDocumentId, {
-      onSettled: () => {
-        setTrainingId(null);
-      },
-    });
+    mutation.mutate(webDocumentId);
   };
 
   const cropUrl = (url: string) => {
@@ -521,11 +519,12 @@ export default function WebDocumentsPage() {
                       </TableCell>
                       <TableCell>
                         <div
-                          className="text-muted-foreground text-sm max-w-xs cursor-pointer hover:text-foreground transition-colors"
+                          className="text-muted-foreground text-sm max-w-xs inline-flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors"
                           title={doc.url}
                           onClick={() => window.open(doc.url, "_blank")}
                         >
-                          {cropUrl(doc.url)}
+                          <span>{cropUrl(doc.url)}</span>
+                          <ExternalLink className="w-4 h-4" />
                         </div>
                       </TableCell>
 
@@ -539,7 +538,7 @@ export default function WebDocumentsPage() {
                                   size="sm"
                                   onClick={() => handleLoadContentForEdit(doc)}
                                 >
-                                  <FileText className="size-4" />
+                                  <SquarePen className="size-4" />
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>View & Edit</TooltipContent>
@@ -555,7 +554,10 @@ export default function WebDocumentsPage() {
                                   onClick={() =>
                                     fetchOrRefreshContent(doc.url, doc)
                                   }
-                                  disabled={trainingId === doc.id}
+                                  disabled={
+                                    embeddingMutation.isPending ||
+                                    unEmbeddingMutation.isPending
+                                  }
                                   className="text-muted-foreground hover:text-foreground cursor-pointer"
                                 >
                                   <RefreshCw className="size-4" />
@@ -574,12 +576,15 @@ export default function WebDocumentsPage() {
                                     onCheckedChange={(checked) =>
                                       handleEmbedding(doc.id, !checked)
                                     }
-                                    disabled={trainingId === doc.id}
+                                    disabled={
+                                      embeddingMutation.isPending ||
+                                      unEmbeddingMutation.isPending
+                                    }
                                   />
                                 </div>
                               </TooltipTrigger>
                               <TooltipContent>
-                                {doc.isActive
+                                {doc.status !== "PENDING"
                                   ? "Disable Training"
                                   : "Enable Training"}
                               </TooltipContent>
@@ -639,7 +644,7 @@ export default function WebDocumentsPage() {
                 value={urlInput}
                 onChange={(e) => {
                   setUrlInput(e.target.value);
-                  setUrlError(null); // Clear error when user types
+                  setUrlError(null);
                 }}
                 placeholder="Enter website URL"
                 onKeyDown={(e) => {
@@ -797,20 +802,19 @@ export default function WebDocumentsPage() {
               </Button>
               <Button
                 onClick={() => handleSaveEdits(false)}
-                disabled={trainingId !== null}
+                disabled={
+                  embeddingMutation.isPending || unEmbeddingMutation.isPending
+                }
                 className="cursor-pointer"
               >
                 Save
               </Button>
               <Button
                 onClick={() => handleSaveEdits(true)}
-                // disabled={trainingId !== null}
                 className="gap-2 cursor-pointer bg-blue-600 hover:bg-blue-700"
               >
                 <RefreshCw className="size-4" />
-                {trainingId === selectedContent?.id
-                  ? "Training..."
-                  : "Save & Train"}
+                {embeddingMutation.isPending ? "Training..." : "Save & Train"}
               </Button>
             </div>
           </DialogFooter>
