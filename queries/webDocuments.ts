@@ -103,96 +103,6 @@ export function useUpdateWebDocumentMutation(workspaceSlug: string) {
   });
 }
 
-// export function useWebDocEmbeddingMutation(
-//   workspaceSlug: string,
-//   onSuccess?: () => void
-// ) {
-//   const queryClient = useQueryClient();
-
-//   return useMutation({
-//     mutationFn: async (webDocumentId: string) => {
-//       const workspaceId = workspaceSlug;
-//       const access_token = getAuthToken();
-//       const res = await fetch(ROUTES.WEB_DOCUMENT_EMBEDDINGS, {
-//         method: "POST",
-//         headers: {
-//           accept: "application/json",
-//           "x-tenant-id": workspaceId,
-//           access_token: access_token!,
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({
-//           documentId: webDocumentId,
-//         }),
-//       });
-
-//       if (!res.ok) {
-//         const errorData = await res.json().catch(() => ({}));
-//         // API returns error message in 'message' field
-//         const errorMessage =
-//           errorData.message ||
-//           errorData.error ||
-//           `Failed to train document (${res.status})`;
-//         throw new Error(errorMessage);
-//       }
-
-//       const data = await res.json();
-//       return data;
-//     },
-//     retry: false,
-//     onSuccess: (data) => {
-//       toastUtils.generic.success(data?.data?.status, data?.data?.message);
-//       // Invalidate documents query to refetch the list and update status
-//       queryClient.invalidateQueries({ queryKey: ["webDocuments"] });
-//       onSuccess?.();
-//     },
-//   });
-// }
-
-// export function useWebDocUnembeddingMutation(
-//   workspaceSlug: string,
-//   onSuccess?: () => void
-// ) {
-//   const queryClient = useQueryClient();
-
-//   return useMutation({
-//     mutationFn: async (webDocumentId: string) => {
-//       const access_token = getAuthToken();
-//       const res = await fetch(ROUTES.WEB_DOCUMENT_UNEMBEDDINGS, {
-//         method: "POST",
-//         headers: {
-//           accept: "application/json",
-//           "x-tenant-id": workspaceSlug,
-//           access_token: access_token!,
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({
-//           documentId: webDocumentId,
-//         }),
-//       });
-
-//       if (!res.ok) {
-//         const errorData = await res.json().catch(() => ({}));
-//         // API returns error message in 'message' field
-//         const errorMessage =
-//           errorData.message ||
-//           errorData.error ||
-//           `Failed to unembed document (${res.status})`;
-//         throw new Error(errorMessage);
-//       }
-
-//       const data = await res.json();
-//       return data;
-//     },
-//     onSuccess: (data) => {
-//       toastUtils.generic.success(data?.data?.status, data?.data?.message);
-//       // Invalidate documents query to refetch the list and update status
-//       queryClient.invalidateQueries({ queryKey: ["webDocuments"] });
-//       onSuccess?.();
-//     },
-//   });
-// }
-
 export function useWebDocEmbeddingMutation(workspaceSlug: string) {
   const queryClient = useQueryClient();
 
@@ -309,46 +219,6 @@ export function useWebDocUnembeddingMutation(workspaceSlug: string) {
   });
 }
 
-// export function useWebDocDeleteMutation(
-//   workspaceSlug?: string,
-//   onSuccess?: () => void
-// ) {
-//   const queryClient = useQueryClient();
-
-//   return useMutation({
-//     mutationFn: async (webDocumentId: string) => {
-//       const access_token = getAuthToken();
-//       const res = await fetch(ROUTES.DELETE_WEB_DOCUMENT(webDocumentId), {
-//         method: "DELETE",
-//         headers: {
-//           accept: "application/json",
-//           "x-tenant-id": workspaceSlug || "",
-//           access_token: access_token!,
-//         },
-//       });
-
-//       if (!res.ok) {
-//         const errorData = await res.json().catch(() => ({}));
-//         // Handle API error responses properly
-//         const errorMessage =
-//           errorData.message ||
-//           errorData.error ||
-//           `HTTP ${res.status}: ${res.statusText}`;
-//         throw new Error(errorMessage);
-//       }
-
-//       // Return success response (might be empty for DELETE)
-//       const data = await res.json().catch(() => ({ success: true }));
-//       return data;
-//     },
-//     onSuccess: () => {
-//       // Invalidate documents query to refetch the list
-//       queryClient.invalidateQueries({ queryKey: ["webDocuments"] });
-//       onSuccess?.();
-//     },
-//   });
-// }
-
 export function useWebDocDeleteMutation(
   workspaceSlug?: string,
   onSuccess?: () => void
@@ -376,7 +246,6 @@ export function useWebDocDeleteMutation(
         throw new Error(errorMessage);
       }
 
-      // Return success response (might be empty for DELETE)
       const data = await res.json().catch(() => ({ success: true }));
       return data;
     },
