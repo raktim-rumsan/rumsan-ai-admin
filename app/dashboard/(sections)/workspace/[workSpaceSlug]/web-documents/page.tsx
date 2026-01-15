@@ -1,17 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Trash2,
-  RefreshCw,
-  Edit2,
-  ExternalLink,
-  SquarePen,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -20,24 +11,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import ReactMarkdown from "react-markdown";
 import { useScrapeWebsiteMutation } from "@/queries/workspaceQuery";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   useCreateWebDocumentMutation,
   useUpdateWebDocumentMutation,
@@ -48,6 +22,8 @@ import {
 } from "@/queries/webDocuments";
 import { useParams } from "next/navigation";
 import ConfirmDelete from "@/components/documents/DeleteModal";
+import WebDocumentEditor from "@/components/web-documents/WebDocumentEditor";
+import WebDocumentsTable from "@/components/web-documents/WebDocumentsTable";
 
 interface CapturedContent {
   id: string;
@@ -62,6 +38,7 @@ interface CapturedContent {
   }>;
   enabled: boolean;
   isTraining?: boolean;
+  status?: string;
 }
 
 interface ScrapeWebsiteResponse {
@@ -77,15 +54,11 @@ export default function WebDocumentsPage() {
   const { workSpaceSlug } = useParams();
 
   const [urlInput, setUrlInput] = useState("");
-  const [capturedContents, setCapturedContents] = useState<CapturedContent[]>(
-    []
+  const [editingContent, setEditingContent] = useState<CapturedContent | null>(
+    null
   );
-  const [selectedContent, setSelectedContent] =
-    useState<CapturedContent | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isUrlModalOpen, setIsUrlModalOpen] = useState(false);
-  const [tempContentForTraining, setTempContentForTraining] =
-    useState<CapturedContent | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [currentDeleteInfo, setCurrentDeleteInfo] = useState<{
@@ -170,7 +143,7 @@ export default function WebDocumentsPage() {
     url: string;
     content: string;
     createdAt: string;
-    isActive: boolean;
+    status?: string | boolean;
   }) => {
     const sections = parseMarkdownIntoSections(doc.content);
     const pageTitle = extractTitleFromMarkdown(doc.content, doc.url);
@@ -185,10 +158,16 @@ export default function WebDocumentsPage() {
         day: "numeric",
       }),
       sections,
-      enabled: doc.isActive,
+      enabled: !!doc.status,
+      status:
+        typeof doc.status === "string"
+          ? doc.status
+          : doc.status
+          ? "PROCESSED"
+          : "PENDING",
     };
 
-    setSelectedContent(contentForUI);
+    setEditingContent(contentForUI);
     setIsEditDialogOpen(true);
   };
 
@@ -204,96 +183,62 @@ export default function WebDocumentsPage() {
     return indicators.some((indicator) => lowerMarkdown.includes(indicator));
   };
 
-  const updateSection = (sectionId: string, newContent: string) => {
-    if (selectedContent) {
-      const updatedContent = {
-        ...selectedContent,
-        sections: selectedContent.sections.map((section) =>
-          section.id === sectionId
-            ? { ...section, content: newContent }
-            : section
-        ),
-      };
-
-      setSelectedContent(updatedContent);
-      if (tempContentForTraining?.id === selectedContent.id) {
-        setTempContentForTraining(updatedContent);
-      }
-    }
+  // Generic helper for updating sections
+  const updateSections = (
+    transform: (
+      sections: CapturedContent["sections"]
+    ) => CapturedContent["sections"]
+  ) => {
+    if (!editingContent) return;
+    setEditingContent({
+      ...editingContent,
+      sections: transform(editingContent.sections),
+    });
   };
 
-  const toggleEditMode = (sectionId: string) => {
-    if (selectedContent) {
-      const updatedContent = {
-        ...selectedContent,
-        sections: selectedContent.sections.map((section) =>
-          section.id === sectionId
-            ? { ...section, isEditing: !section.isEditing }
-            : section
-        ),
-      };
+  // Update content of a section
+  const updateSection = (id: string, content: string) =>
+    updateSections((sections) =>
+      sections.map((s) => (s.id === id ? { ...s, content } : s))
+    );
 
-      setSelectedContent(updatedContent);
-      if (tempContentForTraining?.id === selectedContent.id) {
-        setTempContentForTraining(updatedContent);
-      }
-    }
-  };
+  // Toggle edit mode
+  const toggleEditMode = (id: string) =>
+    updateSections((sections) =>
+      sections.map((s) => (s.id === id ? { ...s, isEditing: !s.isEditing } : s))
+    );
 
-  const removeSection = (sectionId: string) => {
-    if (selectedContent) {
-      const updatedContent = {
-        ...selectedContent,
-        sections: selectedContent.sections.filter(
-          (section) => section.id !== sectionId
-        ),
-      };
-
-      setSelectedContent(updatedContent);
-      if (tempContentForTraining?.id === selectedContent.id) {
-        setTempContentForTraining(updatedContent);
-      }
-    }
-  };
+  // Remove a section
+  const removeSection = (id: string) =>
+    updateSections((sections) => sections.filter((s) => s.id !== id));
 
   const handleSaveEdits = (shouldTrain: boolean = false) => {
-    if (!selectedContent) return;
+    if (!editingContent) return;
 
-    if (selectedContent.sections.length === 0) {
+    if (editingContent.sections.length === 0) {
       toast.error("Cannot save content with no sections");
       return;
     }
 
-    const mergedMarkdown = serializeSectionsToMarkdown(
-      selectedContent.sections
-    );
+    const mergedMarkdown = serializeSectionsToMarkdown(editingContent.sections);
 
     let documentId: string;
 
-    if (selectedContent.id) {
+    if (editingContent.id) {
       // UPDATE
       updateWebDocumentMutation.mutate(
         {
-          id: selectedContent.id,
-          body: { url: selectedContent.url, content: mergedMarkdown },
+          id: editingContent.id,
+          body: { url: editingContent.url, content: mergedMarkdown },
         },
         {
           onSuccess: (res: any) => {
-            documentId = selectedContent.id;
-
-            // Update local state
-            setCapturedContents((prev) =>
-              prev.map((c) =>
-                c.id === documentId
-                  ? { ...c, sections: selectedContent.sections }
-                  : c
-              )
-            );
-
+            documentId = editingContent.id;
             if (shouldTrain) {
-              embeddingMutation.mutate(documentId);
+              handleEmbedding(documentId, true);
+            } else if (editingContent.status === "PROCESSED") {
+              handleEmbedding(documentId, false);
             }
-
             setIsEditDialogOpen(false);
           },
         }
@@ -301,16 +246,10 @@ export default function WebDocumentsPage() {
     } else {
       // CREATE
       createWebDocumentMutation.mutate(
-        { url: selectedContent.url, content: mergedMarkdown },
+        { url: editingContent.url, content: mergedMarkdown },
         {
           onSuccess: (res: any) => {
             documentId = res.data.id;
-
-            // Update local state
-            setCapturedContents((prev) => [
-              { ...selectedContent, id: documentId },
-              ...prev,
-            ]);
 
             if (shouldTrain) {
               embeddingMutation.mutate(documentId);
@@ -388,9 +327,6 @@ export default function WebDocumentsPage() {
               sections,
               enabled: false,
             };
-            setCapturedContents((prev) =>
-              prev.map((c) => (c.id === existingContent.id ? newContent : c))
-            );
           } else {
             // New content capture
             newContent = {
@@ -404,8 +340,7 @@ export default function WebDocumentsPage() {
             };
           }
 
-          setTempContentForTraining(newContent);
-          setSelectedContent(newContent);
+          setEditingContent(newContent);
 
           setIsEditDialogOpen(true);
           if (!existingContent) setIsUrlModalOpen(false);
@@ -451,21 +386,11 @@ export default function WebDocumentsPage() {
     });
   };
 
-  const getMarkdownPreview = () => {
-    if (!selectedContent) return "";
+  const getMarkdownPreview = () =>
+    editingContent ? serializeSectionsToMarkdown(editingContent.sections) : "";
 
-    return selectedContent.sections
-      .map((section) => {
-        if (section.title) {
-          return `## ${section.title}\n\n${section.content}`;
-        }
-        return section.content;
-      })
-      .join("\n\n");
-  };
-
-  const handleEmbedding = (webDocumentId: string, isRetrain: boolean) => {
-    const mutation = isRetrain ? unEmbeddingMutation : embeddingMutation;
+  const handleEmbedding = (webDocumentId: string, isEnabled: boolean) => {
+    const mutation = isEnabled ? embeddingMutation : unEmbeddingMutation;
 
     mutation.mutate(webDocumentId);
   };
@@ -498,140 +423,21 @@ export default function WebDocumentsPage() {
         </Button>
       </div>
 
-      <Card>
-        <CardContent>
-          <div className="mt-6">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>DATE</TableHead>
-                  <TableHead>URL</TableHead>
-
-                  <TableHead>ACTIONS</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {webDocuments?.length > 0 ? (
-                  webDocuments?.map((doc) => (
-                    <TableRow key={doc.id}>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {formatDate(doc.createdAt)}
-                      </TableCell>
-                      <TableCell>
-                        <div
-                          className="text-muted-foreground text-sm max-w-xs inline-flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors"
-                          title={doc.url}
-                          onClick={() => window.open(doc.url, "_blank")}
-                        >
-                          <span>{cropUrl(doc.url)}</span>
-                          <ExternalLink className="w-4 h-4" />
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleLoadContentForEdit(doc)}
-                                >
-                                  <SquarePen className="size-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>View & Edit</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() =>
-                                    fetchOrRefreshContent(doc.url, doc)
-                                  }
-                                  disabled={
-                                    embeddingMutation.isPending ||
-                                    unEmbeddingMutation.isPending
-                                  }
-                                  className="text-muted-foreground hover:text-foreground cursor-pointer"
-                                >
-                                  <RefreshCw className="size-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Refresh</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="inline-flex cursor-pointer">
-                                  <Switch
-                                    checked={doc.status !== "PENDING"}
-                                    onCheckedChange={(checked) =>
-                                      handleEmbedding(doc.id, !checked)
-                                    }
-                                    disabled={
-                                      embeddingMutation.isPending ||
-                                      unEmbeddingMutation.isPending
-                                    }
-                                  />
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {doc.status !== "PENDING"
-                                  ? "Disable Training"
-                                  : "Enable Training"}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    setCurrentDeleteInfo({
-                                      id: doc.id,
-                                      url: doc.url,
-                                    });
-                                    setOpenDeleteModal(true);
-                                  }}
-                                  className="text-destructive hover:text-destructive cursor-pointer"
-                                  disabled={deleteMutation.isPending}
-                                >
-                                  <Trash2 className="size-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Delete</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={4}
-                      className="h-24 text-center text-muted-foreground"
-                    >
-                      No websites captured yet. Add one to get started.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+      <WebDocumentsTable
+        webDocuments={webDocuments}
+        formatDate={formatDate}
+        cropUrl={cropUrl}
+        handleLoadContentForEdit={handleLoadContentForEdit}
+        fetchOrRefreshContent={fetchOrRefreshContent}
+        handleEmbedding={handleEmbedding}
+        onDeleteClick={(doc) => {
+          setCurrentDeleteInfo({ id: doc.id, url: doc.url });
+          setOpenDeleteModal(true);
+        }}
+        embeddingPending={embeddingMutation.isPending}
+        unEmbeddingPending={unEmbeddingMutation.isPending}
+        deletePending={deleteMutation.isPending}
+      />
 
       <Dialog open={isUrlModalOpen} onOpenChange={setIsUrlModalOpen}>
         <DialogContent className="sm:max-w-md">
@@ -683,143 +489,30 @@ export default function WebDocumentsPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <WebDocumentEditor
         open={isEditDialogOpen}
         onOpenChange={(open) => {
           setIsEditDialogOpen(open);
-          if (!open && tempContentForTraining) {
-            setTempContentForTraining(null);
+          if (!open && editingContent) {
+            setEditingContent(null);
           }
         }}
-      >
-        <DialogContent className="max-w-3xl max-h-[800px] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedContent?.title || "Content Preview & Edit"}
-            </DialogTitle>
-          </DialogHeader>
-          <Tabs defaultValue="preview" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="preview" className="cursor-pointer">
-                Preview
-              </TabsTrigger>
-              <TabsTrigger value="edit" className="cursor-pointer">
-                Edit
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="preview" className="space-y-4 mt-4">
-              <div className="prose prose-sm dark:prose-invert max-w-none space space-4 p-8 border border-border rounded-lg bg-card">
-                <ReactMarkdown>{getMarkdownPreview()}</ReactMarkdown>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="edit" className="space-y-4 mt-4">
-              <div className="space-y-4">
-                {selectedContent?.sections.map((section) => (
-                  <div
-                    key={section.id}
-                    className="rounded-lg border border-border bg-card p-4"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        {section.title && (
-                          <h3 className="font-semibold text-lg mb-3">
-                            {section.title}
-                          </h3>
-                        )}
-                        {section.isEditing ? (
-                          <Textarea
-                            value={section.content}
-                            onChange={(e) =>
-                              updateSection(section.id, e.target.value)
-                            }
-                            className="min-h-24"
-                          />
-                        ) : (
-                          <p className="text-muted-foreground whitespace-pre-wrap">
-                            {section.content}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => toggleEditMode(section.id)}
-                                className="cursor-pointer"
-                              >
-                                <Edit2 className="size-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {section.isEditing
-                                ? "Done Editing"
-                                : "Edit Section"}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => removeSection(section.id)}
-                                className="text-destructive hover:text-destructive cursor-pointer"
-                              >
-                                <Trash2 className="size-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Delete Section</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          <DialogFooter>
-            <div className="flex items-center gap-2 w-full justify-end">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsEditDialogOpen(false);
-                  if (tempContentForTraining) {
-                    setTempContentForTraining(null);
-                  }
-                }}
-                className="cursor-pointer"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() => handleSaveEdits(false)}
-                disabled={
-                  embeddingMutation.isPending || unEmbeddingMutation.isPending
-                }
-                className="cursor-pointer"
-              >
-                Save
-              </Button>
-              <Button
-                onClick={() => handleSaveEdits(true)}
-                className="gap-2 cursor-pointer bg-blue-600 hover:bg-blue-700"
-              >
-                <RefreshCw className="size-4" />
-                {embeddingMutation.isPending ? "Training..." : "Save & Train"}
-              </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        updateSection={updateSection}
+        toggleEditMode={toggleEditMode}
+        removeSection={removeSection}
+        handleSaveEdits={handleSaveEdits}
+        getMarkdownPreview={getMarkdownPreview}
+        editingContent={editingContent}
+        setEditingContent={setEditingContent}
+        embeddingPending={embeddingMutation.isPending}
+        unEmbeddingPending={unEmbeddingMutation.isPending}
+        onCancel={() => {
+          setIsEditDialogOpen(false);
+          if (editingContent) {
+            setEditingContent(null);
+          }
+        }}
+      />
       <ConfirmDelete
         isOpen={openDeleteModal}
         setIsOpen={setOpenDeleteModal}
