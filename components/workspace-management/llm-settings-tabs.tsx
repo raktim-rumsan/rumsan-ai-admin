@@ -231,82 +231,83 @@ export default function LLMConfigPage() {
               </div>
 
               {/* Model Selection */}
-              <div className="space-y-6">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Model Selection
-                </h2>
+              {provider !== "rumsan_ai" && (
+                <div className="space-y-6">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Model Selection
+                  </h2>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                  {/* Chat Model */}
-                  <div className="space-y-3">
-                    <Label
-                      htmlFor="chat-model"
-                      className="text-base font-medium"
-                    >
-                      Chat Model
-                    </Label>
-                    <Controller
-                      name="chatModel"
-                      control={control}
-                      render={({ field }) => (
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger
-                            id="chat-model"
-                            className="h-12 w-full"
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {/* Chat Model */}
+                    <div className="space-y-3">
+                      <Label
+                        htmlFor="chat-model"
+                        className="text-base font-medium"
+                      >
+                        Chat Model
+                      </Label>
+                      <Controller
+                        name="chatModel"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
                           >
-                            <SelectValue placeholder="Select chat model" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableChatModels.map((m) => (
-                              <SelectItem key={m.value} value={m.value}>
-                                {m.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </div>
+                            <SelectTrigger
+                              id="chat-model"
+                              className="h-12 w-full"
+                            >
+                              <SelectValue placeholder="Select chat model" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableChatModels.map((m) => (
+                                <SelectItem key={m.value} value={m.value}>
+                                  {m.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </div>
 
-                  {/* Embedding Model */}
-                  <div className="space-y-3">
-                    <Label
-                      htmlFor="embedding-model"
-                      className="text-base font-medium"
-                    >
-                      Embedding Model
-                    </Label>
-                    <Controller
-                      name="embeddingModel"
-                      control={control}
-                      render={({ field }) => (
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger
-                            id="embedding-model"
-                            className="h-12 w-full"
+                    {/* Embedding Model */}
+                    <div className="space-y-3">
+                      <Label
+                        htmlFor="embedding-model"
+                        className="text-base font-medium"
+                      >
+                        Embedding Model
+                      </Label>
+                      <Controller
+                        name="embeddingModel"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
                           >
-                            <SelectValue placeholder="Select embedding model" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableEmbeddingModels.map((m) => (
-                              <SelectItem key={m.value} value={m.value}>
-                                {m.value}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
+                            <SelectTrigger
+                              id="embedding-model"
+                              className="h-12 w-full"
+                            >
+                              <SelectValue placeholder="Select embedding model" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableEmbeddingModels.map((m) => (
+                                <SelectItem key={m.value} value={m.value}>
+                                  {m.value}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-
+              )}
               {/* Advanced Settings */}
               <div className="space-y-6 border-t pt-8">
                 <h2 className="text-lg font-semibold text-gray-900">
