@@ -13,12 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReactMarkdown from "react-markdown";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TooltipWrapper } from "../common/ToolTipProvider";
 
 interface Section {
   id: string;
@@ -127,41 +122,31 @@ export default function WebDocumentEditor({
                       )}
                     </div>
                     <div className="flex gap-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => toggleEditMode(section.id)}
-                              className="cursor-pointer"
-                            >
-                              <Edit2 className="size-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {section.isEditing
-                              ? "Done Editing"
-                              : "Edit Section"}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <TooltipWrapper
+                        label={
+                          section.isEditing ? "Done Editing" : "Edit Section"
+                        }
+                      >
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleEditMode(section.id)}
+                          className="cursor-pointer"
+                        >
+                          <Edit2 className="size-4" />
+                        </Button>
+                      </TooltipWrapper>
 
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removeSection(section.id)}
-                              className="text-destructive hover:text-destructive cursor-pointer"
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Delete Section</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <TooltipWrapper label="Delete Section">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeSection(section.id)}
+                          className="text-destructive hover:text-destructive cursor-pointer"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </TooltipWrapper>
                     </div>
                   </div>
                 </div>
