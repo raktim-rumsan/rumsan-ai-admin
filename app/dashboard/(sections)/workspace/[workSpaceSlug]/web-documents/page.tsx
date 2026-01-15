@@ -40,7 +40,6 @@ import {
   useWebDocumentsQuery,
   useWebDocUnembeddingMutation,
 } from "@/queries/webDocuments";
-import { dismissToast, toastUtils } from "@/lib/toast-utils";
 import { useParams } from "next/navigation";
 import ConfirmDelete from "@/components/documents/DeleteModal";
 
@@ -72,7 +71,6 @@ export default function WebDocumentsPage() {
   const { workSpaceSlug } = useParams();
 
   const [urlInput, setUrlInput] = useState("");
-  const [refreshingId, setRefreshingId] = useState<string | null>(null);
   const [capturedContents, setCapturedContents] = useState<CapturedContent[]>(
     []
   );
@@ -98,12 +96,7 @@ export default function WebDocumentsPage() {
   const updateWebDocumentMutation = useUpdateWebDocumentMutation(
     workSpaceSlug as string
   );
-  const deleteMutation = useWebDocDeleteMutation(
-    workSpaceSlug as string,
-    () => {
-      toastUtils.data.deleteSuccess("webDocuments");
-    }
-  );
+  const deleteMutation = useWebDocDeleteMutation(workSpaceSlug as string);
   const embeddingMutation = useWebDocEmbeddingMutation(workSpaceSlug as string);
   const unEmbeddingMutation = useWebDocUnembeddingMutation(
     workSpaceSlug as string
@@ -206,85 +199,6 @@ export default function WebDocumentsPage() {
     return indicators.some((indicator) => lowerMarkdown.includes(indicator));
   };
 
-  // const handleFetchContent = () => {
-  //   setUrlError(null);
-
-  //   if (!urlInput.trim()) {
-  //     const errorMsg = "Please enter a valid URL";
-  //     setUrlError(errorMsg);
-  //     toast.error(errorMsg);
-  //     return;
-  //   }
-
-  //   scrapeWebsite(
-  //     { url: urlInput },
-  //     {
-  //       onSuccess: (data: ScrapeWebsiteResponse) => {
-  //         // Assuming the API returns markdown content in data.markdown or data.content
-  //         const markdown =
-  //           data?.markdown ||
-  //           data?.content ||
-  //           data?.data?.markdown ||
-  //           data?.data?.content ||
-  //           "";
-
-  //         if (!markdown) {
-  //           const errorMsg = "No content found in the response";
-  //           setUrlError(errorMsg);
-  //           toast.error(errorMsg);
-  //           return;
-  //         }
-
-  //         // Check if the response is a 404 page
-  //         if (is404Page(markdown)) {
-  //           const errorMsg =
-  //             "The requested page was not found (404). Please check the URL and try again.";
-  //           setUrlError(errorMsg);
-  //           toast.error(errorMsg);
-  //           return;
-  //         }
-
-  //         // Clear any previous errors on success
-  //         setUrlError(null);
-
-  //         const sections = parseMarkdownIntoSections(markdown);
-  //         const pageTitle = extractTitleFromMarkdown(markdown, urlInput);
-
-  //         const now = new Date();
-  //         const dateStr = now.toLocaleDateString("en-US", {
-  //           year: "numeric",
-  //           month: "short",
-  //           day: "numeric",
-  //         });
-
-  //         const newContent: CapturedContent = {
-  //           id: undefined as unknown as string,
-  //           url: urlInput,
-  //           title: pageTitle,
-  //           date: dateStr,
-  //           sections,
-  //           enabled: false,
-  //           isTraining: false,
-  //         };
-
-  //         setTempContentForTraining(newContent);
-  //         setSelectedContent(newContent);
-  //         setUrlInput("");
-  //         setIsUrlModalOpen(false);
-  //         setIsEditDialogOpen(true);
-
-  //         toast.success("Content captured successfully");
-  //       },
-  //       onError: (error: Error) => {
-  //         const errorMsg =
-  //           error.message || "Failed to fetch content. Please check the URL.";
-  //         setUrlError(errorMsg);
-  //         toast.error(errorMsg);
-  //       },
-  //     }
-  //   );
-  // };
-
   const updateSection = (sectionId: string, newContent: string) => {
     if (selectedContent) {
       const updatedContent = {
@@ -337,8 +251,9 @@ export default function WebDocumentsPage() {
     }
   };
 
-  const handleSaveEdits = async () => {
+  const handleSaveEdits = (shouldTrain: boolean = false) => {
     if (!selectedContent) return;
+
     if (selectedContent.sections.length === 0) {
       toast.error("Cannot save content with no sections");
       return;
@@ -348,145 +263,61 @@ export default function WebDocumentsPage() {
       selectedContent.sections
     );
 
-    try {
-      if (selectedContent.id) {
-        updateWebDocumentMutation.mutate({
+    let documentId: string;
+
+    if (selectedContent.id) {
+      // UPDATE
+      updateWebDocumentMutation.mutate(
+        {
           id: selectedContent.id,
-          body: {
-            url: selectedContent.url,
-            content: mergedMarkdown,
+          body: { url: selectedContent.url, content: mergedMarkdown },
+        },
+        {
+          onSuccess: (res: any) => {
+            documentId = selectedContent.id;
+
+            // Update local state
+            setCapturedContents((prev) =>
+              prev.map((c) =>
+                c.id === documentId
+                  ? { ...c, sections: selectedContent.sections }
+                  : c
+              )
+            );
+
+            // Optionally trigger embedding if Save & Train
+            if (shouldTrain) {
+              embeddingMutation.mutate(documentId);
+            }
+
+            setIsEditDialogOpen(false);
           },
-        });
-
-        toast.success("Content updated successfully");
-
-        setCapturedContents((prev) =>
-          prev.map((c) =>
-            c.id === selectedContent.id
-              ? { ...c, sections: selectedContent.sections }
-              : c
-          )
-        );
-      } else {
-        const created = await createWebDocumentMutation.mutateAsync({
-          url: selectedContent.url,
-          content: mergedMarkdown,
-        });
-
-        toast.success("Content created successfully");
-
-        setCapturedContents((prev) => [
-          { ...selectedContent, id: created.id },
-          ...prev,
-        ]);
-      }
-
-      setIsEditDialogOpen(false);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save content");
-    }
-  };
-
-  const handleTrain = async () => {
-    const contentToTrain = tempContentForTraining || selectedContent;
-    if (!contentToTrain) return;
-
-    try {
-      setTrainingId(contentToTrain.id);
-      toast.loading("Saving to database...");
-
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      const updatedContent = { ...contentToTrain, enabled: false };
-      setCapturedContents([updatedContent, ...capturedContents]);
-      setTempContentForTraining(null);
-      setIsEditDialogOpen(false);
-
-      toast.success("Data saved successfully");
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setCapturedContents((prev) =>
-        prev.map((content) =>
-          content.id === contentToTrain.id
-            ? { ...content, enabled: true }
-            : content
-        )
+        }
       );
+    } else {
+      // CREATE
+      createWebDocumentMutation.mutate(
+        { url: selectedContent.url, content: mergedMarkdown },
+        {
+          onSuccess: (res: any) => {
+            documentId = res.data.id;
 
-      toast.loading("Training document...");
+            // Update local state
+            setCapturedContents((prev) => [
+              { ...selectedContent, id: documentId },
+              ...prev,
+            ]);
 
-      const randomDuration = Math.random() * 2000 + 3000;
-      await new Promise((resolve) => setTimeout(resolve, randomDuration));
+            if (shouldTrain) {
+              embeddingMutation.mutate(documentId);
+            }
 
-      toast.success("Training completed successfully");
-    } catch {
-      toast.error("Operation failed");
-    } finally {
-      setTrainingId(null);
+            setIsEditDialogOpen(false);
+          },
+        }
+      );
     }
   };
-
-  // const handleRefresh = async (content: CapturedContent) => {
-  //   setRefreshingId(content.id);
-  //   toast.loading("Refreshing...");
-
-  //   scrapeWebsite(
-  //     { url: content.url },
-  //     {
-  //       onSuccess: (data: ScrapeWebsiteResponse) => {
-  //         const markdown =
-  //           data?.markdown ||
-  //           data?.content ||
-  //           data?.data?.markdown ||
-  //           data?.data?.content ||
-  //           "";
-
-  //         if (!markdown) {
-  //           const errorMsg = "No content found in the response";
-  //           toast.error(errorMsg);
-  //           setRefreshingId(null);
-  //           return;
-  //         }
-
-  //         if (is404Page(markdown)) {
-  //           const errorMsg =
-  //             "The requested page was not found (404). Please check the URL and try again.";
-  //           toast.error(errorMsg);
-  //           setRefreshingId(null);
-  //           return;
-  //         }
-
-  //         const sections = parseMarkdownIntoSections(markdown);
-  //         const pageTitle = extractTitleFromMarkdown(markdown, content.url);
-
-  //         const updatedContent = {
-  //           ...content,
-  //           title: pageTitle,
-  //           sections,
-  //           enabled: false,
-  //         };
-
-  //         setCapturedContents((prev) =>
-  //           prev.map((c) => (c.id === content.id ? updatedContent : c))
-  //         );
-
-  //         // Show the refreshed content in the edit dialog so user can review/save
-  //         setTempContentForTraining(updatedContent);
-  //         setSelectedContent(updatedContent);
-  //         setIsEditDialogOpen(true);
-
-  //         toast.success("Content refreshed successfully");
-  //         setRefreshingId(null);
-  //       },
-  //       onError: (error: Error) => {
-  //         const errorMsg = error.message || "Failed to refresh content";
-  //         toast.error(errorMsg);
-  //         setRefreshingId(null);
-  //       },
-  //     }
-  //   );
-  // };
 
   const fetchOrRefreshContent = (
     url: string,
@@ -605,50 +436,11 @@ export default function WebDocumentsPage() {
     });
   };
 
-  //   const content = capturedContents.find((c) => c.id === id);
-  //   if (!content) return;
-
-  //   if (!content.enabled) {
-  //     setCapturedContents(
-  //       capturedContents.map((content) =>
-  //         content.id === id ? { ...content, enabled: true } : content
-  //       )
-  //     );
-
-  //     setTrainingId(id);
-  //     toast.loading("Training document...");
-
-  //     try {
-  //       const randomDuration = Math.random() * 2000 + 3000;
-  //       await new Promise((resolve) => setTimeout(resolve, randomDuration));
-
-  //       toast.success("Training completed successfully");
-  //     } catch {
-  //       toast.error("Training failed");
-  //     } finally {
-  //       setTrainingId(null);
-  //     }
-  //   } else {
-  //     setCapturedContents(
-  //       capturedContents.map((content) =>
-  //         content.id === id ? { ...content, enabled: false } : content
-  //       )
-  //     );
-  //   }
-  // };
-
-  const handleDelete = async () => {
-    if (!currentDeleteInfo) return; // safety
-    const loadingToastId = toastUtils.generic.loading("Deleting document...");
+  const handleDelete = () => {
+    if (!currentDeleteInfo) return;
 
     deleteMutation.mutate(currentDeleteInfo.id, {
-      onError: (error: unknown) => {
-        dismissToast(loadingToastId);
-        const errorMessage = error instanceof Error ? error.message : undefined;
-        toastUtils.data.deleteError(errorMessage);
-      },
-      onSuccess: () => {
-        dismissToast(loadingToastId);
+      onSettled: () => {
         setOpenDeleteModal(false);
         setCurrentDeleteInfo(null);
       },
@@ -668,40 +460,14 @@ export default function WebDocumentsPage() {
       .join("\n\n");
   };
 
-  const handleEmbedding = async (webDocumentId: string, isRetrain: boolean) => {
-    const action = isRetrain ? "Retraining" : "Training";
-    const loadingToastId = toastUtils.generic.loading(
-      `${action} document. Please wait a moment.`
-    );
-
-    // Set the training document ID to show loading state for this specific document
+  const handleEmbedding = (webDocumentId: string, isRetrain: boolean) => {
     setTrainingId(webDocumentId);
 
-    // const mutation = isRetrain ? unEmbeddingMutation : embeddingMutation;
     const mutation = isRetrain ? unEmbeddingMutation : embeddingMutation;
+
     mutation.mutate(webDocumentId, {
-      onError: (error: unknown) => {
-        dismissToast(loadingToastId);
-        setTrainingId(null); // Clear training state
-
-        let errorTitle = `${action} failed`;
-
-        if (error instanceof Error) {
-          // Check for specific error types to provide better user guidance
-          if (error.message.includes("Failed to parse PDF")) {
-            errorTitle = "Document Processing Error";
-          } else if (
-            error.message.includes("invalid top-level pages dictionary")
-          ) {
-            errorTitle = "PDF Format Error";
-          }
-        }
-
-        toastUtils.generic.error(errorTitle);
-      },
-      onSuccess: () => {
-        dismissToast(loadingToastId);
-        setTrainingId(null); // Clear training state
+      onSettled: () => {
+        setTrainingId(null);
       },
     });
   };
@@ -768,21 +534,6 @@ export default function WebDocumentsPage() {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                {/* <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedContent(doc);
-                                    setIsEditDialogOpen(true);
-                                  }}
-                                  className="text-muted-foreground hover:text-foreground cursor-pointer"
-                                  disabled={
-                                    trainingId === doc.id ||
-                                    refreshingId === doc.id
-                                  }
-                                >
-                                  <FileText className="size-4" />
-                                </Button> */}
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -804,10 +555,7 @@ export default function WebDocumentsPage() {
                                   onClick={() =>
                                     fetchOrRefreshContent(doc.url, doc)
                                   }
-                                  disabled={
-                                    refreshingId === doc.id ||
-                                    trainingId === doc.id
-                                  }
+                                  disabled={trainingId === doc.id}
                                   className="text-muted-foreground hover:text-foreground cursor-pointer"
                                 >
                                   <RefreshCw className="size-4" />
@@ -1048,15 +796,15 @@ export default function WebDocumentsPage() {
                 Cancel
               </Button>
               <Button
-                onClick={handleSaveEdits}
+                onClick={() => handleSaveEdits(false)}
                 disabled={trainingId !== null}
                 className="cursor-pointer"
               >
                 Save
               </Button>
               <Button
-                onClick={handleTrain}
-                disabled={trainingId !== null}
+                onClick={() => handleSaveEdits(true)}
+                // disabled={trainingId !== null}
                 className="gap-2 cursor-pointer bg-blue-600 hover:bg-blue-700"
               >
                 <RefreshCw className="size-4" />
@@ -1073,7 +821,7 @@ export default function WebDocumentsPage() {
         setIsOpen={setOpenDeleteModal}
         onConfirm={handleDelete}
         isDeleting={deleteMutation.isPending}
-        item={selectedContent?.url || ""}
+        item={currentDeleteInfo?.url || ""}
       />
     </div>
   );
