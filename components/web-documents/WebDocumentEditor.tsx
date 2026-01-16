@@ -14,23 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReactMarkdown from "react-markdown";
 import { TooltipWrapper } from "../common/ToolTipProvider";
-
-interface Section {
-  id: string;
-  title: string;
-  content: string;
-  isEditing: boolean;
-}
-
-interface CapturedContent {
-  id: string;
-  url: string;
-  title: string;
-  date: string;
-  sections: Section[];
-  enabled: boolean;
-  isTraining?: boolean;
-}
+import { CapturedContent } from "@/types/web-documents";
 
 interface Props {
   open: boolean;

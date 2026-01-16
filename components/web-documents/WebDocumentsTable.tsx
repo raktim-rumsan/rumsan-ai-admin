@@ -15,23 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink } from "lucide-react";
 import { TooltipWrapper } from "@/components/common/ToolTipProvider";
 import { Trash2, RefreshCw, SquarePen } from "lucide-react";
-
-interface CapturedContent {
-  id: string;
-  url: string;
-  title: string;
-  date: string;
-  sections: Array<{
-    id: string;
-    title: string;
-    content: string;
-    isEditing: boolean;
-  }>;
-  enabled: boolean;
-  isTraining?: boolean;
-  status?: string;
-  createdAt?: string;
-}
+import { CapturedContent } from "@/types/web-documents";
 
 interface Props {
   webDocuments?: CapturedContent[];
