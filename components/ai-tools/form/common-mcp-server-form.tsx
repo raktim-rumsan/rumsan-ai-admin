@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
-import { Eye, EyeOff, Plus, Trash, Lock, Key, Server } from "lucide-react";
+import { Eye, EyeOff, Plus, Trash, Lock, Server, Copy } from "lucide-react";
 import { toastUtils } from "@/lib/toast-utils";
+import { Badge } from "@/components/ui/badge";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { mcpServerSchema } from "./schema";
 import { AuthEntry, FormValues } from "@/types/ai";
@@ -23,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { url } from "inspector";
+import { toast } from "@/components/ui/use-toast";
 interface CommonMcpServerFormProps {
   onSubmit: (data: FormValues) => void;
   defaultValues?: FormValues;
@@ -167,8 +169,20 @@ export function CommonMcpServerForm({
             const server = (servers ?? mockServers)?.find((s) => s.id === val);
             setSelectedServer(server || null);
             if (server) {
-              if (server.isExternal) setStep("auth");
-              else setStep("select");
+              if (server.isExternal) {
+                setStep("auth");
+
+                if (fields.length === 0) {
+                  append({
+                    key: "",
+                    value: "",
+                    show: false,
+                    isEncrypted: false,
+                  });
+                }
+              } else {
+                setStep("select");
+              }
             }
           }}
         >
@@ -212,31 +226,39 @@ export function CommonMcpServerForm({
       {selectedServer && (
         <>
           {/* Server summary */}
-          <div className="p-4 border rounded-lg bg-card">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                <div className="flex size-10 items-center justify-center rounded-md bg-muted">
-                  <Server className="size-5 text-muted-foreground" />
-                </div>
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-3">
-                  <h4 className="text-sm font-semibold">
-                    {selectedServer.name}
-                  </h4>
-                  <span className="inline-block text-xs px-2 py-1 rounded bg-muted/50 text-muted-foreground">
-                    {selectedServer.sector ?? "general"}
-                  </span>
-                </div>
-
-                <p className="text-xs text-muted-foreground mt-2">
-                  {selectedServer.url}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {selectedServer.tools.length} tools available
-                </p>
-              </div>
+          <div className="p-3 rounded-lg bg-muted/50 text-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <Server className="size-4 text-muted-foreground" />
+              <span className="font-medium">{selectedServer.name}</span>
+              {selectedServer.sector && (
+                <Badge variant="secondary" className="text-xs font-medium">
+                  {selectedServer.sector}
+                </Badge>
+              )}
             </div>
+            <div className="flex items-center gap-1 mt-2">
+              <p className="text-xs text-muted-foreground">
+                {selectedServer.url}
+              </p>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-5 cursor-pointer"
+                onClick={() => {
+                  navigator.clipboard.writeText(selectedServer.url);
+                  toast({
+                    title: "URL copied",
+                    description: "Server URL has been copied to clipboard.",
+                  });
+                }}
+              >
+                <Copy className="size-3 text-muted-foreground" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {selectedServer.tools.length} tool
+              {selectedServer.tools.length !== 1 ? "s" : ""} available
+            </p>
           </div>
 
           {/* Authentication (only for external servers) */}
