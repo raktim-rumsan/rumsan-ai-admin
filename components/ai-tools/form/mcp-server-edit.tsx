@@ -25,7 +25,6 @@ interface EditProps {
 }
 
 export function McpServerEdit({ server, isOpen, onClose }: EditProps) {
-  console.log("Editing MCP Server:", server);
   const { workSpaceSlug } = useParams();
   const { data: workspaceData } = useWorkspaceQuery();
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(

@@ -56,7 +56,6 @@ export function CommonMcpServerForm({
     currentWorkspace?.id as string,
     workSpaceSlug as string
   );
-  console.log("Available MCP Servers:", mcpServers);
 
   const {
     register,

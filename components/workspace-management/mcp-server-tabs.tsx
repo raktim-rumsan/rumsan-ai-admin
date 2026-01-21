@@ -27,14 +27,13 @@ import {
   useToggleMcpToolsMutation,
   type Workspace,
   useMCPDeleteMutation,
-  useUpdateMcpServerMutation,
   useAvailableMcpServerQuery,
 } from "@/queries/workspaceQuery";
 import { useWorkspaceRole } from "@/hooks/useOrganizationContext";
 import { McpServerEdit } from "../ai-tools/form/mcp-server-edit";
 import { McpServerAdd } from "../ai-tools/form/mcp-server-add";
 import ConfirmDelete from "../documents/DeleteModal";
-import { WorkspaceMcpServer } from "@/types/ai";
+import { McpTool, WorkspaceMcpServer } from "@/types/ai";
 
 export default function McpServerTabs() {
   const { workSpaceSlug } = useParams();
@@ -95,25 +94,28 @@ export default function McpServerTabs() {
   const editingServerData = mcpServers?.data?.find(
     (server) => server.id === editingId
   );
-  const deleteServerMutation = useMCPDeleteMutation();
-  const toggleServerMutation = useUpdateMcpServerMutation();
+  const deleteServerMutation = useMCPDeleteMutation(
+    currentWorkspace?.id as string,
+    currentWorkspace?.slug as string
+  );
 
   const handleToggleTool = (
     serverId: string,
     toolId: string,
     workspaceId: string
   ) => {
-    // const server = servers?.find((s: WorkspaceMcpServer) => s.id === serverId);
-    // const tool = "jjj"
-    // server?.mcpServer.mcpTools?.find((t: McpTool) => t.id === toolId);
-    // const newEnabledState = !tool?.enabled;
-    // toggleToolMutation.mutate({
-    //   toolId,
-    //   payload: {
-    //     enabled: newEnabledState,
-    //   },
-    //   workspaceId,
-    // });
+    const server = servers?.find((s: WorkspaceMcpServer) => s.id === serverId);
+    const tool = server?.mcpServer.mcpTools?.find(
+      (t: McpTool) => t.id === toolId
+    );
+    const newEnabledState = !tool?.enabled;
+    toggleToolMutation.mutate({
+      toolId,
+      payload: {
+        enabled: newEnabledState,
+      },
+      workspaceId,
+    });
   };
 
   const humanizeToolName = (name: string): string =>

@@ -639,7 +639,7 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
           ...old,
           data: old.data.map((server) => ({
             ...server,
-            mcpTools: server.mcpTools?.map((tool) =>
+            mcpTools: server.mcpServer.mcpTools?.map((tool) =>
               tool.id === toolId ? { ...tool, ...payload } : tool
             ),
           })),
@@ -656,7 +656,7 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
     ) => {
       if (context?.previousData) {
         queryClient.setQueryData(
-          ["workspaces", _variables.workspaceId, "mcp-server-tools"],
+          ["servers", _variables.workspaceId, "mcp-server-tools"],
           context.previousData
         );
       }
@@ -672,7 +672,7 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
     ) => {
       const workspaceId = data?.data?.workspaceId || variables.workspaceId;
       queryClient.invalidateQueries({
-        queryKey: ["workspaces", workspaceId, "mcp-server-tools"],
+        queryKey: ["servers", workspaceId, "mcp-server-tools"],
       });
     },
 
@@ -682,7 +682,7 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
     ) => {
       const workspaceId = data?.data?.workspaceId || variables.workspaceId;
       queryClient.invalidateQueries({
-        queryKey: ["workspaces", workspaceId, "mcp-server-tools"],
+        queryKey: ["servers", workspaceId, "mcp-server-tools"],
       });
       toastUtils.generic.success("MCP Tool toggled successfully");
     },
@@ -728,7 +728,6 @@ export function useCreateMcpServerMutation(
   return useMutation({
     mutationFn: async (payload: CreateMcpServerPayload) => {
       const access_token = getAuthToken();
-      console.log("Creating MCP Server with payload:", payload);
 
       const res = await fetch(`${ROUTES.MCP_CREATE_SERVER(workspaceId!)}`, {
         method: "POST",
@@ -771,7 +770,6 @@ export function useUpdateMcpServerMutation(
     mutationFn: async (payload: UpdateMcpServerPayload) => {
       const access_token = getAuthToken();
       const { serverId, ...body } = payload;
-      console.log("Updating MCP Server with payload:----from query", body);
       const res = await fetch(
         `${ROUTES.MCP_UPDATE_SERVER(workspaceId!, serverId)}`,
         {
@@ -811,46 +809,35 @@ export function useUpdateMcpServerMutation(
   });
 }
 
-// export function useMcpServerByIdQuery(serverId: string) {
-//   return useQuery({
-//     queryKey: ["mcpServer", serverId],
-//     queryFn: async () => {
-//       if (!serverId) return null;
-//       const access_token = getAuthToken();
-//       const res = await fetch(`${ROUTES.MCP_SERVER_BY_ID(serverId)}`, {
-//         headers: {
-//           accept: "application/json",
-//           access_token: access_token!,
-//         },
-//       });
-//       const data = await res.json();
-//       if (!res.ok)
-//         throw new Error(data.message || data.error || `HTTP ${res.status}`);
-//       return data.data;
-//     },
-//     enabled: !!serverId,
-//     staleTime: 1000 * 60 * 2,
-//   });
-// }
-
-export function useMCPDeleteMutation(onSuccess?: () => void) {
+export function useMCPDeleteMutation(
+  workspaceId: string,
+  workspaceSlug: string,
+  onSuccess?: () => void
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (serverId: string) => {
       const access_token = getAuthToken();
-      const res = await fetch(`${ROUTES.MCP_DELETE_SERVER(serverId)}`, {
-        method: "DELETE",
-        headers: { accept: "application/json", access_token: access_token! },
-      });
+      const res = await fetch(
+        `${ROUTES.MCP_DELETE_SERVER(workspaceId, serverId)}`,
+        {
+          method: "DELETE",
+          headers: {
+            accept: "application/json",
+            access_token: access_token!,
+            "x-tenant-id": workspaceSlug,
+          },
+        }
+      );
       const data = await res.json();
       if (!res.ok)
         throw new Error(data.message || data.error || `HTTP ${res.status}`);
       return data.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["mcpServers"] });
-      queryClient.invalidateQueries({ queryKey: ["mcpServer"] });
+      queryClient.invalidateQueries({ queryKey: ["servers"] });
+      queryClient.invalidateQueries({ queryKey: ["available-servers"] });
       toastUtils.generic.success("MCP server deleted"); // ✅ toast handled here
       onSuccess?.(); // optional callback from component
     },

@@ -49,7 +49,6 @@ export function McpServerAdd({ children }: { children: ReactNode }) {
       mcpServerId: data.server?.id,
       authentication,
     };
-    console.log("Create MCP Server Payload-----:", payload);
 
     createMutation.mutate(payload, {
       onSuccess: () => setOpen(false),
