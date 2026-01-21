@@ -27,10 +27,7 @@ export const ROUTES = {
     `${API_BASE_URL}/workspaces/${workspaceId}/photo`,
   WORKSPACE_IMAGE_REMOVE: (workspaceId: string) =>
     `${API_BASE_URL}/workspaces/${workspaceId}/remove-image`,
-  MCP_SERVER_TOOLS: (workspaceId: string) =>
-    `${API_BASE_URL}/workspaces/${workspaceId}/tools`,
-  MCP_SERVER_TOOL_TOGGLE: (workspaceId: string, toolId: string) =>
-    `${API_BASE_URL}/workspaces/${workspaceId}/tools/${toolId}`,
+
   //organization routes
   ORGANIZATIONS: `${API_BASE_URL}/organizations`,
   ORGANIZATION_CONTEXT: `${API_BASE_URL}/organizations/context`,
@@ -106,6 +103,22 @@ export const ROUTES = {
     `${API_BASE_URL}/web-docs/${webDocumentId}`,
   WEB_DOCUMENT_EMBEDDINGS: `${API_BASE_URL}/embeddings/web-docs`,
   WEB_DOCUMENT_UNEMBEDDINGS: `${API_BASE_URL}/embeddings/web-docs/unembed`,
+
+  //to be uptaed with original routes
+  MCP_SERVERS: (workspaceId: string) =>
+    `${API_BASE_URL}/workspaces/${workspaceId}/mcp-servers`,
+  AVAILABLE_MCP_SERVER: (workspaceId: string) =>
+    `${API_BASE_URL}/workspaces/${workspaceId}/mcp-servers/available`,
+  MCP_SERVER_TOOL_TOGGLE: (workspaceId: string, toolId: string) =>
+    `${API_BASE_URL}/workspaces/${workspaceId}/tools/${toolId}`,
+  MCP_CREATE_SERVER: (workspaceId: string) =>
+    `${API_BASE_URL}/workspaces/${workspaceId}/mcp-servers`,
+  MCP_UPDATE_SERVER: (workspaceId: string, serverId: string) =>
+    `${API_BASE_URL}/workspaces/${workspaceId}/mcp-servers/${serverId}`,
+  MCP_SERVER_BY_ID: (workspaceId: string, serverId: string) =>
+    `${API_BASE_URL}/workspaces/${workspaceId}/mcp-servers/${serverId}`,
+  MCP_DELETE_SERVER: (workspaceId: string, serverId: string) =>
+    `${API_BASE_URL}/workspaces/${workspaceId}/mcp-servers/${serverId}`,
 };
 
 export default API_BASE_URL;
