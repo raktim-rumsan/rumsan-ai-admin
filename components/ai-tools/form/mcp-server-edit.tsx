@@ -10,18 +10,31 @@ import {
 import { CommonMcpServerForm } from "./common-mcp-server-form";
 import { encryptWithPublicKey } from "@/lib/encrypt";
 import { toastUtils } from "@/lib/toast-utils";
-import { useUpdateMcpServerMutation } from "@/queries/workspaceQuery";
-import { McpServer } from "@/types/ai";
+import {
+  useUpdateMcpServerMutation,
+  useWorkspaceQuery,
+  Workspace,
+} from "@/queries/workspaceQuery";
+import { WorkspaceMcpServer } from "@/types/ai";
+import { useParams } from "next/navigation";
 
 interface EditProps {
-  server: McpServer;
+  server: WorkspaceMcpServer;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export function McpServerEdit({ server, isOpen, onClose }: EditProps) {
-  const updateMutation = useUpdateMcpServerMutation();
-
+  console.log("Editing MCP Server:", server);
+  const { workSpaceSlug } = useParams();
+  const { data: workspaceData } = useWorkspaceQuery();
+  const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
+    (w: Workspace) => w.slug === workSpaceSlug
+  );
+  const updateMutation = useUpdateMcpServerMutation(
+    currentWorkspace?.id as string,
+    currentWorkspace?.slug as string
+  );
   const onSubmit = async (data: any) => {
     const publicKeyPem = process.env.NEXT_PUBLIC_ENCRYPT_KEY;
 
@@ -54,7 +67,6 @@ export function McpServerEdit({ server, isOpen, onClose }: EditProps) {
     updateMutation.mutate(
       {
         serverId: server.id,
-        ...data,
         authentication, //encrypted-only payload
       },
       {
@@ -79,7 +91,7 @@ export function McpServerEdit({ server, isOpen, onClose }: EditProps) {
           onSubmit={onSubmit}
           onCancel={onClose}
           defaultValues={{
-            server: server,
+            server: server.mcpServer,
             authentication: server.authentication
               ? Object.entries(server.authentication).map(([key, value]) => ({
                   key,

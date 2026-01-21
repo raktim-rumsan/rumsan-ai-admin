@@ -128,7 +128,6 @@ export interface CreateMcpServerPayload {
 }
 
 export interface UpdateMcpServerPayload {
-  workspaceId: string;
   serverId: string;
   authentication?: Record<string, string>;
 }
@@ -529,7 +528,7 @@ export function useDeleteWorkspaceMutation() {
 export function useMcpServerQuery(workspaceId: string, workspaceSlug?: string) {
   return useQuery({
     queryKey: ["servers", workspaceId, "mcp-server-tools"],
-    enabled: !!workspaceId, // Only run query if workspaceId is provided
+    enabled: !!workspaceId,
     queryFn: async (): Promise<McpServerToolsResponse> => {
       const access_token = getAuthToken();
 
@@ -762,22 +761,24 @@ export function useCreateMcpServerMutation(
   });
 }
 
-export function useUpdateMcpServerMutation() {
+export function useUpdateMcpServerMutation(
+  workspaceId: string,
+  workspaceSlug: string
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (payload: UpdateMcpServerPayload) => {
-      const { serverId, workspaceId, ...body } = payload;
       const access_token = getAuthToken();
-      console.log("Updating MCP Server with ID:", serverId, workspaceId, body);
-
-      console.log("Updating MCP Server with payload:", payload);
+      const { serverId, ...body } = payload;
+      console.log("Updating MCP Server with payload:----from query", body);
       const res = await fetch(
         `${ROUTES.MCP_UPDATE_SERVER(workspaceId!, serverId)}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            "x-tenant-id": workspaceSlug!,
             access_token: access_token!,
             accept: "application/json",
           },
@@ -798,8 +799,8 @@ export function useUpdateMcpServerMutation() {
       return data.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["mcpServers"] });
-      queryClient.invalidateQueries({ queryKey: ["mcpServer"] });
+      queryClient.invalidateQueries({ queryKey: ["servers"] });
+      queryClient.invalidateQueries({ queryKey: ["available-servers"] });
       toastUtils.generic.success("MCP server updated");
     },
     onError: () => {
@@ -810,27 +811,27 @@ export function useUpdateMcpServerMutation() {
   });
 }
 
-export function useMcpServerByIdQuery(serverId: string) {
-  return useQuery({
-    queryKey: ["mcpServer", serverId],
-    queryFn: async () => {
-      if (!serverId) return null;
-      const access_token = getAuthToken();
-      const res = await fetch(`${ROUTES.MCP_SERVER_BY_ID(serverId)}`, {
-        headers: {
-          accept: "application/json",
-          access_token: access_token!,
-        },
-      });
-      const data = await res.json();
-      if (!res.ok)
-        throw new Error(data.message || data.error || `HTTP ${res.status}`);
-      return data.data;
-    },
-    enabled: !!serverId,
-    staleTime: 1000 * 60 * 2,
-  });
-}
+// export function useMcpServerByIdQuery(serverId: string) {
+//   return useQuery({
+//     queryKey: ["mcpServer", serverId],
+//     queryFn: async () => {
+//       if (!serverId) return null;
+//       const access_token = getAuthToken();
+//       const res = await fetch(`${ROUTES.MCP_SERVER_BY_ID(serverId)}`, {
+//         headers: {
+//           accept: "application/json",
+//           access_token: access_token!,
+//         },
+//       });
+//       const data = await res.json();
+//       if (!res.ok)
+//         throw new Error(data.message || data.error || `HTTP ${res.status}`);
+//       return data.data;
+//     },
+//     enabled: !!serverId,
+//     staleTime: 1000 * 60 * 2,
+//   });
+// }
 
 export function useMCPDeleteMutation(onSuccess?: () => void) {
   const queryClient = useQueryClient();

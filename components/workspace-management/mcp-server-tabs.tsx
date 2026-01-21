@@ -26,7 +26,6 @@ import {
   useWorkspaceQuery,
   useToggleMcpToolsMutation,
   type Workspace,
-  useMcpServerByIdQuery,
   useMCPDeleteMutation,
   useUpdateMcpServerMutation,
   useAvailableMcpServerQuery,
@@ -93,7 +92,9 @@ export default function McpServerTabs() {
   } | null>(null);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
-  const { data: editingServerData } = useMcpServerByIdQuery(editingId || "");
+  const editingServerData = mcpServers?.data?.find(
+    (server) => server.id === editingId
+  );
   const deleteServerMutation = useMCPDeleteMutation();
   const toggleServerMutation = useUpdateMcpServerMutation();
 
@@ -286,22 +287,16 @@ export default function McpServerTabs() {
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="cursor-pointer p-2"
-                  onClick={() => setEditingId(server.id ?? "")}
-                >
-                  <SquarePen className="w-5 h-5 mr-2" />
-                </Button>
-
-                <Switch
-                  checked={server.isActive}
-                  disabled={toggleServerMutation.isPending}
-                  onCheckedChange={(newValue) =>
-                    handleToggleServer(server.id, newValue)
-                  }
-                />
+                {server.mcpServer?.type?.toUpperCase() === "EXTERNAL" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="cursor-pointer p-2"
+                    onClick={() => setEditingId(server.id ?? "")}
+                  >
+                    <SquarePen className="w-5 h-5 mr-2" />
+                  </Button>
+                )}
 
                 <Button
                   variant="ghost"

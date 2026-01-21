@@ -71,9 +71,12 @@ export function CommonMcpServerForm({
   });
 
   const selectedServer = watch("server");
-  const shouldShowAuth = mcpServers?.some(
-    (server) => server.type?.toUpperCase() === "EXTERNAL"
-  );
+
+  const shouldShowAuth =
+    mode === "create"
+      ? mcpServers?.some((server) => server.type?.toUpperCase() === "EXTERNAL")
+      : selectedServer?.type?.toUpperCase() === "EXTERNAL";
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: "authentication",
