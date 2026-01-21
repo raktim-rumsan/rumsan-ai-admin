@@ -122,6 +122,21 @@ export interface ToggleMcpToolResponse {
     workspaceId?: string;
   };
 }
+
+export interface ToggleMcpServerPayload {
+  workspaceId: string;
+  serverId: string;
+  isActive: boolean;
+}
+
+export interface ToggleMcpServerResponse {
+  data: {
+    id: string;
+    isActive: boolean;
+    workspaceId?: string;
+  };
+}
+
 export interface CreateMcpServerPayload {
   mcpServerId: string;
   authentication: Record<string, string>;
@@ -130,6 +145,7 @@ export interface CreateMcpServerPayload {
 export interface UpdateMcpServerPayload {
   serverId: string;
   authentication?: Record<string, string>;
+  isActive?: boolean;
 }
 
 type DeleteMemberResponse = void; // since the API returns nothing on success
@@ -845,6 +861,118 @@ export function useMCPDeleteMutation(
       const message =
         err instanceof Error ? err.message : "Failed to delete MCP server";
       toastUtils.generic.error(message); // ✅ toast handled here
+    },
+  });
+}
+
+export function useToggleMcpServerSwitchMutation(
+  workspaceId: string,
+  workspaceSlug: string
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation<ToggleMcpServerResponse, Error, ToggleMcpServerPayload>({
+    mutationFn: async ({
+      workspaceId,
+      serverId,
+      isActive,
+    }: ToggleMcpServerPayload) => {
+      const access_token = getAuthToken();
+      if (!access_token) throw new Error("Missing auth token");
+      if (!workspaceId) throw new Error("Missing workspace ID");
+      if (!serverId) throw new Error("Missing server ID");
+
+      const res = await fetch(
+        ROUTES.MCP_SERVER_SWITCH_TOOL(workspaceId, serverId),
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            accept: "application/json",
+            access_token: access_token,
+            "x-tenant-id": workspaceSlug,
+          },
+          body: JSON.stringify({ isActive }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        const errorMessage =
+          data?.message ||
+          data?.error ||
+          `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+      return data;
+    },
+
+    onMutate: async ({
+      serverId,
+      isActive,
+      workspaceId,
+    }: ToggleMcpServerPayload) => {
+      const queryKey = ["servers", workspaceId, "mcp-server-tools"];
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousData =
+        queryClient.getQueryData<McpServerToolsResponse>(queryKey);
+
+      queryClient.setQueryData<McpServerToolsResponse>(queryKey, (old) => {
+        if (!old?.data) return old;
+
+        return {
+          ...old,
+          data: old.data.map((server) =>
+            server.id === serverId
+              ? {
+                  ...server,
+                  mcpServer: {
+                    ...server.mcpServer,
+                    isActive: isActive,
+                  },
+                }
+              : server
+          ),
+        };
+      });
+
+      return { previousData };
+    },
+
+    onError: (
+      err: Error,
+      variables: ToggleMcpServerPayload,
+      context: { previousData?: McpServerToolsResponse } | undefined
+    ) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(
+          ["servers", variables.workspaceId, "mcp-server-tools"],
+          context.previousData
+        );
+      }
+      const message =
+        err instanceof Error ? err.message : "Failed to toggle MCP server";
+      toastUtils.generic.error(message);
+    },
+
+    onSettled: (
+      data: ToggleMcpServerResponse | undefined,
+      error: Error | null,
+      variables: ToggleMcpServerPayload
+    ) => {
+      queryClient.invalidateQueries({
+        queryKey: ["servers", variables.workspaceId, "mcp-server-tools"],
+      });
+    },
+
+    onSuccess: (
+      data: ToggleMcpServerResponse,
+      variables: ToggleMcpServerPayload
+    ) => {
+      queryClient.invalidateQueries({
+        queryKey: ["servers", variables.workspaceId, "mcp-server-tools"],
+      });
+      toastUtils.generic.success("MCP server toggled successfully");
     },
   });
 }

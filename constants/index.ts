@@ -119,6 +119,8 @@ export const ROUTES = {
     `${API_BASE_URL}/workspaces/${workspaceId}/mcp-servers/${serverId}`,
   MCP_DELETE_SERVER: (workspaceId: string, serverId: string) =>
     `${API_BASE_URL}/workspaces/${workspaceId}/mcp-servers/${serverId}`,
+  MCP_SERVER_SWITCH_TOOL: (workspaceId: string, serverId: string) =>
+    `${API_BASE_URL}/workspaces/${workspaceId}/mcp-servers/${serverId}/toggle`,
 };
 
 export default API_BASE_URL;

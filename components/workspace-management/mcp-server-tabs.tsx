@@ -25,6 +25,7 @@ import {
   useMcpServerQuery,
   useWorkspaceQuery,
   useToggleMcpToolsMutation,
+  useToggleMcpServerSwitchMutation,
   type Workspace,
   useMCPDeleteMutation,
   useAvailableMcpServerQuery,
@@ -78,6 +79,11 @@ export default function McpServerTabs() {
   const toggleToolMutation = useToggleMcpToolsMutation(
     currentWorkspace?.slug as string
   );
+  // Mutation for toggling server state
+  const toggleServerMutation = useToggleMcpServerSwitchMutation(
+    currentWorkspace?.id as string,
+    currentWorkspace?.slug as string
+  );
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [expandedServerId, setExpandedServerId] = useState<string | null>(null);
@@ -115,6 +121,18 @@ export default function McpServerTabs() {
         enabled: newEnabledState,
       },
       workspaceId,
+    });
+  };
+
+  const handleToggleServer = (
+    serverId: string,
+    workspaceId: string,
+    currentIsActive: boolean
+  ) => {
+    toggleServerMutation.mutate({
+      workspaceId,
+      serverId,
+      isActive: !currentIsActive,
     });
   };
 
@@ -156,10 +174,6 @@ export default function McpServerTabs() {
         refetch?.(); // optional, if you want to refetch manually
       },
     });
-  };
-
-  const handleToggleServer = (serverId: string, newValue: boolean) => {
-    // toggleServerMutation.mutate({ serverId: serverId, isActive: newValue });
   };
 
   return (
@@ -298,6 +312,20 @@ export default function McpServerTabs() {
                   >
                     <SquarePen className="w-5 h-5 mr-2" />
                   </Button>
+                )}
+
+                {isAdmin && (
+                  <Switch
+                    checked={server.isActive}
+                    onCheckedChange={() =>
+                      handleToggleServer(
+                        server.id,
+                        currentWorkspace?.id as string,
+                        server.isActive
+                      )
+                    }
+                    disabled={toggleServerMutation.isPending}
+                  />
                 )}
 
                 <Button
