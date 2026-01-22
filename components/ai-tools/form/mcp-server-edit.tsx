@@ -76,7 +76,7 @@ export function McpServerEdit({ server, isOpen, onClose }: EditProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl flex flex-col max-h-[85vh] min-h-0">
+      <DialogContent className="max-w-4xl flex flex-col max-h-[85vh] min-h-0">
         <DialogHeader>
           <DialogTitle>Edit MCP Server Authentication</DialogTitle>
           <DialogDescription>
