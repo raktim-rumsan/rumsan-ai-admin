@@ -39,6 +39,7 @@ import {
   Workspace,
 } from "@/queries/workspaceQuery";
 import { useParams } from "next/navigation";
+import truncateMiddleUrl from "@/lib/utils";
 interface CommonMcpServerFormProps {
   mode: "create" | "edit-auth";
   onSubmit: (data: FormValues) => void;
@@ -214,7 +215,7 @@ export function CommonMcpServerForm({
             </div>
             <div className="flex items-center gap-1 mt-2">
               <p className="text-xs text-muted-foreground">
-                {selectedServer.url}
+                {truncateMiddleUrl(selectedServer.url)}
               </p>
               <Button
                 type="button"

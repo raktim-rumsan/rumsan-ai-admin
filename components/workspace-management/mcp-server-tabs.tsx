@@ -10,6 +10,7 @@ import {
   Plus,
   SquarePen,
   Trash2,
+  Lock,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ import { McpServerAdd } from "../ai-tools/form/mcp-server-add";
 import ConfirmDelete from "../documents/DeleteModal";
 import { McpTool, WorkspaceMcpServer } from "@/types/ai";
 import { toastUtils } from "@/lib/toast-utils";
+import truncateMiddleUrl from "@/lib/utils";
 
 export default function McpServerTabs() {
   const { workSpaceSlug } = useParams();
@@ -249,14 +251,21 @@ export default function McpServerTabs() {
                       <div className="font-medium">
                         {server.mcpServer?.name}
                       </div>
+
                       {server.mcpServer.sectorName && (
                         <span className="text-xs px-2 py-1 rounded-md bg-muted text-muted-foreground">
                           {server.mcpServer.sectorName}
                         </span>
                       )}
+                      {server.mcpServer.type === "EXTERNAL" && (
+                        <Lock className="size-4 text-amber-600" />
+                      )}
                     </div>
+
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>{server.mcpServer?.url || "No URL"}</span>
+                      <span>
+                        {truncateMiddleUrl(server.mcpServer?.url) || "No URL"}
+                      </span>
                       {server.mcpServer?.url && (
                         <Button
                           variant="ghost"
