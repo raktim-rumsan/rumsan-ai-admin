@@ -43,7 +43,7 @@ export function McpServerPicker({
       <div
         key={server.id}
         className={cn(
-          "rounded-lg border overflow-hidden cursor-pointer transition-all",
+          "rounded-lg border cursor-pointer transition-all",
           isSelected
             ? "border-primary bg-primary/5"
             : "bg-card hover:bg-accent/50",
@@ -141,13 +141,13 @@ export function McpServerPicker({
     );
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       <Tabs
         value={activeTab}
         onValueChange={(v) => setActiveTab(v as "public" | "private")}
-        className="flex flex-col flex-1"
+        className="flex flex-col flex-1 min-h-0"
       >
-        <TabsList className="grid w-full grid-cols-2 shrink-0">
+        <TabsList className="grid w-full grid-cols-2 shrink-0 scrollbar-hide">
           <TabsTrigger value="public">
             <Unlock className="size-3.5 mr-1.5" /> Public (
             {publicServers.length})
@@ -159,18 +159,18 @@ export function McpServerPicker({
         </TabsList>
 
         {/* This wrapper ensures the content can scroll */}
-        <div className="flex-1 overflow-hidden mt-4">
+        <div className="flex-1 mt-4 min-h-0 scrollbar-hide overflow-hidden">
           <TabsContent
             value="public"
-            className="h-full overflow-y-auto px-1"
-            tabIndex={0} // helps accessibility & focus
+            className="h-full overflow-y-auto px-1 pb-1 max-h-[56vh] thin-scrollbar"
+            tabIndex={0}
           >
             {renderList(publicServers)}
           </TabsContent>
 
           <TabsContent
             value="private"
-            className="h-full overflow-y-auto px-1"
+            className="h-full overflow-y-auto px-1 pb-1 max-h-[56vh] thin-scrollbar"
             tabIndex={0}
           >
             {renderList(privateServers)}

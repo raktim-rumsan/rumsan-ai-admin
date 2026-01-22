@@ -23,16 +23,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { mcpServerSchema } from "./schema";
 import { AuthEntry, FormValues, McpServer } from "@/types/ai";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectLabel,
-  SelectGroup,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   useAvailableMcpServerQuery,
   useWorkspaceQuery,
   Workspace,
@@ -46,6 +36,7 @@ interface CommonMcpServerFormProps {
   defaultValues?: FormValues;
   onCancel?: () => void;
   isPending?: boolean;
+  className?: string;
 }
 
 export function CommonMcpServerForm({
@@ -139,37 +130,22 @@ export function CommonMcpServerForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
-      {/* {mode === "create" && (
-        <div className="grid gap-3">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col flex-1 min-h-0 gap-4 py-4"
+    >
+      {mode === "create" && (
+        <div className="flex flex-col gap-3 flex-1 min-h-0">
           <Label>Browse & select MCP server</Label>
+
           <McpServerPicker
             servers={mcpServers ?? []}
             selectedId={selectedServer?.id}
             onSelect={(server) => {
               setValue("server", server);
-              // Optional: clear previous auth when changing server
               setValue("authentication", []);
             }}
           />
-        </div>
-      )} */}
-
-      {mode === "create" && (
-        <div className="grid gap-3 flex flex-col flex-1 min-h-0">
-          <Label>Browse & select MCP server</Label>
-
-          {/* Give the picker full height and let it handle internal scroll */}
-          <div className="flex-1 overflow-hidden border rounded-lg bg-card">
-            <McpServerPicker
-              servers={mcpServers ?? []}
-              selectedId={selectedServer?.id}
-              onSelect={(server) => {
-                setValue("server", server);
-                setValue("authentication", []);
-              }}
-            />
-          </div>
         </div>
       )}
 
