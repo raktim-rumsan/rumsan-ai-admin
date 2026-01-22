@@ -395,7 +395,7 @@ export function CommonMcpServerForm({
               Cancel
             </Button>
             <Button type="submit" disabled={isPending}>
-              {mode === "edit-auth" ? "Save Changes" : "Create Server"}
+              {mode === "edit-auth" ? "Save Changes" : "Add Server"}
             </Button>
           </DialogFooter>
         </>
