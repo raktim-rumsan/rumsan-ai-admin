@@ -205,7 +205,7 @@ export function useCreateWorkspace() {
     onError: (error: Error) => {
       toastUtils.generic.error(
         "Error creating workspace",
-        error.message || "Something went wrong. Please try again."
+        error.message || "Something went wrong. Please try again.",
       );
     },
   });
@@ -267,7 +267,7 @@ export function useUpdateWorkspace(workspaceSlug?: string) {
             ...old?.data,
             ...params.payload,
           },
-        })
+        }),
       );
 
       queryClient.setQueryData(
@@ -275,10 +275,10 @@ export function useUpdateWorkspace(workspaceSlug?: string) {
         (old: { data: { myWorkspaces: Workspace[] } }) => {
           if (!old) return old;
           const updated = old.data?.myWorkspaces?.map((w) =>
-            w.id === params.id ? { ...w, ...params.payload } : w
+            w.id === params.id ? { ...w, ...params.payload } : w,
           );
           return { ...old, data: { ...old.data, myWorkspaces: updated } };
-        }
+        },
       );
 
       return { previousWorkspaces, previousWorkspace };
@@ -293,14 +293,14 @@ export function useUpdateWorkspace(workspaceSlug?: string) {
       context?: {
         previousWorkspaces?: Workspace;
         previousWorkspace?: Workspace;
-      }
+      },
     ) => {
       toastUtils.generic.error(err.message || "Failed to update workspace");
       // Rollback cache
       if (context?.previousWorkspace) {
         queryClient.setQueryData(
           ["workspaces", context.previousWorkspace.id],
-          context.previousWorkspace
+          context.previousWorkspace,
         );
       }
       if (context?.previousWorkspaces) {
@@ -359,7 +359,7 @@ export function useWorkspaceMemberQuery(workspaceSlug: string) {
   // Fetch workspace to get ID from slug
   const { data: workspaceData } = useWorkspaceQuery();
   const workspace = workspaceData?.data?.myWorkspaces?.find(
-    (w) => w.slug === workspaceSlug
+    (w) => w.slug === workspaceSlug,
   );
   const workspaceId = workspace?.id;
 
@@ -390,7 +390,7 @@ export function useWorkspaceMemberQuery(workspaceSlug: string) {
 
 export function useImageUploadMutation(
   workspaceId: string,
-  onSuccess?: () => void
+  onSuccess?: () => void,
 ): UseMutationResult<UploadResponse, Error, File> {
   const queryClient = useQueryClient();
 
@@ -425,7 +425,7 @@ export function useImageUploadMutation(
 }
 
 export function removeWorkspaceImage(
-  onSuccess?: () => void
+  onSuccess?: () => void,
 ): UseMutationResult<RemoveImageResponse, Error, string> {
   const queryClient = useQueryClient();
 
@@ -497,7 +497,7 @@ export function useDeleteWorkspaceMemberMutation() {
     onError: (error) => {
       toastUtils.generic.error(
         "Error removing member",
-        error.message || "Something went wrong. Please try again."
+        error.message || "Something went wrong. Please try again.",
       );
     },
   });
@@ -535,7 +535,7 @@ export function useDeleteWorkspaceMutation() {
     onError: (error) => {
       toastUtils.generic.error(
         "Error deleting workspace",
-        error.message || "Something went wrong. Please try again."
+        error.message || "Something went wrong. Please try again.",
       );
     },
   });
@@ -571,7 +571,7 @@ export function useMcpServerQuery(workspaceId: string, workspaceSlug?: string) {
 
 export function useAvailableMcpServerQuery(
   workspaceId: string,
-  workspaceSlug?: string
+  workspaceSlug?: string,
 ) {
   return useQuery({
     queryKey: ["available-servers", workspaceId, "mcp-server-tools"],
@@ -624,7 +624,7 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
             "x-tenant-id": workspaceSlug,
           },
           body: JSON.stringify(payload),
-        }
+        },
       );
       const data = await res.json();
       if (!res.ok) {
@@ -656,7 +656,7 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
           data: old.data.map((server) => ({
             ...server,
             mcpTools: server.mcpServer.mcpTools?.map((tool) =>
-              tool.id === toolId ? { ...tool, ...payload } : tool
+              tool.id === toolId ? { ...tool, ...payload } : tool,
             ),
           })),
         };
@@ -668,12 +668,12 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
     onError: (
       err: Error,
       _variables: ToggleMcpToolPayload,
-      context?: { previousData?: McpServerToolsResponse }
+      context?: { previousData?: McpServerToolsResponse },
     ) => {
       if (context?.previousData) {
         queryClient.setQueryData(
           ["servers", _variables.workspaceId, "mcp-server-tools"],
-          context.previousData
+          context.previousData,
         );
       }
       const message =
@@ -684,7 +684,7 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
     onSettled: (
       data: ToggleMcpToolResponse | undefined,
       error: Error | null,
-      variables: ToggleMcpToolPayload
+      variables: ToggleMcpToolPayload,
     ) => {
       const workspaceId = data?.data?.workspaceId || variables.workspaceId;
       queryClient.invalidateQueries({
@@ -694,7 +694,7 @@ export function useToggleMcpToolsMutation(workspaceSlug: string) {
 
     onSuccess: (
       data: ToggleMcpToolResponse,
-      variables: ToggleMcpToolPayload
+      variables: ToggleMcpToolPayload,
     ) => {
       const workspaceId = data?.data?.workspaceId || variables.workspaceId;
       queryClient.invalidateQueries({
@@ -737,7 +737,7 @@ export function useScrapeWebsiteMutation() {
 export function useCreateMcpServerMutation(
   workspaceId: string,
   workspaceSlug: string,
-  onSuccess?: () => void
+  onSuccess?: () => void,
 ) {
   const queryClient = useQueryClient();
 
@@ -764,13 +764,12 @@ export function useCreateMcpServerMutation(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["servers"] });
       queryClient.invalidateQueries({ queryKey: ["available-servers"] });
-      queryClient.invalidateQueries({ queryKey: ["server"] });
-      toastUtils.generic.success("MCP server created");
+      toastUtils.generic.success("MCP server added");
       onSuccess?.();
     },
     onError: (err) => {
       const message =
-        err instanceof Error ? err.message : "Failed to create MCP server";
+        err instanceof Error ? err.message : "Failed to add MCP server";
       toastUtils.generic.error(message);
     },
   });
@@ -778,7 +777,7 @@ export function useCreateMcpServerMutation(
 
 export function useUpdateMcpServerMutation(
   workspaceId: string,
-  workspaceSlug: string
+  workspaceSlug: string,
 ) {
   const queryClient = useQueryClient();
 
@@ -797,7 +796,7 @@ export function useUpdateMcpServerMutation(
             accept: "application/json",
           },
           body: JSON.stringify(body),
-        }
+        },
       );
 
       const data = await res.json();
@@ -819,7 +818,7 @@ export function useUpdateMcpServerMutation(
     },
     onError: () => {
       toastUtils.generic.error(
-        "Invalid credentials. Please check your authentication details."
+        "Invalid credentials. Please check your authentication details.",
       );
     },
   });
@@ -828,7 +827,7 @@ export function useUpdateMcpServerMutation(
 export function useMCPDeleteMutation(
   workspaceId: string,
   workspaceSlug: string,
-  onSuccess?: () => void
+  onSuccess?: () => void,
 ) {
   const queryClient = useQueryClient();
 
@@ -844,7 +843,7 @@ export function useMCPDeleteMutation(
             access_token: access_token!,
             "x-tenant-id": workspaceSlug,
           },
-        }
+        },
       );
       const data = await res.json();
       if (!res.ok)
@@ -867,7 +866,7 @@ export function useMCPDeleteMutation(
 
 export function useToggleMcpServerSwitchMutation(
   workspaceId: string,
-  workspaceSlug: string
+  workspaceSlug: string,
 ) {
   const queryClient = useQueryClient();
 
@@ -893,7 +892,7 @@ export function useToggleMcpServerSwitchMutation(
             "x-tenant-id": workspaceSlug,
           },
           body: JSON.stringify({ isActive }),
-        }
+        },
       );
       const data = await res.json();
       if (!res.ok) {
@@ -931,7 +930,7 @@ export function useToggleMcpServerSwitchMutation(
                     isActive: isActive,
                   },
                 }
-              : server
+              : server,
           ),
         };
       });
@@ -942,12 +941,12 @@ export function useToggleMcpServerSwitchMutation(
     onError: (
       err: Error,
       variables: ToggleMcpServerPayload,
-      context: { previousData?: McpServerToolsResponse } | undefined
+      context: { previousData?: McpServerToolsResponse } | undefined,
     ) => {
       if (context?.previousData) {
         queryClient.setQueryData(
           ["servers", variables.workspaceId, "mcp-server-tools"],
-          context.previousData
+          context.previousData,
         );
       }
       const message =
@@ -958,7 +957,7 @@ export function useToggleMcpServerSwitchMutation(
     onSettled: (
       data: ToggleMcpServerResponse | undefined,
       error: Error | null,
-      variables: ToggleMcpServerPayload
+      variables: ToggleMcpServerPayload,
     ) => {
       queryClient.invalidateQueries({
         queryKey: ["servers", variables.workspaceId, "mcp-server-tools"],
@@ -967,7 +966,7 @@ export function useToggleMcpServerSwitchMutation(
 
     onSuccess: (
       data: ToggleMcpServerResponse,
-      variables: ToggleMcpServerPayload
+      variables: ToggleMcpServerPayload,
     ) => {
       queryClient.invalidateQueries({
         queryKey: ["servers", variables.workspaceId, "mcp-server-tools"],

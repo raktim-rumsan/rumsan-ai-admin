@@ -32,7 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
 import {
   useAvailableMcpServerQuery,
   useWorkspaceQuery,
@@ -45,7 +44,7 @@ interface CommonMcpServerFormProps {
   onSubmit: (data: FormValues) => void;
   defaultValues?: FormValues;
   onCancel?: () => void;
-  servers?: McpServer[];
+  isPending?: boolean;
 }
 
 export function CommonMcpServerForm({
@@ -53,6 +52,7 @@ export function CommonMcpServerForm({
   onSubmit,
   defaultValues,
   onCancel,
+  isPending,
 }: CommonMcpServerFormProps) {
   const [isJsonMode, setIsJsonMode] = useState(false);
   const [jsonText, setJsonText] = useState("");
@@ -386,11 +386,16 @@ export function CommonMcpServerForm({
           )}
 
           <DialogFooter>
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={onCancel}
+              disabled={isPending}
+            >
               Cancel
             </Button>
-            <Button type="submit">
-              {mode === "edit-auth" ? "Save Changes" : "Create Server"}
+            <Button type="submit" disabled={isPending}>
+              {mode === "edit-auth" ? "Save Changes" : "Add Server"}
             </Button>
           </DialogFooter>
         </>
