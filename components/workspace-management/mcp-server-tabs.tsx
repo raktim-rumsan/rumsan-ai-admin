@@ -37,6 +37,7 @@ import { McpServerAdd } from "../ai-tools/form/mcp-server-add";
 import ConfirmDelete from "../documents/DeleteModal";
 import { McpTool, WorkspaceMcpServer } from "@/types/ai";
 import { toastUtils } from "@/lib/toast-utils";
+import truncateMiddleUrl from "@/lib/utils";
 
 export default function McpServerTabs() {
   const { workSpaceSlug } = useParams();
@@ -262,7 +263,9 @@ export default function McpServerTabs() {
                     </div>
 
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>{server.mcpServer?.url || "No URL"}</span>
+                      <span>
+                        {truncateMiddleUrl(server.mcpServer?.url) || "No URL"}
+                      </span>
                       {server.mcpServer?.url && (
                         <Button
                           variant="ghost"
