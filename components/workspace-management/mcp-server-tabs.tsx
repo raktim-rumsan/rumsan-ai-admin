@@ -10,6 +10,7 @@ import {
   Plus,
   SquarePen,
   Trash2,
+  Lock,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -249,12 +250,17 @@ export default function McpServerTabs() {
                       <div className="font-medium">
                         {server.mcpServer?.name}
                       </div>
+
                       {server.mcpServer.sectorName && (
                         <span className="text-xs px-2 py-1 rounded-md bg-muted text-muted-foreground">
                           {server.mcpServer.sectorName}
                         </span>
                       )}
+                      {server.mcpServer.type === "EXTERNAL" && (
+                        <Lock className="size-4 text-amber-600" />
+                      )}
                     </div>
+
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <span>{server.mcpServer?.url || "No URL"}</span>
                       {server.mcpServer?.url && (
