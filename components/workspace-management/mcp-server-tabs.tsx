@@ -314,16 +314,17 @@ export default function McpServerTabs() {
                     </Tooltip>
                   </TooltipProvider>
 
-                  {server.mcpServer?.type?.toUpperCase() === "EXTERNAL" && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="cursor-pointer p-2"
-                      onClick={() => setEditingId(server.id ?? "")}
-                    >
-                      <SquarePen className="w-5 h-5 mr-2" />
-                    </Button>
-                  )}
+                  {isAdmin &&
+                    server.mcpServer?.type?.toUpperCase() === "EXTERNAL" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="cursor-pointer p-2"
+                        onClick={() => setEditingId(server.id ?? "")}
+                      >
+                        <SquarePen className="w-5 h-5 mr-2" />
+                      </Button>
+                    )}
 
                   {isAdmin && (
                     <Switch
@@ -339,20 +340,22 @@ export default function McpServerTabs() {
                     />
                   )}
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="cursor-pointer text-red-600 hover:text-red-700 p-2"
-                    onClick={() => {
-                      setCurrentDeleteInfo({
-                        id: server.id,
-                        name: server.mcpServer?.name,
-                      });
-                      setOpenDeleteModal(true);
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                  </Button>
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="cursor-pointer text-red-600 hover:text-red-700 p-2"
+                      onClick={() => {
+                        setCurrentDeleteInfo({
+                          id: server.id,
+                          name: server.mcpServer?.name,
+                        });
+                        setOpenDeleteModal(true);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -417,6 +420,7 @@ export default function McpServerTabs() {
             </div>
           ))
         )}
+
         <ConfirmDelete
           isOpen={openDeleteModal}
           setIsOpen={setOpenDeleteModal}
