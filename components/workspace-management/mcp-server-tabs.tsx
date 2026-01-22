@@ -185,7 +185,7 @@ export default function McpServerTabs() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold">AI Tools Management</h1>
+          <h1 className="text-2xl font-semibold">MCP Marketplace</h1>
           <h3 className="text-sm text-muted-foreground">
             {isAdmin
               ? "Manage MCP tools that the AI can reference."
