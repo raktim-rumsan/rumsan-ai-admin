@@ -13,5 +13,5 @@ export const tablist = [
   { name: "LLM Settings", value: "llm", icons: Bot },
   { name: "Industry Knowledge", value: "knowledgebase", icons: FileText },
   { name: "Integrations", value: "integrations", icons: ExternalLink },
-  { name: "MCP Servers", value: "mcp-servers", icons: Server },
+  { name: "MCP Marketplace", value: "mcp-servers", icons: Server },
 ];

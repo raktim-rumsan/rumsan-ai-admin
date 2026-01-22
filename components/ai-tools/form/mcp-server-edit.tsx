@@ -28,11 +28,11 @@ export function McpServerEdit({ server, isOpen, onClose }: EditProps) {
   const { workSpaceSlug } = useParams();
   const { data: workspaceData } = useWorkspaceQuery();
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
-    (w: Workspace) => w.slug === workSpaceSlug
+    (w: Workspace) => w.slug === workSpaceSlug,
   );
   const updateMutation = useUpdateMcpServerMutation(
     currentWorkspace?.id as string,
-    currentWorkspace?.slug as string
+    currentWorkspace?.slug as string,
   );
   const onSubmit = async (data: any) => {
     const publicKeyPem = process.env.NEXT_PUBLIC_ENCRYPT_KEY;
@@ -51,12 +51,12 @@ export function McpServerEdit({ server, isOpen, onClose }: EditProps) {
         try {
           authentication[key] = await encryptWithPublicKey(
             publicKeyPem!,
-            value
+            value,
           );
         } catch (error) {
           // Only show encryption errors
           toastUtils.generic.error(
-            `Failed to encrypt "${key}". Please check the value.`
+            `Failed to encrypt "${key}". Please check the value.`,
           );
           return;
         }
@@ -70,7 +70,7 @@ export function McpServerEdit({ server, isOpen, onClose }: EditProps) {
       },
       {
         onSuccess: () => onClose(),
-      }
+      },
     );
   };
 
@@ -100,6 +100,7 @@ export function McpServerEdit({ server, isOpen, onClose }: EditProps) {
                 }))
               : [],
           }}
+          isPending={updateMutation.isPending}
         />
       </DialogContent>
     </Dialog>

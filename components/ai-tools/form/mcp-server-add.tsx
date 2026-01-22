@@ -23,11 +23,11 @@ export function McpServerAdd({ children }: { children: ReactNode }) {
   const { workSpaceSlug } = useParams();
   const { data: workspaceData } = useWorkspaceQuery();
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
-    (w: Workspace) => w.slug === workSpaceSlug
+    (w: Workspace) => w.slug === workSpaceSlug,
   );
   const createMutation = useCreateMcpServerMutation(
     currentWorkspace?.id as string,
-    workSpaceSlug as string
+    workSpaceSlug as string,
   );
 
   const onSubmit = async (data: any) => {
@@ -39,7 +39,7 @@ export function McpServerAdd({ children }: { children: ReactNode }) {
       if (entry?.key?.trim()) {
         const encryptedValue = await encryptWithPublicKey(
           publicKeyPem!,
-          (entry.value ?? "").toString().trim()
+          (entry.value ?? "").toString().trim(),
         );
         authentication[entry.key.trim()] = encryptedValue;
       }
@@ -72,6 +72,7 @@ export function McpServerAdd({ children }: { children: ReactNode }) {
             authentication: [],
           }}
           onCancel={() => setOpen(false)}
+          isPending={createMutation.isPending}
         />
       </DialogContent>
     </Dialog>
