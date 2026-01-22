@@ -58,7 +58,7 @@ export function McpServerAdd({ children }: { children: ReactNode }) {
   return (
     <Dialog open={isOpen} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>Add MCP Server To your Workspace</DialogTitle>
           <DialogDescription>

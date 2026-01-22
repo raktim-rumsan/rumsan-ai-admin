@@ -39,6 +39,7 @@ import {
 } from "@/queries/workspaceQuery";
 import { useParams } from "next/navigation";
 import truncateMiddleUrl from "@/lib/utils";
+import { McpServerPicker } from "@/components/workspace-management/browse-available-servers-dialog";
 interface CommonMcpServerFormProps {
   mode: "create" | "edit-auth";
   onSubmit: (data: FormValues) => void;
@@ -139,51 +140,36 @@ export function CommonMcpServerForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
-      {mode === "create" && (
-        <div className="grid gap-4">
-          <Label>Select Server</Label>
-          <Select
-            value={selectedServer?.id || ""}
-            onValueChange={(id) => {
-              const server = mcpServers?.find((s) => s.id === id);
-              if (server) setValue("server", server);
+      {/* {mode === "create" && (
+        <div className="grid gap-3">
+          <Label>Browse & select MCP server</Label>
+          <McpServerPicker
+            servers={mcpServers ?? []}
+            selectedId={selectedServer?.id}
+            onSelect={(server) => {
+              setValue("server", server);
+              // Optional: clear previous auth when changing server
+              setValue("authentication", []);
             }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select an MCP server..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-emerald-500" /> Ready to Use
-                </SelectLabel>
-                {mcpServers
-                  ?.filter((s) => !s.type?.toUpperCase().includes("EXTERNAL"))
-                  .map((server) => (
-                    <SelectItem key={server.id} value={server.id}>
-                      <div className="flex flex-col">
-                        <span className="truncate">{server.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-              </SelectGroup>
-              <SelectSeparator />
-              <SelectGroup>
-                <SelectLabel className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-amber-500" /> Requires Setup
-                </SelectLabel>
-                {mcpServers
-                  ?.filter((s) => s.type?.toUpperCase().includes("EXTERNAL"))
-                  .map((server) => (
-                    <SelectItem key={server.id} value={server.id}>
-                      <div className="flex flex-col">
-                        <span className="truncate">{server.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          />
+        </div>
+      )} */}
+
+      {mode === "create" && (
+        <div className="grid gap-3 flex flex-col flex-1 min-h-0">
+          <Label>Browse & select MCP server</Label>
+
+          {/* Give the picker full height and let it handle internal scroll */}
+          <div className="flex-1 overflow-hidden border rounded-lg bg-card">
+            <McpServerPicker
+              servers={mcpServers ?? []}
+              selectedId={selectedServer?.id}
+              onSelect={(server) => {
+                setValue("server", server);
+                setValue("authentication", []);
+              }}
+            />
+          </div>
         </div>
       )}
 

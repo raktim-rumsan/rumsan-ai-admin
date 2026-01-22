@@ -108,6 +108,8 @@ export default function McpServerTabs() {
     currentWorkspace?.slug as string,
   );
 
+  const [, setIsBrowseOpen] = useState(false);
+
   const handleToggleTool = (
     serverId: string,
     toolId: string,
@@ -192,12 +194,18 @@ export default function McpServerTabs() {
               : "View MCP tools that the AI can reference."}
           </h3>
         </div>
-        <McpServerAdd>
-          <Button className="bg-black hover:bg-gray-800">
-            <Plus className="w-4 h-4 mr-2" />
-            Add MCP Server
-          </Button>
-        </McpServerAdd>
+        <div className="flex items-center gap-2">
+          <McpServerAdd>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsBrowseOpen(true)}
+              className="cursor-pointer"
+            >
+              Browse All
+            </Button>
+          </McpServerAdd>
+        </div>
       </div>
 
       <div className="space-y-3">
