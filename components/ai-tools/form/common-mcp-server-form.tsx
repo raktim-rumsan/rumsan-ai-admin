@@ -134,7 +134,7 @@ export function CommonMcpServerForm({
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col flex-1 min-h-0 gap-4 py-4"
     >
-      {mode === "create" && (
+      {mode === "create" && !selectedServer && (
         <div className="flex flex-col gap-3 flex-1 min-h-0">
           <Label>Browse & select MCP server</Label>
 
@@ -200,6 +200,26 @@ export function CommonMcpServerForm({
               {selectedServer.mcpTools?.length} tool
               {selectedServer.mcpTools?.length !== 1 ? "s" : ""} available
             </p>
+          </div>
+          <div className="mt-3">
+            <Label>
+              TOOLS TO BE ADDED ({selectedServer.mcpTools?.length ?? 0})
+            </Label>
+            <div className="mt-2 space-y-2 max-h-[36vh] overflow-auto pr-2">
+              {(selectedServer.mcpTools || []).map((tool) => (
+                <div
+                  key={tool.id}
+                  className="p-3 border rounded-lg bg-background/50 text-sm"
+                >
+                  <div className="font-medium">{tool.name}</div>
+                  {tool.description && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {tool.description}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Authentication (only for external servers) */}
