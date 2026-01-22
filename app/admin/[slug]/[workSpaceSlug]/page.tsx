@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -19,6 +19,7 @@ import {
 import IntegrationLists from "@/components/sections/integrations/integration-list";
 import { tablist } from "@/constants/workspace-tabs";
 import McpServerTabs from "@/components/workspace-management/mcp-server-tabs";
+import { ScrollableTabs } from "@/components/ui/scrollable-tabs";
 
 export default function WorkspaceDetailPage({
   params,
@@ -62,17 +63,11 @@ export default function WorkspaceDetailPage({
       <WorkspaceHeader workspace={workspace} />
       <div className="container mx-auto px-6 py-8">
         <Tabs defaultValue="general" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <TabsList className="flex space-x-4">
-              {tablist.map((tab) => (
-                <TabsTrigger value={tab.value} key={tab.value}>
-                  <tab.icons className="h-4 w-4 mr-2" /> {tab.name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+          <div className="flex items-center gap-2">
+            <ScrollableTabs tabs={tablist} className="flex-1 min-w-0" />
             <Button
               asChild
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-green-600 hover:bg-green-700 text-white shrink-0"
             >
               <Link
                 href={`/dashboard/workspace/${workspace.slug}`}
@@ -81,7 +76,7 @@ export default function WorkspaceDetailPage({
                 <ExternalLink className="h-4 w-4 mr-2" /> Open Workspace
               </Link>
             </Button>
-          </div>{" "}
+          </div>
           {tablist.map((tab) => (
             <TabsContent value={tab.value} key={tab.value}>
               {tab.value === "general" && <GeneralTab />}
