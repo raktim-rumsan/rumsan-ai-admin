@@ -7,7 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
-import { Eye, EyeOff, Plus, Trash, Lock, Server, Copy } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Plus,
+  Trash,
+  Lock,
+  Server,
+  Copy,
+  CopyCheck,
+} from "lucide-react";
 import { toastUtils } from "@/lib/toast-utils";
 import { Badge } from "@/components/ui/badge";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,15 +55,16 @@ export function CommonMcpServerForm({
 }: CommonMcpServerFormProps) {
   const [isJsonMode, setIsJsonMode] = useState(false);
   const [jsonText, setJsonText] = useState("");
+  const [copiedServerId, setCopiedServerId] = useState<string | null>(null);
 
   const { workSpaceSlug } = useParams();
   const { data: workspaceData } = useWorkspaceQuery();
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
-    (w: Workspace) => w.slug === workSpaceSlug
+    (w: Workspace) => w.slug === workSpaceSlug,
   );
   const { data: mcpServers } = useAvailableMcpServerQuery(
     currentWorkspace?.id as string,
-    workSpaceSlug as string
+    workSpaceSlug as string,
   );
 
   const {
@@ -110,6 +120,20 @@ export function CommonMcpServerForm({
       const message = err instanceof Error ? err.message : "Invalid JSON";
       toastUtils.generic.error(message);
     }
+  };
+
+  const handleCopyUrl = (url: string, serverId: string) => {
+    if (!url) return;
+
+    navigator.clipboard.writeText(url);
+
+    setCopiedServerId(serverId);
+    setTimeout(() => setCopiedServerId(null), 2000);
+
+    toastUtils.generic.success(
+      "URL copied",
+      "Server URL has been copied to clipboard.",
+    );
   };
 
   return (
@@ -174,24 +198,39 @@ export function CommonMcpServerForm({
                   {selectedServer.sectorName}
                 </Badge>
               )}
+              <Badge
+                variant="outline"
+                className={`text-xs flex items-center gap-1 ${
+                  selectedServer.type === "EXTERNAL"
+                    ? "border-amber-500 text-amber-600"
+                    : "border-emerald-500 text-emerald-600"
+                }`}
+              >
+                {selectedServer.type === "EXTERNAL" && (
+                  <Lock className="size-3" />
+                )}
+                {selectedServer.type}
+              </Badge>
             </div>
             <div className="flex items-center gap-1 mt-2">
               <p className="text-xs text-muted-foreground">
                 {selectedServer.url}
               </p>
               <Button
+                type="button"
                 variant="ghost"
-                size="icon"
-                className="size-5 cursor-pointer"
-                onClick={() => {
-                  navigator.clipboard.writeText(selectedServer.url);
-                  toast({
-                    title: "URL copied",
-                    description: "Server URL has been copied to clipboard.",
-                  });
-                }}
+                size="sm"
+                className="cursor-pointer p-1"
+                onClick={() =>
+                  handleCopyUrl(selectedServer?.url, selectedServer.id)
+                }
+                aria-label="Copy URL"
               >
-                <Copy className="size-3 text-muted-foreground" />
+                {copiedServerId === selectedServer.id ? (
+                  <CopyCheck className="w-4 h-4 text-emerald-600" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -277,7 +316,7 @@ export function CommonMcpServerForm({
                             placeholder="value"
                             type={authWatch[idx]?.show ? "text" : "password"}
                             {...register(
-                              `authentication.${idx}.value` as const
+                              `authentication.${idx}.value` as const,
                             )}
                             className="pr-18"
                             onChange={(e) => {
@@ -285,14 +324,14 @@ export function CommonMcpServerForm({
                               setValue(`authentication.${idx}.value`, newValue);
                               setValue(
                                 `authentication.${idx}.isEncrypted`,
-                                false
+                                false,
                               );
                             }}
                           />
                           {errors.authentication?.[idx]?.value?.message && (
                             <p className="text-sm text-destructive mt-1">
                               {String(
-                                errors.authentication?.[idx]?.value?.message
+                                errors.authentication?.[idx]?.value?.message,
                               )}
                             </p>
                           )}
@@ -304,7 +343,7 @@ export function CommonMcpServerForm({
                             onClick={() =>
                               setValue(
                                 `authentication.${idx}.show`,
-                                !authWatch[idx]?.show
+                                !authWatch[idx]?.show,
                               )
                             }
                           >

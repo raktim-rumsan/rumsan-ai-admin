@@ -35,17 +35,18 @@ import { McpServerEdit } from "../ai-tools/form/mcp-server-edit";
 import { McpServerAdd } from "../ai-tools/form/mcp-server-add";
 import ConfirmDelete from "../documents/DeleteModal";
 import { McpTool, WorkspaceMcpServer } from "@/types/ai";
+import { toastUtils } from "@/lib/toast-utils";
 
 export default function McpServerTabs() {
   const { workSpaceSlug } = useParams();
   const { data: workspaceData } = useWorkspaceQuery();
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
-    (w: Workspace) => w.slug === workSpaceSlug
+    (w: Workspace) => w.slug === workSpaceSlug,
   );
 
   const { data: mcpServersAvailable } = useAvailableMcpServerQuery(
     currentWorkspace?.id as string,
-    workSpaceSlug as string
+    workSpaceSlug as string,
   );
   const { isAdmin } = useWorkspaceRole(currentWorkspace?.id || "");
 
@@ -56,14 +57,14 @@ export default function McpServerTabs() {
     refetch,
   } = useMcpServerQuery(
     currentWorkspace?.id as string,
-    workSpaceSlug as string
+    workSpaceSlug as string,
   );
 
   const servers: WorkspaceMcpServer[] = mcpServers?.data ?? [];
 
   const serversWithVisibleTools = servers.map((server) => {
     const visibleTools = isAdmin
-      ? server.mcpServer.mcpTools ?? []
+      ? (server.mcpServer.mcpTools ?? [])
       : (server.mcpServer.mcpTools ?? []).filter((tool) => tool.enabled);
 
     return {
@@ -77,19 +78,19 @@ export default function McpServerTabs() {
 
   // Mutation for toggling tool state
   const toggleToolMutation = useToggleMcpToolsMutation(
-    currentWorkspace?.slug as string
+    currentWorkspace?.slug as string,
   );
   // Mutation for toggling server state
   const toggleServerMutation = useToggleMcpServerSwitchMutation(
     currentWorkspace?.id as string,
-    currentWorkspace?.slug as string
+    currentWorkspace?.slug as string,
   );
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [expandedServerId, setExpandedServerId] = useState<string | null>(null);
   const [copiedServerId, setCopiedServerId] = useState<string | null>(null);
   const [refreshingServerId, setRefreshingServerId] = useState<string | null>(
-    null
+    null,
   );
   const [currentDeleteInfo, setCurrentDeleteInfo] = useState<{
     id: string;
@@ -98,21 +99,21 @@ export default function McpServerTabs() {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
   const editingServerData = mcpServers?.data?.find(
-    (server) => server.id === editingId
+    (server) => server.id === editingId,
   );
   const deleteServerMutation = useMCPDeleteMutation(
     currentWorkspace?.id as string,
-    currentWorkspace?.slug as string
+    currentWorkspace?.slug as string,
   );
 
   const handleToggleTool = (
     serverId: string,
     toolId: string,
-    workspaceId: string
+    workspaceId: string,
   ) => {
     const server = servers?.find((s: WorkspaceMcpServer) => s.id === serverId);
     const tool = server?.mcpServer.mcpTools?.find(
-      (t: McpTool) => t.id === toolId
+      (t: McpTool) => t.id === toolId,
     );
     const newEnabledState = !tool?.enabled;
     toggleToolMutation.mutate({
@@ -127,7 +128,7 @@ export default function McpServerTabs() {
   const handleToggleServer = (
     serverId: string,
     workspaceId: string,
-    currentIsActive: boolean
+    currentIsActive: boolean,
   ) => {
     toggleServerMutation.mutate({
       workspaceId,
@@ -139,17 +140,18 @@ export default function McpServerTabs() {
   const humanizeToolName = (name: string): string =>
     name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-  const handleCopyUrl = async (url: string | undefined, serverId: string) => {
+  const handleCopyUrl = (url: string, serverId: string) => {
     if (!url) return;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopiedServerId(serverId);
-      setTimeout(() => {
-        setCopiedServerId(null);
-      }, 2000);
-    } catch (err) {
-      console.error("Failed to copy URL:", err);
-    }
+
+    navigator.clipboard.writeText(url);
+
+    setCopiedServerId(serverId);
+    setTimeout(() => setCopiedServerId(null), 2000);
+
+    toastUtils.generic.success(
+      "URL copied",
+      "Server URL has been copied to clipboard.",
+    );
   };
 
   const handleRefreshServer = (serverId: string) => {
@@ -226,7 +228,7 @@ export default function McpServerTabs() {
                     aria-label="expand"
                     onClick={() =>
                       setExpandedServerId(
-                        expandedServerId === server.id ? null : server.id
+                        expandedServerId === server.id ? null : server.id,
                       )
                     }
                     className="transform transition-transform"
@@ -259,16 +261,16 @@ export default function McpServerTabs() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-6 w-6 p-0 cursor-pointer"
+                          className="cursor-pointer p-1"
                           onClick={() =>
                             handleCopyUrl(server.mcpServer?.url, server.id)
                           }
                           aria-label="Copy URL"
                         >
                           {copiedServerId === server.id ? (
-                            <CopyCheck color="#5342d7" className="h-3 w-3" />
+                            <CopyCheck className="w-4 h-4 text-emerald-600" />
                           ) : (
-                            <Copy className="h-3 w-3" />
+                            <Copy className="w-4 h-4" />
                           )}
                         </Button>
                       )}
@@ -289,7 +291,7 @@ export default function McpServerTabs() {
                         >
                           <RefreshCcw
                             color="#ec6436"
-                            className={`w-4 h-4 ${
+                            className={`w-4 h-4 mr-2 ${
                               refreshingServerId === server.id
                                 ? "animate-spin"
                                 : ""
@@ -302,46 +304,47 @@ export default function McpServerTabs() {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                </div>
-                {server.mcpServer?.type?.toUpperCase() === "EXTERNAL" && (
+
+                  {server.mcpServer?.type?.toUpperCase() === "EXTERNAL" && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="cursor-pointer p-2"
+                      onClick={() => setEditingId(server.id ?? "")}
+                    >
+                      <SquarePen className="w-5 h-5 mr-2" />
+                    </Button>
+                  )}
+
+                  {isAdmin && (
+                    <Switch
+                      checked={server.isActive}
+                      onCheckedChange={() =>
+                        handleToggleServer(
+                          server.id,
+                          currentWorkspace?.id as string,
+                          server.isActive,
+                        )
+                      }
+                      disabled={toggleServerMutation.isPending}
+                    />
+                  )}
+
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="cursor-pointer p-2"
-                    onClick={() => setEditingId(server.id ?? "")}
+                    className="cursor-pointer text-red-600 hover:text-red-700 p-2"
+                    onClick={() => {
+                      setCurrentDeleteInfo({
+                        id: server.id,
+                        name: server.mcpServer?.name,
+                      });
+                      setOpenDeleteModal(true);
+                    }}
                   >
-                    <SquarePen className="w-5 h-5 mr-2" />
+                    <Trash2 className="w-4 h-4 mr-2" />
                   </Button>
-                )}
-
-                {isAdmin && (
-                  <Switch
-                    checked={server.isActive}
-                    onCheckedChange={() =>
-                      handleToggleServer(
-                        server.id,
-                        currentWorkspace?.id as string,
-                        server.isActive
-                      )
-                    }
-                    disabled={toggleServerMutation.isPending}
-                  />
-                )}
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="cursor-pointer text-red-600 hover:text-red-700 p-2"
-                  onClick={() => {
-                    setCurrentDeleteInfo({
-                      id: server.id,
-                      name: server.mcpServer?.name,
-                    });
-                    setOpenDeleteModal(true);
-                  }}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                </Button>
+                </div>
               </div>
 
               {expandedServerId === server.id && (
@@ -390,7 +393,7 @@ export default function McpServerTabs() {
                                   handleToggleTool(
                                     server.id,
                                     tool.id,
-                                    currentWorkspace?.id as string
+                                    currentWorkspace?.id as string,
                                   )
                                 }
                               />
