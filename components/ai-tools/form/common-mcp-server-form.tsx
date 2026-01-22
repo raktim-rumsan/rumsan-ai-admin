@@ -202,7 +202,11 @@ export function CommonMcpServerForm({
             <Label>
               TOOLS TO BE ADDED ({selectedServer.mcpTools?.length ?? 0})
             </Label>
-            <div className="mt-2 space-y-2 max-h-[36vh] overflow-auto pr-2">
+            <div
+              className={`mt-2 space-y-2 pr-2 overflow-auto ${
+                shouldShowAuth ? "max-h-[28vh]" : "max-h-[36vh]"
+              }`}
+            >
               {(selectedServer.mcpTools || []).map((tool) => (
                 <div
                   key={tool.id}
