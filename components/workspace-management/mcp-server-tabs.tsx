@@ -36,7 +36,7 @@ import { McpServerAdd } from "../ai-tools/form/mcp-server-add";
 import ConfirmDelete from "../documents/DeleteModal";
 import { McpTool, WorkspaceMcpServer } from "@/types/ai";
 import { toastUtils } from "@/lib/toast-utils";
-import truncateMiddleUrl from "@/lib/utils";
+import { humanizeToolName, truncateMiddleUrl } from "@/lib/utils";
 
 export default function McpServerTabs() {
   const { workSpaceSlug } = useParams();
@@ -135,9 +135,6 @@ export default function McpServerTabs() {
       isActive: !currentIsActive,
     });
   };
-
-  const humanizeToolName = (name: string): string =>
-    name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   const handleCopyUrl = (url: string, serverId: string) => {
     if (!url) return;

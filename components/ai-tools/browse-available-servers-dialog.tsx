@@ -3,7 +3,7 @@
 import { Check, ChevronUp, Lock, Server, Unlock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Badge } from "../ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, humanizeToolName } from "@/lib/utils";
 import { McpServer } from "@/types/ai";
 import { useState } from "react";
 
@@ -112,7 +112,9 @@ export function McpServerPicker({
                   key={tool.id}
                   className="p-3 rounded-md bg-background border"
                 >
-                  <p className="font-medium text-sm">{tool.name}</p>
+                  <p className="font-medium text-sm">
+                    {humanizeToolName(tool.name)}
+                  </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {tool.description}
                   </p>

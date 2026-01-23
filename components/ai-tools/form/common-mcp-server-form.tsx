@@ -28,7 +28,7 @@ import {
   Workspace,
 } from "@/queries/workspaceQuery";
 import { useParams } from "next/navigation";
-import truncateMiddleUrl from "@/lib/utils";
+import { truncateMiddleUrl, humanizeToolName } from "@/lib/utils";
 import { McpServerPicker } from "@/components/ai-tools/browse-available-servers-dialog";
 interface CommonMcpServerFormProps {
   mode: "create" | "edit-auth";
@@ -241,7 +241,9 @@ export function CommonMcpServerForm({
                   key={tool.id}
                   className="p-3 border rounded-lg bg-background/50 text-sm"
                 >
-                  <div className="font-medium">{tool.name}</div>
+                  <div className="font-medium">
+                    {humanizeToolName(tool.name)}
+                  </div>
                   {tool.description && (
                     <div className="text-xs text-muted-foreground mt-1">
                       {tool.description}
