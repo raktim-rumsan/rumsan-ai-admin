@@ -4,13 +4,11 @@ import { useState } from "react";
 import {
   Server,
   ChevronDown,
-  Copy,
-  CopyCheck,
   RefreshCcw,
-  Plus,
   SquarePen,
   Trash2,
   Lock,
+  Unlock,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -29,27 +27,22 @@ import {
   useToggleMcpServerSwitchMutation,
   type Workspace,
   useMCPDeleteMutation,
-  useAvailableMcpServerQuery,
 } from "@/queries/workspaceQuery";
 import { useWorkspaceRole } from "@/hooks/useOrganizationContext";
 import { McpServerEdit } from "../ai-tools/form/mcp-server-edit";
 import { McpServerAdd } from "../ai-tools/form/mcp-server-add";
 import ConfirmDelete from "../documents/DeleteModal";
 import { McpTool, WorkspaceMcpServer } from "@/types/ai";
-import { toastUtils } from "@/lib/toast-utils";
-import truncateMiddleUrl from "@/lib/utils";
+import { humanizeToolName } from "@/lib/utils";
+import { Badge } from "../ui/badge";
 
 export default function McpServerTabs() {
   const { workSpaceSlug } = useParams();
   const { data: workspaceData } = useWorkspaceQuery();
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
-    (w: Workspace) => w.slug === workSpaceSlug
+    (w: Workspace) => w.slug === workSpaceSlug,
   );
 
-  const { data: mcpServersAvailable } = useAvailableMcpServerQuery(
-    currentWorkspace?.id as string,
-    workSpaceSlug as string
-  );
   const { isAdmin } = useWorkspaceRole(currentWorkspace?.id || "");
 
   const {
@@ -59,14 +52,14 @@ export default function McpServerTabs() {
     refetch,
   } = useMcpServerQuery(
     currentWorkspace?.id as string,
-    workSpaceSlug as string
+    workSpaceSlug as string,
   );
 
   const servers: WorkspaceMcpServer[] = mcpServers?.data ?? [];
 
   const serversWithVisibleTools = servers.map((server) => {
     const visibleTools = isAdmin
-      ? server.mcpServer.mcpTools ?? []
+      ? (server.mcpServer.mcpTools ?? [])
       : (server.mcpServer.mcpTools ?? []).filter((tool) => tool.enabled);
 
     return {
@@ -80,19 +73,19 @@ export default function McpServerTabs() {
 
   // Mutation for toggling tool state
   const toggleToolMutation = useToggleMcpToolsMutation(
-    currentWorkspace?.slug as string
+    currentWorkspace?.slug as string,
   );
   // Mutation for toggling server state
   const toggleServerMutation = useToggleMcpServerSwitchMutation(
     currentWorkspace?.id as string,
-    currentWorkspace?.slug as string
+    currentWorkspace?.slug as string,
   );
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [expandedServerId, setExpandedServerId] = useState<string | null>(null);
-  const [copiedServerId, setCopiedServerId] = useState<string | null>(null);
+  // const [copiedServerId, setCopiedServerId] = useState<string | null>(null);
   const [refreshingServerId, setRefreshingServerId] = useState<string | null>(
-    null
+    null,
   );
   const [currentDeleteInfo, setCurrentDeleteInfo] = useState<{
     id: string;
@@ -101,21 +94,23 @@ export default function McpServerTabs() {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
   const editingServerData = mcpServers?.data?.find(
-    (server) => server.id === editingId
+    (server) => server.id === editingId,
   );
   const deleteServerMutation = useMCPDeleteMutation(
     currentWorkspace?.id as string,
-    currentWorkspace?.slug as string
+    currentWorkspace?.slug as string,
   );
+
+  const [, setIsBrowseOpen] = useState(false);
 
   const handleToggleTool = (
     serverId: string,
     toolId: string,
-    workspaceId: string
+    workspaceId: string,
   ) => {
     const server = servers?.find((s: WorkspaceMcpServer) => s.id === serverId);
     const tool = server?.mcpServer.mcpTools?.find(
-      (t: McpTool) => t.id === toolId
+      (t: McpTool) => t.id === toolId,
     );
     const newEnabledState = !tool?.enabled;
     toggleToolMutation.mutate({
@@ -130,7 +125,7 @@ export default function McpServerTabs() {
   const handleToggleServer = (
     serverId: string,
     workspaceId: string,
-    currentIsActive: boolean
+    currentIsActive: boolean,
   ) => {
     toggleServerMutation.mutate({
       workspaceId,
@@ -139,22 +134,19 @@ export default function McpServerTabs() {
     });
   };
 
-  const humanizeToolName = (name: string): string =>
-    name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  // const handleCopyUrl = (url: string, serverId: string) => {
+  //   if (!url) return;
 
-  const handleCopyUrl = (url: string, serverId: string) => {
-    if (!url) return;
+  //   navigator.clipboard.writeText(url);
 
-    navigator.clipboard.writeText(url);
+  //   setCopiedServerId(serverId);
+  //   setTimeout(() => setCopiedServerId(null), 2000);
 
-    setCopiedServerId(serverId);
-    setTimeout(() => setCopiedServerId(null), 2000);
-
-    toastUtils.generic.success(
-      "URL copied",
-      "Server URL has been copied to clipboard."
-    );
-  };
+  //   toastUtils.generic.success(
+  //     "URL copied",
+  //     "Server URL has been copied to clipboard.",
+  //   );
+  // };
 
   const handleRefreshServer = async (serverId: string) => {
     setRefreshingServerId(serverId);
@@ -197,12 +189,18 @@ export default function McpServerTabs() {
               : "View MCP tools that the AI can reference."}
           </h3>
         </div>
-        <McpServerAdd>
-          <Button className="bg-black hover:bg-gray-800">
-            <Plus className="w-4 h-4 mr-2" />
-            Add MCP Server
-          </Button>
-        </McpServerAdd>
+        <div className="flex items-center gap-2">
+          <McpServerAdd>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsBrowseOpen(true)}
+              className="cursor-pointer"
+            >
+              Add Server
+            </Button>
+          </McpServerAdd>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -236,7 +234,7 @@ export default function McpServerTabs() {
                     aria-label="expand"
                     onClick={() =>
                       setExpandedServerId(
-                        expandedServerId === server.id ? null : server.id
+                        expandedServerId === server.id ? null : server.id,
                       )
                     }
                     className="transform transition-transform cursor-pointer"
@@ -263,12 +261,28 @@ export default function McpServerTabs() {
                           {server.mcpServer.sectorName}
                         </span>
                       )}
-                      {server.mcpServer.type === "EXTERNAL" && (
-                        <Lock className="size-4 text-amber-600" />
-                      )}
+                      <Badge
+                        variant="outline"
+                        className={`text-xs flex items-center gap-1 ${
+                          server.mcpServer.type === "EXTERNAL"
+                            ? "border-amber-500 text-amber-600"
+                            : "border-emerald-500 text-emerald-600"
+                        }`}
+                      >
+                        {server.mcpServer?.type === "EXTERNAL" ? (
+                          <Lock className="size-3" />
+                        ) : (
+                          <Unlock className="size-3" />
+                        )}
+                        {server.mcpServer.type === "EXTERNAL"
+                          ? "Private"
+                          : server.mcpServer.type === "INTERNAL"
+                            ? "Public"
+                            : server.mcpServer.type}
+                      </Badge>
                     </div>
 
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {/* <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <span>
                         {truncateMiddleUrl(server.mcpServer?.url) || "No URL"}
                       </span>
@@ -289,7 +303,7 @@ export default function McpServerTabs() {
                           )}
                         </Button>
                       )}
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 
@@ -339,7 +353,7 @@ export default function McpServerTabs() {
                         handleToggleServer(
                           server.id,
                           currentWorkspace?.id as string,
-                          server.isActive
+                          server.isActive,
                         )
                       }
                       disabled={toggleServerMutation.isPending}
@@ -417,7 +431,7 @@ export default function McpServerTabs() {
                                 handleToggleTool(
                                   server.id,
                                   tool.id,
-                                  currentWorkspace?.id as string
+                                  currentWorkspace?.id as string,
                                 )
                               }
                             />

@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { randomBytes } from "crypto";
+import { toastUtils } from "./toast-utils";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -28,13 +29,13 @@ export function formatRole(role: string | undefined | null): string {
   return role?.replace(/_/g, " ") ?? "";
 }
 
-export default function truncateMiddleUrl(
-  url: string,
-  maxStart = 12,
-  maxEnd = 8,
-) {
+export function truncateMiddleUrl(url: string, maxStart = 12, maxEnd = 8) {
   if (url.length <= maxStart + maxEnd + 3) return url; // short enough, no truncation
   const start = url.slice(0, maxStart);
   const end = url.slice(-maxEnd);
   return `${start}...${end}`;
+}
+
+export function humanizeToolName(name: string): string {
+  return name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }

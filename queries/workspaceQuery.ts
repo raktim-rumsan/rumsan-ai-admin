@@ -596,7 +596,8 @@ export function useAvailableMcpServerQuery(
       }
       return data.data as McpServer[];
     },
-    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 }
 

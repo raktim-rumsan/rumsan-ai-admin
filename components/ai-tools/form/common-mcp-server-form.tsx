@@ -6,45 +6,27 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-
-import {
-  Eye,
-  EyeOff,
-  Plus,
-  Trash,
-  Lock,
-  Server,
-  Copy,
-  CopyCheck,
-} from "lucide-react";
+import { Eye, EyeOff, Plus, Trash, Lock, Server, Unlock } from "lucide-react";
 import { toastUtils } from "@/lib/toast-utils";
 import { Badge } from "@/components/ui/badge";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { mcpServerSchema } from "./schema";
 import { AuthEntry, FormValues, McpServer } from "@/types/ai";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectLabel,
-  SelectGroup,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   useAvailableMcpServerQuery,
   useWorkspaceQuery,
   Workspace,
 } from "@/queries/workspaceQuery";
 import { useParams } from "next/navigation";
-import truncateMiddleUrl from "@/lib/utils";
+import { humanizeToolName } from "@/lib/utils";
+import { McpServerPicker } from "@/components/ai-tools/browse-available-servers-dialog";
 interface CommonMcpServerFormProps {
   mode: "create" | "edit-auth";
   onSubmit: (data: FormValues) => void;
   defaultValues?: FormValues;
   onCancel?: () => void;
   isPending?: boolean;
+  className?: string;
 }
 
 export function CommonMcpServerForm({
@@ -56,17 +38,18 @@ export function CommonMcpServerForm({
 }: CommonMcpServerFormProps) {
   const [isJsonMode, setIsJsonMode] = useState(false);
   const [jsonText, setJsonText] = useState("");
-  const [copiedServerId, setCopiedServerId] = useState<string | null>(null);
+  // const [copiedServerId, setCopiedServerId] = useState<string | null>(null);
 
   const { workSpaceSlug } = useParams();
   const { data: workspaceData } = useWorkspaceQuery();
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
     (w: Workspace) => w.slug === workSpaceSlug,
   );
-  const { data: mcpServers } = useAvailableMcpServerQuery(
-    currentWorkspace?.id as string,
-    workSpaceSlug as string,
-  );
+  const { data: mcpServers, isLoading: mcpServersLoading } =
+    useAvailableMcpServerQuery(
+      currentWorkspace?.id as string,
+      workSpaceSlug as string,
+    );
 
   const {
     register,
@@ -82,10 +65,9 @@ export function CommonMcpServerForm({
 
   const selectedServer = watch("server");
 
-  const shouldShowAuth =
-    mode === "create"
-      ? mcpServers?.some((server) => server.type?.toUpperCase() === "EXTERNAL")
-      : selectedServer?.type?.toUpperCase() === "EXTERNAL";
+  const shouldShowAuth = selectedServer?.type === "EXTERNAL";
+
+  const [pickedServer, setPickedServer] = useState<McpServer | null>(null);
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -123,67 +105,63 @@ export function CommonMcpServerForm({
     }
   };
 
-  const handleCopyUrl = (url: string, serverId: string) => {
-    if (!url) return;
+  // const handleCopyUrl = (url: string, serverId: string) => {
+  //   if (!url) return;
 
-    navigator.clipboard.writeText(url);
+  //   navigator.clipboard.writeText(url);
 
-    setCopiedServerId(serverId);
-    setTimeout(() => setCopiedServerId(null), 2000);
+  //   setCopiedServerId(serverId);
+  //   setTimeout(() => setCopiedServerId(null), 2000);
 
-    toastUtils.generic.success(
-      "URL copied",
-      "Server URL has been copied to clipboard.",
-    );
-  };
+  //   toastUtils.generic.success(
+  //     "URL copied",
+  //     "Server URL has been copied to clipboard.",
+  //   );
+  // };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
-      {mode === "create" && (
-        <div className="grid gap-4">
-          <Label>Select Server</Label>
-          <Select
-            value={selectedServer?.id || ""}
-            onValueChange={(id) => {
-              const server = mcpServers?.find((s) => s.id === id);
-              if (server) setValue("server", server);
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col flex-1 min-h-0 gap-4"
+    >
+      {mode === "create" && !selectedServer && (
+        <div className="flex flex-col gap-3 flex-1 min-h-0">
+          <Label>Browse & select MCP server</Label>
+
+          <McpServerPicker
+            servers={mcpServers ?? []}
+            isLoading={mcpServersLoading}
+            selectedId={pickedServer?.id}
+            onSelect={(server) => {
+              setPickedServer(server);
             }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select an MCP server..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-emerald-500" /> Ready to Use
-                </SelectLabel>
-                {mcpServers
-                  ?.filter((s) => !s.type?.toUpperCase().includes("EXTERNAL"))
-                  .map((server) => (
-                    <SelectItem key={server.id} value={server.id}>
-                      <div className="flex flex-col">
-                        <span className="truncate">{server.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-              </SelectGroup>
-              <SelectSeparator />
-              <SelectGroup>
-                <SelectLabel className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-amber-500" /> Requires Setup
-                </SelectLabel>
-                {mcpServers
-                  ?.filter((s) => s.type?.toUpperCase().includes("EXTERNAL"))
-                  .map((server) => (
-                    <SelectItem key={server.id} value={server.id}>
-                      <div className="flex flex-col">
-                        <span className="truncate">{server.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          />
+
+          <div className="flex justify-end gap-2 mt-3">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => {
+                if (onCancel) return onCancel();
+                setPickedServer(null);
+              }}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="button"
+              onClick={() => {
+                if (!pickedServer) return;
+                setValue("server", pickedServer);
+                setValue("authentication", []);
+              }}
+              disabled={!pickedServer || isPending}
+            >
+              Confirm
+            </Button>
+          </div>
         </div>
       )}
 
@@ -207,13 +185,19 @@ export function CommonMcpServerForm({
                     : "border-emerald-500 text-emerald-600"
                 }`}
               >
-                {selectedServer.type === "EXTERNAL" && (
+                {selectedServer?.type === "EXTERNAL" ? (
                   <Lock className="size-3" />
+                ) : (
+                  <Unlock className="size-3" />
                 )}
-                {selectedServer.type}
+                {selectedServer.type === "EXTERNAL"
+                  ? "Private"
+                  : selectedServer.type === "INTERNAL"
+                    ? "Public"
+                    : selectedServer.type}
               </Badge>
             </div>
-            <div className="flex items-center gap-1 mt-2">
+            {/* <div className="flex items-center gap-1 mt-2">
               <p className="text-xs text-muted-foreground">
                 {truncateMiddleUrl(selectedServer.url)}
               </p>
@@ -233,16 +217,44 @@ export function CommonMcpServerForm({
                   <Copy className="w-4 h-4" />
                 )}
               </Button>
-            </div>
+            </div> */}
             <p className="text-xs text-muted-foreground mt-1">
               {selectedServer.mcpTools?.length} tool
               {selectedServer.mcpTools?.length !== 1 ? "s" : ""} available
             </p>
           </div>
+          <div className="mt-3">
+            <Label>
+              {mode === "create"
+                ? `TOOLS TO BE ADDED (${selectedServer.mcpTools?.length ?? 0})`
+                : `TOOLS ADDED (${selectedServer.mcpTools?.length ?? 0})`}
+            </Label>
+            <div
+              className={`mt-2 space-y-2 pr-2 overflow-auto ${
+                shouldShowAuth ? "max-h-[28vh]" : "max-h-[36vh]"
+              }`}
+            >
+              {(selectedServer.mcpTools || []).map((tool) => (
+                <div
+                  key={tool.id}
+                  className="p-3 border rounded-lg bg-background/50 text-sm"
+                >
+                  <div className="font-medium">
+                    {humanizeToolName(tool.name)}
+                  </div>
+                  {tool.description && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {tool.description}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* Authentication (only for external servers) */}
           {shouldShowAuth && (
-            <div className="grid gap-2">
+            <div className="grid gap-2 min-h-0">
               <div className="flex items-start justify-between">
                 <div>
                   <Label htmlFor="authentication">
@@ -295,7 +307,7 @@ export function CommonMcpServerForm({
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 pr-2 overflow-auto max-h-[28vh]">
                 {!isJsonMode ? (
                   fields.map((field, idx) => (
                     <div
