@@ -6,17 +6,7 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-
-import {
-  Eye,
-  EyeOff,
-  Plus,
-  Trash,
-  Lock,
-  Server,
-  Copy,
-  CopyCheck,
-} from "lucide-react";
+import { Eye, EyeOff, Plus, Trash, Lock, Server } from "lucide-react";
 import { toastUtils } from "@/lib/toast-utils";
 import { Badge } from "@/components/ui/badge";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,7 +18,7 @@ import {
   Workspace,
 } from "@/queries/workspaceQuery";
 import { useParams } from "next/navigation";
-import { truncateMiddleUrl, humanizeToolName } from "@/lib/utils";
+import { humanizeToolName } from "@/lib/utils";
 import { McpServerPicker } from "@/components/ai-tools/browse-available-servers-dialog";
 interface CommonMcpServerFormProps {
   mode: "create" | "edit-auth";
@@ -48,7 +38,7 @@ export function CommonMcpServerForm({
 }: CommonMcpServerFormProps) {
   const [isJsonMode, setIsJsonMode] = useState(false);
   const [jsonText, setJsonText] = useState("");
-  const [copiedServerId, setCopiedServerId] = useState<string | null>(null);
+  // const [copiedServerId, setCopiedServerId] = useState<string | null>(null);
 
   const { workSpaceSlug } = useParams();
   const { data: workspaceData } = useWorkspaceQuery();

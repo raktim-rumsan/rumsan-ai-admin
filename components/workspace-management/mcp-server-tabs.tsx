@@ -4,10 +4,7 @@ import { useState } from "react";
 import {
   Server,
   ChevronDown,
-  Copy,
-  CopyCheck,
   RefreshCcw,
-  Plus,
   SquarePen,
   Trash2,
   Lock,
@@ -35,8 +32,7 @@ import { McpServerEdit } from "../ai-tools/form/mcp-server-edit";
 import { McpServerAdd } from "../ai-tools/form/mcp-server-add";
 import ConfirmDelete from "../documents/DeleteModal";
 import { McpTool, WorkspaceMcpServer } from "@/types/ai";
-import { toastUtils } from "@/lib/toast-utils";
-import { humanizeToolName, truncateMiddleUrl } from "@/lib/utils";
+import { humanizeToolName } from "@/lib/utils";
 
 export default function McpServerTabs() {
   const { workSpaceSlug } = useParams();
@@ -85,7 +81,7 @@ export default function McpServerTabs() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [expandedServerId, setExpandedServerId] = useState<string | null>(null);
-  const [copiedServerId, setCopiedServerId] = useState<string | null>(null);
+  // const [copiedServerId, setCopiedServerId] = useState<string | null>(null);
   const [refreshingServerId, setRefreshingServerId] = useState<string | null>(
     null,
   );
