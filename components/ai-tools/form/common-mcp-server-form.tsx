@@ -6,7 +6,7 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Plus, Trash, Lock, Server } from "lucide-react";
+import { Eye, EyeOff, Plus, Trash, Lock, Server, Unlock } from "lucide-react";
 import { toastUtils } from "@/lib/toast-utils";
 import { Badge } from "@/components/ui/badge";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -183,10 +183,16 @@ export function CommonMcpServerForm({
                     : "border-emerald-500 text-emerald-600"
                 }`}
               >
-                {selectedServer.type === "EXTERNAL" && (
+                {selectedServer?.type === "EXTERNAL" ? (
                   <Lock className="size-3" />
+                ) : (
+                  <Unlock className="size-3" />
                 )}
-                {selectedServer.type}
+                {selectedServer.type === "EXTERNAL"
+                  ? "Private"
+                  : selectedServer.type === "INTERNAL"
+                    ? "Public"
+                    : selectedServer.type}
               </Badge>
             </div>
             {/* <div className="flex items-center gap-1 mt-2">

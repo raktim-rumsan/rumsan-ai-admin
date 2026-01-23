@@ -8,6 +8,7 @@ import {
   SquarePen,
   Trash2,
   Lock,
+  Unlock,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ import { McpServerAdd } from "../ai-tools/form/mcp-server-add";
 import ConfirmDelete from "../documents/DeleteModal";
 import { McpTool, WorkspaceMcpServer } from "@/types/ai";
 import { humanizeToolName } from "@/lib/utils";
+import { Badge } from "../ui/badge";
 
 export default function McpServerTabs() {
   const { workSpaceSlug } = useParams();
@@ -259,9 +261,25 @@ export default function McpServerTabs() {
                           {server.mcpServer.sectorName}
                         </span>
                       )}
-                      {server.mcpServer.type === "EXTERNAL" && (
-                        <Lock className="size-4 text-amber-600" />
-                      )}
+                      <Badge
+                        variant="outline"
+                        className={`text-xs flex items-center gap-1 ${
+                          server.mcpServer.type === "EXTERNAL"
+                            ? "border-amber-500 text-amber-600"
+                            : "border-emerald-500 text-emerald-600"
+                        }`}
+                      >
+                        {server.mcpServer?.type === "EXTERNAL" ? (
+                          <Lock className="size-3" />
+                        ) : (
+                          <Unlock className="size-3" />
+                        )}
+                        {server.mcpServer.type === "EXTERNAL"
+                          ? "Private"
+                          : server.mcpServer.type === "INTERNAL"
+                            ? "Public"
+                            : server.mcpServer.type}
+                      </Badge>
                     </div>
 
                     {/* <div className="flex items-center gap-2 text-sm text-muted-foreground">

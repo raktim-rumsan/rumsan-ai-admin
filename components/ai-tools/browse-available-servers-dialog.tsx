@@ -79,9 +79,6 @@ export function McpServerPicker({
                   {server.sectorName}
                 </Badge>
               )}
-              {server.type === "EXTERNAL" && (
-                <Lock className="size-3.5 text-amber-600" />
-              )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {server.mcpTools?.length ?? 0} tool
