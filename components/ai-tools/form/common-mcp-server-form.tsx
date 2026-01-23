@@ -45,10 +45,11 @@ export function CommonMcpServerForm({
   const currentWorkspace = workspaceData?.data?.myWorkspaces?.find(
     (w: Workspace) => w.slug === workSpaceSlug,
   );
-  const { data: mcpServers } = useAvailableMcpServerQuery(
-    currentWorkspace?.id as string,
-    workSpaceSlug as string,
-  );
+  const { data: mcpServers, isLoading: mcpServersLoading } =
+    useAvailableMcpServerQuery(
+      currentWorkspace?.id as string,
+      workSpaceSlug as string,
+    );
 
   const {
     register,
@@ -129,6 +130,7 @@ export function CommonMcpServerForm({
 
           <McpServerPicker
             servers={mcpServers ?? []}
+            isLoading={mcpServersLoading}
             selectedId={pickedServer?.id || selectedServer?.id}
             onSelect={(server) => {
               setPickedServer(server);

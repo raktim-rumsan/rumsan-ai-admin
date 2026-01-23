@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, ChevronUp, Lock, Server, Unlock } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Badge } from "../ui/badge";
 import { cn, humanizeToolName } from "@/lib/utils";
@@ -11,12 +12,14 @@ interface McpServerPickerProps {
   servers: McpServer[];
   selectedId?: string;
   onSelect: (server: McpServer) => void;
+  isLoading?: boolean;
 }
 
 export function McpServerPicker({
   servers,
   selectedId,
   onSelect,
+  isLoading = false,
 }: McpServerPickerProps) {
   const [activeTab, setActiveTab] = useState<"public" | "private">("public");
   const [expandedServers, setExpandedServers] = useState<Set<string>>(
@@ -139,6 +142,32 @@ export function McpServerPicker({
       </div>
     );
 
+  const renderSkeletonList = () => (
+    <div className="flex flex-col gap-3 pr-1">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div
+          key={`skeleton-${i}`}
+          className="rounded-lg border bg-card p-4 animate-pulse"
+        >
+          <div className="flex items-center gap-4">
+            <div className="size-8 rounded-md bg-muted">
+              <Skeleton className="h-8 w-8 rounded-md" />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <Skeleton className="h-4 w-40 mb-2" />
+              <Skeleton className="h-3 w-28" />
+            </div>
+
+            <div className="size-5 rounded-full">
+              <Skeleton className="h-5 w-5 rounded-full" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div className="flex flex-col h-full min-h-0">
       <Tabs
@@ -164,7 +193,7 @@ export function McpServerPicker({
             className="h-full overflow-y-auto px-1 pb-1 max-h-[56vh] thin-scrollbar"
             tabIndex={0}
           >
-            {renderList(publicServers)}
+            {isLoading ? renderSkeletonList() : renderList(publicServers)}
           </TabsContent>
 
           <TabsContent
@@ -172,7 +201,7 @@ export function McpServerPicker({
             className="h-full overflow-y-auto px-1 pb-1 max-h-[56vh] thin-scrollbar"
             tabIndex={0}
           >
-            {renderList(privateServers)}
+            {isLoading ? renderSkeletonList() : renderList(privateServers)}
           </TabsContent>
         </div>
       </Tabs>
