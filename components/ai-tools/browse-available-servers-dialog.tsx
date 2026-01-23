@@ -176,11 +176,11 @@ export function McpServerPicker({
         className="flex flex-col flex-1 min-h-0"
       >
         <TabsList className="grid w-full grid-cols-2 shrink-0 scrollbar-hide">
-          <TabsTrigger value="public">
+          <TabsTrigger value="public" className="cursor-pointer">
             <Unlock className="size-3.5 mr-1.5" /> Public (
             {publicServers.length})
           </TabsTrigger>
-          <TabsTrigger value="private">
+          <TabsTrigger value="private" className="cursor-pointer">
             <Lock className="size-3.5 mr-1.5" /> Private (
             {privateServers.length})
           </TabsTrigger>
