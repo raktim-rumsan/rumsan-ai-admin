@@ -29,7 +29,7 @@ import {
 } from "@/queries/workspaceQuery";
 import { useParams } from "next/navigation";
 import truncateMiddleUrl from "@/lib/utils";
-import { McpServerPicker } from "@/components/workspace-management/browse-available-servers-dialog";
+import { McpServerPicker } from "@/components/ai-tools/browse-available-servers-dialog";
 interface CommonMcpServerFormProps {
   mode: "create" | "edit-auth";
   onSubmit: (data: FormValues) => void;
