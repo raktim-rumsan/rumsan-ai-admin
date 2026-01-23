@@ -29,6 +29,11 @@ export function McpServerPicker({
   const publicServers = servers.filter((s) => s.type === "INTERNAL");
   const privateServers = servers.filter((s) => s.type === "EXTERNAL");
 
+  const TAB_DESCRIPTIONS: Record<string, string> = {
+    public: "Ready to use servers with no authentication required.",
+    private: "Servers that require API keys or credentials to connect.",
+  };
+
   const toggleExpand = (serverId: string) => {
     setExpandedServers((prev) => {
       const next = new Set(prev);
@@ -185,6 +190,10 @@ export function McpServerPicker({
             {privateServers.length})
           </TabsTrigger>
         </TabsList>
+
+        <p className="text-sm text-muted-foreground mt-2">
+          {TAB_DESCRIPTIONS[activeTab]}
+        </p>
 
         {/* This wrapper ensures the content can scroll */}
         <div className="flex-1 mt-4 min-h-0 scrollbar-hide overflow-hidden">
