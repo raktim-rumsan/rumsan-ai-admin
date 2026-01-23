@@ -76,6 +76,8 @@ export function CommonMcpServerForm({
 
   const shouldShowAuth = selectedServer?.type === "EXTERNAL";
 
+  const [pickedServer, setPickedServer] = useState<McpServer | null>(null);
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: "authentication",
@@ -129,7 +131,7 @@ export function CommonMcpServerForm({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col flex-1 min-h-0 gap-4 py-4"
+      className="flex flex-col flex-1 min-h-0 gap-4"
     >
       {mode === "create" && !selectedServer && (
         <div className="flex flex-col gap-3 flex-1 min-h-0">
@@ -137,12 +139,37 @@ export function CommonMcpServerForm({
 
           <McpServerPicker
             servers={mcpServers ?? []}
-            selectedId={selectedServer?.id}
+            selectedId={pickedServer?.id || selectedServer?.id}
             onSelect={(server) => {
-              setValue("server", server);
-              setValue("authentication", []);
+              setPickedServer(server);
             }}
           />
+
+          <div className="flex justify-end gap-2 mt-3">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => {
+                if (onCancel) return onCancel();
+                setPickedServer(null);
+              }}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="button"
+              onClick={() => {
+                if (!pickedServer) return;
+                setValue("server", pickedServer);
+                setValue("authentication", []);
+              }}
+              disabled={!pickedServer || isPending}
+            >
+              Confirm
+            </Button>
+          </div>
         </div>
       )}
 
@@ -200,7 +227,9 @@ export function CommonMcpServerForm({
           </div>
           <div className="mt-3">
             <Label>
-              TOOLS TO BE ADDED ({selectedServer.mcpTools?.length ?? 0})
+              {mode === "create"
+                ? `TOOLS TO BE ADDED (${selectedServer.mcpTools?.length ?? 0})`
+                : `TOOLS ADDED (${selectedServer.mcpTools?.length ?? 0})`}
             </Label>
             <div
               className={`mt-2 space-y-2 pr-2 overflow-auto ${
@@ -225,7 +254,7 @@ export function CommonMcpServerForm({
 
           {/* Authentication (only for external servers) */}
           {shouldShowAuth && (
-            <div className="grid gap-2">
+            <div className="grid gap-2 min-h-0">
               <div className="flex items-start justify-between">
                 <div>
                   <Label htmlFor="authentication">
@@ -278,7 +307,7 @@ export function CommonMcpServerForm({
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 pr-2 overflow-auto max-h-[28vh]">
                 {!isJsonMode ? (
                   fields.map((field, idx) => (
                     <div

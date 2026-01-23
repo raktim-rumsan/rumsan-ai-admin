@@ -29,7 +29,6 @@ import {
   useToggleMcpServerSwitchMutation,
   type Workspace,
   useMCPDeleteMutation,
-  useAvailableMcpServerQuery,
 } from "@/queries/workspaceQuery";
 import { useWorkspaceRole } from "@/hooks/useOrganizationContext";
 import { McpServerEdit } from "../ai-tools/form/mcp-server-edit";
@@ -46,10 +45,6 @@ export default function McpServerTabs() {
     (w: Workspace) => w.slug === workSpaceSlug,
   );
 
-  const { data: mcpServersAvailable } = useAvailableMcpServerQuery(
-    currentWorkspace?.id as string,
-    workSpaceSlug as string,
-  );
   const { isAdmin } = useWorkspaceRole(currentWorkspace?.id || "");
 
   const {
