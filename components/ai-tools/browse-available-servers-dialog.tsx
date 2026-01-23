@@ -11,7 +11,7 @@ import { useState } from "react";
 interface McpServerPickerProps {
   servers: McpServer[];
   selectedId?: string;
-  onSelect: (server: McpServer) => void;
+  onSelect: (server: McpServer | null) => void;
   isLoading?: boolean;
 }
 
@@ -51,7 +51,7 @@ export function McpServerPicker({
             ? "border-primary bg-primary/5"
             : "bg-card hover:bg-accent/50",
         )}
-        onClick={() => onSelect(server)}
+        onClick={() => onSelect(isSelected ? null : server)}
       >
         <div className="flex items-center gap-4 p-4">
           <button

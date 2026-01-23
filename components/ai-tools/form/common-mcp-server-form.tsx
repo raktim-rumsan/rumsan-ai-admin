@@ -131,7 +131,7 @@ export function CommonMcpServerForm({
           <McpServerPicker
             servers={mcpServers ?? []}
             isLoading={mcpServersLoading}
-            selectedId={pickedServer?.id || selectedServer?.id}
+            selectedId={pickedServer?.id}
             onSelect={(server) => {
               setPickedServer(server);
             }}
