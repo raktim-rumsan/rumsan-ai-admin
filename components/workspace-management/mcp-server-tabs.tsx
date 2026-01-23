@@ -153,15 +153,20 @@ export default function McpServerTabs() {
     );
   };
 
-  const handleRefreshServer = (serverId: string) => {
+  const handleRefreshServer = async (serverId: string) => {
     setRefreshingServerId(serverId);
 
     if (expandedServerId !== serverId) {
       setExpandedServerId(serverId);
     }
 
-    refetch();
-    setRefreshingServerId(null);
+    try {
+      await refetch();
+    } catch (error) {
+      console.error("Failed to refresh server:", error);
+    } finally {
+      setRefreshingServerId(null);
+    }
   };
 
   const handleDelete = () => {
@@ -229,21 +234,22 @@ export default function McpServerTabs() {
             >
               <div className="flex items-center justify-between p-4 hover:bg-accent/50 transition-colors">
                 <div className="flex items-center gap-4 flex-1">
-                  <button
+                  <Button
+                    variant="ghost"
                     aria-label="expand"
                     onClick={() =>
                       setExpandedServerId(
                         expandedServerId === server.id ? null : server.id,
                       )
                     }
-                    className="transform transition-transform"
+                    className="transform transition-transform cursor-pointer"
                   >
                     <ChevronDown
-                      className={`h-5 w-5 text-muted-foreground ${
+                      className={`h-5 w-5 text-muted-foreground  ${
                         expandedServerId === server.id ? "rotate-180" : ""
                       }`}
                     />
-                  </button>
+                  </Button>
 
                   <div className="rounded-lg bg-muted p-3">
                     <Server className="h-5 w-5 text-muted-foreground" />
@@ -363,59 +369,74 @@ export default function McpServerTabs() {
               </div>
 
               {expandedServerId === server.id && (
-                <div className="border-t p-4 bg-transparent">
-                  <div className="text-xs text-muted-foreground font-medium mb-3">
-                    AVAILABLE TOOLS ({server.mcpServer?.mcpTools?.length ?? 0})
-                  </div>
-
+                <div className="border-t px-4 py-4">
                   {refreshingServerId === server.id ? (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
-                      <RefreshCcw
-                        color="#ec6436"
-                        className="w-4 h-4 animate-spin"
-                      />
-                      <span>Refreshing tools...</span>
+                    <div className="flex flex-col gap-3">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Refreshing Tools...
+                      </p>
+                      {[...Array(3)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between rounded-md border bg-background p-4 animate-pulse"
+                        >
+                          <div className="flex flex-col gap-2 flex-1">
+                            <div className="h-4 bg-muted rounded w-1/4"></div>
+                            <div className="h-3 bg-muted rounded w-3/4"></div>
+                          </div>
+                          {isAdmin && (
+                            <div className="h-6 w-11 bg-muted rounded-full"></div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (server.mcpServer?.mcpTools ?? []).length > 0 ? (
+                    <div className="flex flex-col gap-3">
+                      <div className="text-xs text-muted-foreground font-medium mb-3">
+                        AVAILABLE TOOLS (
+                        {(server.mcpServer?.mcpTools ?? []).length})
+                      </div>
+                      {(server.mcpServer?.mcpTools ?? []).map((tool) => (
+                        <div
+                          key={tool.id}
+                          className="flex items-center justify-between rounded-md border bg-background p-4"
+                        >
+                          <div className="flex-1 pr-4">
+                            <h4 className="font-medium text-sm">
+                              {humanizeToolName(tool.name)}
+                            </h4>
+                            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                              {tool.description
+                                ?.replace(/Args:\s*/i, "")
+                                .replace(/Returns:\s*/i, "")
+                                .replace(/\[Note:[^\]]*\]/i, "")
+                                .trim()}
+                            </p>
+                          </div>
+                          {isAdmin && (
+                            <Switch
+                              checked={tool.enabled}
+                              onCheckedChange={() =>
+                                handleToggleTool(
+                                  server.id,
+                                  tool.id,
+                                  currentWorkspace?.id as string,
+                                )
+                              }
+                            />
+                          )}
+                        </div>
+                      ))}
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      {(server.mcpServer?.mcpTools ?? []).length === 0 ? (
-                        <div className="text-sm text-muted-foreground">
-                          No tools available for this server.
-                        </div>
-                      ) : (
-                        (server.mcpServer?.mcpTools ?? []).map((tool) => (
-                          <div
-                            key={tool.id}
-                            className="flex items-center justify-between p-4 rounded-lg border"
-                          >
-                            <div>
-                              <div className="font-medium">
-                                {humanizeToolName(tool.name)}
-                              </div>
-                              <div className="text-sm text-muted-foreground">
-                                {tool.description
-                                  ?.replace(/Args:\s*/i, "")
-                                  .replace(/Returns:\s*/i, "")
-                                  .replace(/\[Note:[^\]]*\]/i, "")
-                                  .trim()}
-                              </div>
-                            </div>
-
-                            {isAdmin && (
-                              <Switch
-                                checked={tool.enabled}
-                                onCheckedChange={() =>
-                                  handleToggleTool(
-                                    server.id,
-                                    tool.id,
-                                    currentWorkspace?.id as string,
-                                  )
-                                }
-                              />
-                            )}
-                          </div>
-                        ))
-                      )}
+                    <div className="text-muted-foreground flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
+                      <Server className="size-12 mb-4 opacity-50" />
+                      <p className="text-lg font-medium">
+                        No tools available for this server
+                      </p>
+                      <p className="text-sm mt-1">
+                        Please add tools to this server.
+                      </p>
                     </div>
                   )}
                 </div>

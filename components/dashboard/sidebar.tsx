@@ -63,11 +63,6 @@ const navigationItems: NavigationItem[] = [
         icon: FileText,
         slug: "/documents",
       },
-      {
-        title: "Web Documents",
-        icon: Globe,
-        slug: "/web-documents",
-      },
     ],
   },
   {
