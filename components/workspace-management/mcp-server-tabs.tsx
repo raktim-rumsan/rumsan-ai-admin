@@ -136,19 +136,19 @@ export default function McpServerTabs() {
     });
   };
 
-  const handleCopyUrl = (url: string, serverId: string) => {
-    if (!url) return;
+  // const handleCopyUrl = (url: string, serverId: string) => {
+  //   if (!url) return;
 
-    navigator.clipboard.writeText(url);
+  //   navigator.clipboard.writeText(url);
 
-    setCopiedServerId(serverId);
-    setTimeout(() => setCopiedServerId(null), 2000);
+  //   setCopiedServerId(serverId);
+  //   setTimeout(() => setCopiedServerId(null), 2000);
 
-    toastUtils.generic.success(
-      "URL copied",
-      "Server URL has been copied to clipboard.",
-    );
-  };
+  //   toastUtils.generic.success(
+  //     "URL copied",
+  //     "Server URL has been copied to clipboard.",
+  //   );
+  // };
 
   const handleRefreshServer = async (serverId: string) => {
     setRefreshingServerId(serverId);
@@ -199,7 +199,7 @@ export default function McpServerTabs() {
               onClick={() => setIsBrowseOpen(true)}
               className="cursor-pointer"
             >
-              Browse All
+              Add Server
             </Button>
           </McpServerAdd>
         </div>
@@ -268,7 +268,7 @@ export default function McpServerTabs() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {/* <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <span>
                         {truncateMiddleUrl(server.mcpServer?.url) || "No URL"}
                       </span>
@@ -289,7 +289,7 @@ export default function McpServerTabs() {
                           )}
                         </Button>
                       )}
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 

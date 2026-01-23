@@ -114,19 +114,19 @@ export function CommonMcpServerForm({
     }
   };
 
-  const handleCopyUrl = (url: string, serverId: string) => {
-    if (!url) return;
+  // const handleCopyUrl = (url: string, serverId: string) => {
+  //   if (!url) return;
 
-    navigator.clipboard.writeText(url);
+  //   navigator.clipboard.writeText(url);
 
-    setCopiedServerId(serverId);
-    setTimeout(() => setCopiedServerId(null), 2000);
+  //   setCopiedServerId(serverId);
+  //   setTimeout(() => setCopiedServerId(null), 2000);
 
-    toastUtils.generic.success(
-      "URL copied",
-      "Server URL has been copied to clipboard.",
-    );
-  };
+  //   toastUtils.generic.success(
+  //     "URL copied",
+  //     "Server URL has been copied to clipboard.",
+  //   );
+  // };
 
   return (
     <form
@@ -199,7 +199,7 @@ export function CommonMcpServerForm({
                 {selectedServer.type}
               </Badge>
             </div>
-            <div className="flex items-center gap-1 mt-2">
+            {/* <div className="flex items-center gap-1 mt-2">
               <p className="text-xs text-muted-foreground">
                 {truncateMiddleUrl(selectedServer.url)}
               </p>
@@ -219,7 +219,7 @@ export function CommonMcpServerForm({
                   <Copy className="w-4 h-4" />
                 )}
               </Button>
-            </div>
+            </div> */}
             <p className="text-xs text-muted-foreground mt-1">
               {selectedServer.mcpTools?.length} tool
               {selectedServer.mcpTools?.length !== 1 ? "s" : ""} available
