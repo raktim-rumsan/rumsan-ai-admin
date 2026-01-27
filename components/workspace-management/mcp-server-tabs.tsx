@@ -57,7 +57,9 @@ export default function McpServerTabs() {
 
   const servers: WorkspaceMcpServer[] = mcpServers?.data ?? [];
 
-  const serversWithVisibleTools = servers.map((server) => {
+  const visibleServers = isAdmin ? servers : servers.filter((s) => s.isActive);
+
+  const serversWithVisibleTools = visibleServers.map((server) => {
     const visibleTools = isAdmin
       ? (server.mcpServer.mcpTools ?? [])
       : (server.mcpServer.mcpTools ?? []).filter((tool) => tool.enabled);
@@ -189,18 +191,20 @@ export default function McpServerTabs() {
               : "View MCP tools that the AI can reference."}
           </h3>
         </div>
-        <div className="flex items-center gap-2">
-          <McpServerAdd>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsBrowseOpen(true)}
-              className="cursor-pointer"
-            >
-              Add Server
-            </Button>
-          </McpServerAdd>
-        </div>
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+            <McpServerAdd>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsBrowseOpen(true)}
+                className="cursor-pointer"
+              >
+                Add Server
+              </Button>
+            </McpServerAdd>
+          </div>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -216,7 +220,7 @@ export default function McpServerTabs() {
               Error loading MCP servers. Please try again.
             </p>
           </div>
-        ) : !servers || servers.length === 0 ? (
+        ) : !visibleServers || visibleServers.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Server className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No MCP servers available</p>
