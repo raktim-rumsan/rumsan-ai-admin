@@ -1,5 +1,6 @@
 import { Clock, Globe, Sparkles, Zap } from "lucide-react";
 import { ChatInterface } from "./chat-interface";
+import { CustomizationPanel } from "../customization-panel";
 
 export function HeroSection() {
   return (
@@ -87,6 +88,9 @@ export function HeroSection() {
 
         <div className="flex items-center justify-center h-full">
           <ChatInterface className="h-auto" />
+        </div>
+        <div>
+          <CustomizationPanel />
         </div>
       </div>
     </section>

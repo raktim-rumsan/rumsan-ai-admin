@@ -117,7 +117,7 @@ export default function AuthOtp() {
         if (sessionError) {
           console.error(
             "Error getting session after OTP verification:",
-            sessionError
+            sessionError,
           );
         } else if (session?.user) {
           const convertedUser = UserSchema.parse({
@@ -167,11 +167,11 @@ export default function AuthOtp() {
                     userState: contextData.data.userState || null,
                     primaryOrganization:
                       contextData.data.organizations?.primary || null,
-                    organizations: contextData.data.organizations?.all || [],
+                    // organizations: contextData.data.organizations?.all || [],
                   };
                   const contextString = JSON.stringify(cookieData);
                   document.cookie = `organizationContext=${encodeURIComponent(
-                    contextString
+                    contextString,
                   )}; path=/; max-age=86400; SameSite=Lax`;
                 }
 
@@ -185,13 +185,13 @@ export default function AuthOtp() {
                 }
 
                 const redirectPath = getRedirectPath(
-                  contextData?.data?.redirectTo
+                  contextData?.data?.redirectTo,
                 );
                 // Use window.location.href for full page reload to ensure middleware sees the cookie
                 window.location.href = redirectPath;
               } else {
                 console.warn(
-                  "Failed to fetch organization context, using fallback"
+                  "Failed to fetch organization context, using fallback",
                 );
                 window.location.href = "/dashboard";
               }
@@ -202,7 +202,7 @@ export default function AuthOtp() {
           } catch (contextError) {
             console.error(
               "Failed to fetch organization context:",
-              contextError
+              contextError,
             );
             // Fallback to dashboard if context fetch fails
             window.location.href = "/dashboard";
@@ -212,7 +212,7 @@ export default function AuthOtp() {
         setError(
           error instanceof Error
             ? error.message
-            : "Invalid OTP code. Please try again."
+            : "Invalid OTP code. Please try again.",
         );
       }
     });

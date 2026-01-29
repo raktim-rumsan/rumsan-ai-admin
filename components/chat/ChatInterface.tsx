@@ -40,7 +40,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   useEffect(() => {
     if (scrollAreaRef.current) {
       const scrollContainer = scrollAreaRef.current.querySelector(
-        "[data-radix-scroll-area-viewport]"
+        "[data-radix-scroll-area-viewport]",
       );
       if (scrollContainer) {
         scrollContainer.scrollTop = scrollContainer.scrollHeight;
@@ -88,7 +88,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
       toastUtils.generic.error(
         "Failed to get response",
-        error instanceof Error ? error.message : "Unknown error"
+        error instanceof Error ? error.message : "Unknown error",
       );
 
       const errorMessage: ChatMessage = {
