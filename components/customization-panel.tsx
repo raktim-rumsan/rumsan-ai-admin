@@ -101,7 +101,9 @@ export function CustomizationPanel() {
       {/* Header */}
       <div className="px-5 py-4 border-b bg-white">
         <h3 className="font-semibold text-foreground">Customization</h3>
-        <p className="text-sm text-muted-foreground">Configure the assistant appearance</p>
+        <p className="text-sm text-muted-foreground">
+          Configure the assistant appearance
+        </p>
       </div>
 
       {/* Scrollable Content */}
@@ -123,7 +125,9 @@ export function CustomizationPanel() {
                   key={doc.id}
                   className={cn(
                     "flex items-center gap-3 p-3 rounded-lg border transition-colors",
-                    isEnabled ? "bg-blue-50 border-blue-100" : "bg-white border-border",
+                    isEnabled
+                      ? "bg-blue-50 border-blue-100"
+                      : "bg-white border-border",
                   )}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -135,7 +139,9 @@ export function CustomizationPanel() {
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
                         {doc.description}
                       </p>
-                      <p className="text-[10px] text-muted-foreground/70 mt-1">{doc.size}</p>
+                      <p className="text-[10px] text-muted-foreground/70 mt-1">
+                        {doc.size}
+                      </p>
                     </div>
                   </div>
                   <div className="ml-2">
@@ -207,8 +213,12 @@ export function CustomizationPanel() {
               ) : (
                 <div className="py-4">
                   <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm font-medium mb-1">Upload PDF Document</p>
-                  <p className="text-xs text-muted-foreground">Train the assistant with your bank's documentation</p>
+                  <p className="text-sm font-medium mb-1">
+                    Upload PDF Document
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Train the assistant with your bank's documentation
+                  </p>
                 </div>
               )}
             </div>
@@ -333,7 +343,11 @@ export function CustomizationPanel() {
       {/* Footer */}
       <div className="px-5 py-4 border-t bg-white mt-auto">
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="flex-1 rounded-md h-11 bg-white text-sm" onClick={handleReset}>
+          <Button
+            variant="outline"
+            className="flex-1 rounded-md h-11 bg-white text-sm"
+            onClick={handleReset}
+          >
             Reset to Default
           </Button>
           <Button
