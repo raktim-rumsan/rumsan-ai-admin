@@ -12,7 +12,10 @@ export function getAuthToken() {
   const match = document.cookie.match(/sb-[^=]+-auth-token=([^;]+)/);
   return match ? match[1] : null;
 }
-
+export function getApiKey() {
+  if (typeof window === "undefined") return null;
+  return process.env.API_KEY || null;
+}
 export function generateRandomPassword(length: number = 16): string {
   return randomBytes(length).toString("hex");
 }
