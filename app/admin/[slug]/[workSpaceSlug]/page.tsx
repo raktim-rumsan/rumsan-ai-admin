@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Workspace } from "@/types/workspace-types";
+import NotFound from "@/app/not-found";
 import MembersTab from "@/components/workspace-management/members-tabs";
 import LLMSettingsTab from "@/components/workspace-management/llm-settings-tabs";
 import KnowledgebaseTab from "@/components/workspace-management/knowledegebase-tabs";
@@ -33,7 +34,7 @@ export default function WorkspaceDetailPage({
 
   if (!isLoading && workspaceData) {
     filterWorkspace = workspaceData?.data?.myWorkspaces.find(
-      (ws) => ws.slug === workSpaceSlug
+      (ws) => ws.slug === workSpaceSlug,
     );
   }
 
@@ -56,6 +57,11 @@ export default function WorkspaceDetailPage({
   // Don't render if user is WORKSPACE_MEMBER
   if (!isLoading && filterWorkspace?.userRole === "WORKSPACE_MEMBER") {
     return null;
+  }
+
+  // If workspace slug is invalid, show NotFound page
+  if (!isLoading && !filterWorkspace) {
+    return <NotFound />;
   }
 
   return (
