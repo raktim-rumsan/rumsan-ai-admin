@@ -36,11 +36,11 @@ export default function AuthSignUp() {
       setEmailError("Email is required");
       return false;
     }
-    // Check if email contains only allowed characters: a-z, 0-9, ., and @
-    const allowedCharsRegex = /^[a-z0-9.@]+$/i;
+    // Check if email contains only allowed characters: a-z, 0-9, ., +, and @
+    const allowedCharsRegex = /^[a-z0-9.+@]+$/i;
     if (!allowedCharsRegex.test(emailValue)) {
       setEmailError(
-        "Sorry, only letters (a-z), numbers (0-9), and periods (.) are allowed"
+        "Sorry, only letters (a-z), numbers (0-9), periods (.), and plus (+) are allowed"
       );
       return false;
     }
@@ -67,10 +67,10 @@ export default function AuthSignUp() {
     setEmail(value);
     // Only check for invalid characters while typing, not email format
     if (value.trim()) {
-      const allowedCharsRegex = /^[a-z0-9.@]+$/i;
+      const allowedCharsRegex = /^[a-z0-9.+@]+$/i;
       if (!allowedCharsRegex.test(value)) {
         setEmailError(
-          "Sorry, only letters (a-z), numbers (0-9), and periods (.) are allowed"
+          "Sorry, only letters (a-z), numbers (0-9), periods (.), and plus (+) are allowed"
         );
       } else {
         // Check for multiple @ symbols
