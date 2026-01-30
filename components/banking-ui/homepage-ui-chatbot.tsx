@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
   Zap,
@@ -17,6 +17,9 @@ import { cn } from "@/lib/utils";
 import { BankConfig, banks } from "@/lib/customize-bank-data";
 import { CustomizationPanel } from "./customize-chatbot-pannel";
 
+// Animation states for the expand/collapse transition
+type AnimationPhase = "idle" | "expanding" | "expanded" | "collapsing";
+
 interface Message {
   id: string;
   content: string;
@@ -26,7 +29,7 @@ interface Message {
 export function UpdatedHeroSection() {
   const [selectedBank, setSelectedBank] = useState<BankConfig | null>(null);
   const [isCustomizing, setIsCustomizing] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [animationPhase, setAnimationPhase] = useState<AnimationPhase>("idle");
   const [showBankSelector, setShowBankSelector] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -48,6 +51,7 @@ export function UpdatedHeroSection() {
   const [draftBotIcon, setDraftBotIcon] = useState("🤖");
   const [uploadedPdfs, setUploadedPdfs] = useState<File[]>([]);
   const [enabledPdfs, setEnabledPdfs] = useState<boolean[]>([]);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Saved state (what displays in the chatbot preview)
   const [savedName, setSavedName] = useState("");
@@ -115,8 +119,8 @@ export function UpdatedHeroSection() {
     setSavedAssistantName(bank.name);
     setSavedTagline(bank.tagline);
     setSavedColor(bank.primaryColor);
-    setSavedQuestions(bank.quickQuestions);
     setSavedLogo(null);
+    setSavedQuestions(bank.quickQuestions);
     setSavedBotIcon("🤖");
     setMessages([
       {
@@ -129,24 +133,23 @@ export function UpdatedHeroSection() {
 
   const handleStartCustomizing = () => {
     if (selectedBank) {
-      setIsTransitioning(true);
+      // Start expansion animation - panel reveals from right
+      setAnimationPhase("expanding");
       setTimeout(() => {
         setIsCustomizing(true);
-        setTimeout(() => {
-          setIsTransitioning(false);
-        }, 50);
-      }, 300);
+        setAnimationPhase("idle");
+      }, 900);
     }
   };
 
   const handleExitCustomizing = () => {
-    setIsTransitioning(true);
+    // Start collapse animation - panel collapses to right
+    setAnimationPhase("collapsing");
+    // After animation completes, reset to idle
     setTimeout(() => {
       setIsCustomizing(false);
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 50);
-    }, 300);
+      setAnimationPhase("idle");
+    }, 500);
   };
 
   const handleSaveConfiguration = () => {
@@ -196,13 +199,8 @@ export function UpdatedHeroSection() {
 
   const handlePdfUpload = (file: File | null) => {
     if (file) {
-      setUploadedPdf(file);
-      setUploadedPdfs([file]);
-      setEnabledPdfs([true]);
-    } else {
-      setUploadedPdf(null);
-      setUploadedPdfs([]);
-      setEnabledPdfs([]);
+      setUploadedPdfs((prev) => [...prev, file]);
+      setEnabledPdfs((prev) => [...prev, true]);
     }
   };
 
@@ -253,48 +251,74 @@ export function UpdatedHeroSection() {
   };
 
   // Chatbot component (reused in both modes)
-  const ChatbotWidget = ({ expanded = false }: { expanded?: boolean }) => (
-    <div
-      className={cn(
-        "bg-card rounded-2xl border shadow-xl overflow-hidden flex flex-col",
-        expanded
-          ? "w-full h-full"
-          : "w-full max-w-[480px] h-[calc(100vh-200px)] min-h-[500px] max-h-[700px]",
-      )}
-    >
-      {/* Header with Bank Selector */}
-      <div
-        className="flex items-center gap-3 px-4 py-3 text-white relative shrink-0"
-        style={{ backgroundColor: currentColor }}
-      >
-        {isCustomizing && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-white hover:bg-white/20 -ml-1"
-            onClick={handleExitCustomizing}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        )}
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 shrink-0">
-          {currentLogo ? (
-            <img
-              src={currentLogo || "/placeholder.svg"}
-              alt="Logo"
-              className="h-6 w-6 object-contain"
-            />
-          ) : (
-            <Box className="h-5 w-5" />
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-medium truncate">{currentBankName}</h3>
-          <p className="text-xs opacity-80 truncate">{currentTagline}</p>
-        </div>
+  const ChatbotWidget = ({ expanded = false }: { expanded?: boolean }) => {
+    const isExpanding = animationPhase === "expanding";
+    const isCollapsing = animationPhase === "collapsing";
+    const showBackButton = isCustomizing || isExpanding;
+    const showPanel = (isCustomizing || isExpanding) && !isCollapsing;
 
-        {selectedBank && !isCustomizing && (
-          <div className="flex items-center gap-1 shrink-0">
+    return (
+      <div
+        className={cn(
+          "overflow-hidden flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
+          expanded
+            ? "w-full h-full"
+            : cn(
+                "w-full",
+                showPanel
+                  ? "lg:h-[30px] h-[calc(100vh-200px)] min-h-[500px] max-h-[700px]"
+                  : "h-[calc(100vh-200px)] min-h-[500px] max-h-[700px]",
+              ),
+        )}
+      >
+        {/* Header with Bank Selector */}
+        <div
+          className="flex items-center gap-3 px-4 py-3 text-white relative shrink-0"
+          style={{ backgroundColor: currentColor }}
+        >
+          {/* Back button - shows during expansion and customization, fades out when collapsing */}
+          <div
+            className={cn(
+              "transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden",
+              showBackButton && !isCollapsing
+                ? "w-8 opacity-100"
+                : "w-0 opacity-0",
+            )}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-white hover:bg-white/20"
+              onClick={handleExitCustomizing}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 shrink-0">
+            {currentLogo ? (
+              <img
+                src={currentLogo || "/placeholder.svg"}
+                alt="Logo"
+                className="h-6 w-6 object-contain"
+              />
+            ) : (
+              <Box className="h-5 w-5" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium truncate">{currentBankName}</h3>
+            <p className="text-xs opacity-80 truncate">{currentTagline}</p>
+          </div>
+
+          {/* Switch and Customize buttons - hide during expansion */}
+          <div
+            className={cn(
+              "flex items-center gap-1 shrink-0 transition-all duration-300 ease-out",
+              selectedBank && !isCustomizing && animationPhase !== "expanding"
+                ? "opacity-100 w-auto"
+                : "opacity-0 w-0 overflow-hidden",
+            )}
+          >
             <div className="relative">
               <Button
                 size="sm"
@@ -342,14 +366,11 @@ export function UpdatedHeroSection() {
                           key={bank.id}
                           onClick={() => handleBankSelect(bank)}
                           className={cn(
-                            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left border",
-                            selectedBank?.id === bank.id
-                              ? "bg-primary/10 border-primary/30"
-                              : "border-transparent hover:bg-muted hover:border-border",
+                            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left bg-muted/50 hover:bg-muted border border-transparent hover:border-border group",
                           )}
                         >
                           <div
-                            className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm"
+                            className="h-10 w-10 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-md group-hover:scale-105 transition-transform"
                             style={{ backgroundColor: bank.primaryColor }}
                           >
                             {bank.name.charAt(0)}
@@ -381,313 +402,199 @@ export function UpdatedHeroSection() {
               Customize
             </Button>
           </div>
-        )}
-      </div>
-
-      <div
-        className={cn(
-          "flex justify-center shrink-0",
-          expanded ? "py-8" : "py-6",
-        )}
-      >
-        <div className="relative">
-          <div
-            className={cn(
-              "rounded-2xl flex items-center justify-center",
-              expanded ? "h-20 w-20" : "h-16 w-16",
-            )}
-            style={{ backgroundColor: `${currentColor}15` }}
-          >
-            <Bot
-              className={cn(expanded ? "h-10 w-10" : "h-8 w-8")}
-              style={{ color: currentColor }}
-            />
-          </div>
-          <div
-            className="absolute -top-1 -right-1 h-4 w-4 rounded-full border-2 border-card"
-            style={{ backgroundColor: "#22d3ee" }}
-          />
         </div>
-      </div>
 
-      {/* Messages */}
-      <div
-        className={cn(
-          "px-4 space-y-3 overflow-y-auto flex-1",
-          expanded ? "min-h-[200px]" : "min-h-[150px]",
-        )}
-      >
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={cn(
-              "flex gap-2 max-w-[85%]",
-              message.sender === "user" ? "ml-auto flex-row-reverse" : "",
-            )}
-          >
-            {message.sender === "bot" && (
-              <div className="rounded-xl px-4 py-2.5 text-sm bg-muted text-foreground">
-                {message.content}
-              </div>
-            )}
-            {message.sender === "user" && (
-              <div
-                className="rounded-xl px-4 py-2.5 text-sm text-white"
-                style={{ backgroundColor: currentColor }}
-              >
-                {message.content}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Quick Questions */}
-      <div className="px-4 py-4 shrink-0">
-        <p className="text-xs text-muted-foreground mb-2">Quick Questions:</p>
-        <div className="flex flex-wrap gap-2">
-          {currentQuestions
-            .slice(0, expanded ? 4 : 2)
-            .map((question, index) => (
-              <button
-                key={index}
-                onClick={() => handleSendMessage(question)}
-                className="text-xs px-3 py-1.5 rounded-full border bg-background hover:bg-muted transition-colors truncate max-w-full"
-              >
-                {question}
-              </button>
-            ))}
-        </div>
-      </div>
-
-      {/* Input */}
-      <div className="p-4 pt-0 shrink-0">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSendMessage(inputValue);
-          }}
-          className="flex gap-2 border rounded-lg px-3 py-2"
+        {/* Main Content Area - Chat and Panel side by side */}
+        <div
+          className={cn(
+            "flex flex-1 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
+            showPanel ? "lg:min-h-[30px]" : "min-h-0",
+          )}
         >
-          <input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type your question..."
-            className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
-          />
-          <button
-            type="submit"
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Send className="h-4 w-4" />
-          </button>
-        </form>
-        <p className="text-xs text-muted-foreground text-center mt-3">
-          This information is for informational and educational purposes only.
-        </p>
-      </div>
-    </div>
-  );
-
-  // Customization mode layout
-  if (isCustomizing) {
-    return (
-      <section className="py-6 md:py-10">
-        <div className="container mx-auto px-4">
+          {/* Left - Chat Messages Area - Expands to cover panel when collapsing */}
           <div
             className={cn(
-              "flex flex-col h-[calc(100vh-140px)] min-h-[600px] transition-all duration-500 ease-out",
-              isTransitioning ? "opacity-0 scale-95" : "opacity-100 scale-100",
+              "flex flex-col flex-1 min-w-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
+              showPanel && !isCollapsing
+                ? "border-r border-border"
+                : "border-r-0",
+              isCollapsing && "flex-[2]",
             )}
           >
-            {/* Chatbot with Integrated Customization Panel */}
-            <div className="bg-card rounded-2xl border shadow-xl overflow-hidden flex flex-col h-full">
-              {/* Header with Bank Selector */}
-              <div
-                className="flex items-center gap-3 px-4 py-3 text-white relative shrink-0"
-                style={{ backgroundColor: currentColor }}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-white hover:bg-white/20 -ml-1"
-                  onClick={handleExitCustomizing}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 shrink-0">
-                  {currentLogo ? (
-                    <img
-                      src={currentLogo || "/placeholder.svg"}
-                      alt="Logo"
-                      className="h-6 w-6 object-contain"
-                    />
-                  ) : (
-                    <Box className="h-5 w-5" />
+            <div
+              className={cn(
+                "flex justify-center shrink-0",
+                expanded ? "py-8" : "py-6",
+              )}
+            >
+              <div className="relative">
+                <div
+                  className={cn(
+                    "rounded-2xl flex items-center justify-center",
+                    expanded ? "h-20 w-20" : "h-16 w-16",
                   )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium truncate">{currentBankName}</h3>
-                  <p className="text-xs opacity-80 truncate">
-                    {currentTagline}
-                  </p>
-                </div>
-              </div>
-
-              {/* Main Content - Split into Chat and Customization */}
-              <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
-                {/* Left - Chatbot Messages */}
-                <div className="flex-1 flex flex-col min-h-0 border-b lg:border-b-0 lg:border-r">
-                  {/* Bot Avatar */}
-                  <div className="flex justify-center py-4 shrink-0">
-                    <div className="relative">
-                      <div
-                        className="rounded-2xl flex items-center justify-center h-16 w-16"
-                        style={{ backgroundColor: `${currentColor}15` }}
-                      >
-                        <Bot
-                          className="h-8 w-8"
-                          style={{ color: currentColor }}
-                        />
-                      </div>
-                      <div
-                        className="absolute -top-1 -right-1 h-4 w-4 rounded-full border-2 border-card"
-                        style={{ backgroundColor: "#22d3ee" }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Messages */}
-                  <div className="px-4 space-y-3 overflow-y-auto flex-1 min-h-0">
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={cn(
-                          "flex gap-2 max-w-[85%]",
-                          message.sender === "user"
-                            ? "ml-auto flex-row-reverse"
-                            : "",
-                        )}
-                      >
-                        {message.sender === "bot" && (
-                          <div className="rounded-xl px-4 py-2.5 text-sm bg-muted text-foreground">
-                            {message.content}
-                          </div>
-                        )}
-                        {message.sender === "user" && (
-                          <div
-                            className="rounded-xl px-4 py-2.5 text-sm text-white"
-                            style={{ backgroundColor: currentColor }}
-                          >
-                            {message.content}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Quick Questions */}
-                  <div className="px-4 py-3 shrink-0 border-t">
-                    <p className="text-xs text-muted-foreground mb-2">
-                      Quick Questions:
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {currentQuestions.slice(0, 2).map((question, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleSendMessage(question)}
-                          className="text-xs px-3 py-1.5 rounded-full border bg-background hover:bg-muted transition-colors truncate max-w-full"
-                        >
-                          {question}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Input */}
-                  <div className="p-4 pt-3 shrink-0 border-t">
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        handleSendMessage(inputValue);
-                      }}
-                      className="flex gap-2 border rounded-lg px-3 py-2"
-                    >
-                      <input
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        placeholder="Type your question..."
-                        className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
-                      />
-                      <button
-                        type="submit"
-                        className="text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <Send className="h-4 w-4" />
-                      </button>
-                    </form>
-                    <p className="text-xs text-muted-foreground text-center mt-2">
-                      This information is for informational and educational
-                      purposes only.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Right - Customization Panel */}
-                <div className="w-full lg:w-[380px] shrink-0 flex flex-col min-h-0 overflow-hidden">
-                  <CustomizationPanel
-                    bankName={draftName}
-                    assistantName={draftAssistantName}
-                    tagline={draftTagline}
-                    primaryColor={draftColor}
-                    quickQuestions={draftQuestions}
-                    onNameChange={setDraftName}
-                    onAssistantNameChange={setDraftAssistantName}
-                    onTaglineChange={setDraftTagline}
-                    onColorChange={setDraftColor}
-                    onLogoChange={setDraftLogo}
-                    onQuickQuestionsChange={setDraftQuestions}
-                    onPdfUpload={handlePdfUpload}
-                    uploadedPdf={uploadedPdf}
-                    logoUrl={draftLogo}
-                    onSave={handleSaveConfiguration}
-                    onReset={handleResetConfiguration}
-                    availableDocuments={selectedBank?.availableDocuments || []}
-                    enabledDocuments={enabledDocuments}
-                    onToggleDocument={handleToggleDocument}
-                    selectedBotIcon={draftBotIcon}
-                    onBotIconChange={setDraftBotIcon}
-                    uploadedPdfs={uploadedPdfs}
-                    onRemovePdf={handleRemovePdf}
-                    enabledPdfs={enabledPdfs}
-                    onTogglePdf={handleTogglePdf}
+                  style={{ backgroundColor: `${currentColor}15` }}
+                >
+                  <Bot
+                    className={cn(expanded ? "h-10 w-10" : "h-8 w-8")}
+                    style={{ color: currentColor }}
                   />
                 </div>
+                <div
+                  className="absolute -top-1 -right-1 h-4 w-4 rounded-full border-2 border-card"
+                  style={{ backgroundColor: "#22d3ee" }}
+                />
               </div>
+            </div>
+
+            {/* Messages */}
+            <div
+              className={cn(
+                "px-4 space-y-3 overflow-y-auto flex-1",
+                expanded ? "min-h-[200px]" : "min-h-[150px]",
+              )}
+            >
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={cn(
+                    "flex gap-2 max-w-[85%]",
+                    message.sender === "user" ? "ml-auto flex-row-reverse" : "",
+                  )}
+                >
+                  {message.sender === "bot" && (
+                    <div className="rounded-xl px-4 py-2.5 text-sm bg-muted text-foreground">
+                      {message.content}
+                    </div>
+                  )}
+                  {message.sender === "user" && (
+                    <div
+                      className="rounded-xl px-4 py-2.5 text-sm text-white"
+                      style={{ backgroundColor: currentColor }}
+                    >
+                      {message.content}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Quick Questions */}
+            <div className="px-4 py-4 shrink-0">
+              <p className="text-xs text-muted-foreground mb-2">
+                Quick Questions:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {currentQuestions
+                  .slice(0, expanded ? 4 : 2)
+                  .map((question, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSendMessage(question)}
+                      className="text-xs px-3 py-1.5 rounded-full border bg-background hover:bg-muted transition-colors truncate max-w-full"
+                    >
+                      {question}
+                    </button>
+                  ))}
+              </div>
+            </div>
+
+            {/* Input */}
+            <div className="p-4 pt-0 shrink-0">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendMessage(inputValue);
+                }}
+                className="flex gap-2 border rounded-lg px-3 py-2"
+              >
+                <input
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Type your question..."
+                  className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+                />
+                <button
+                  type="submit"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </form>
+              <p className="text-xs text-muted-foreground text-center mt-3">
+                This information is for informational and educational purposes
+                only.
+              </p>
+            </div>
+          </div>
+
+          {/* Right - Customization Panel (inside chatbot container) - Smoothly slides out when collapsing */}
+          <div
+            className={cn(
+              "overflow-hidden shrink-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
+              showPanel ? "w-[380px] opacity-100" : "w-0 opacity-0",
+              isCollapsing && "translate-x-[100px]",
+            )}
+          >
+            <div
+              className={cn(
+                "w-[380px] h-full transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
+                isCollapsing && "opacity-0 translate-x-8",
+              )}
+            >
+              <CustomizationPanel
+                bankName={draftName}
+                assistantName={draftAssistantName}
+                tagline={draftTagline}
+                primaryColor={draftColor}
+                quickQuestions={draftQuestions}
+                onNameChange={setDraftName}
+                onAssistantNameChange={setDraftAssistantName}
+                onTaglineChange={setDraftTagline}
+                onColorChange={setDraftColor}
+                onLogoChange={setDraftLogo}
+                onQuickQuestionsChange={setDraftQuestions}
+                onPdfUpload={handlePdfUpload}
+                uploadedPdf={uploadedPdf}
+                logoUrl={draftLogo}
+                onSave={handleSaveConfiguration}
+                onReset={handleResetConfiguration}
+                availableDocuments={selectedBank?.availableDocuments || []}
+                enabledDocuments={enabledDocuments}
+                onToggleDocument={handleToggleDocument}
+                selectedBotIcon={draftBotIcon}
+                onBotIconChange={setDraftBotIcon}
+                uploadedPdfs={uploadedPdfs}
+                onRemovePdf={handleRemovePdf}
+                enabledPdfs={enabledPdfs}
+                onTogglePdf={handleTogglePdf}
+              />
             </div>
           </div>
         </div>
-      </section>
+      </div>
     );
-  }
+  };
 
-  // Default hero layout
+  // Default hero layout (unified - chatbot expands with panel)
+  const showPanel =
+    (isCustomizing || animationPhase === "expanding") &&
+    animationPhase !== "collapsing";
+
   return (
-    <section className="py-12 md:py-20">
+    <section className="py-12 md:py-20 overflow-hidden">
       <div className="container mx-auto px-6 md:px-12 lg:px-16">
-        <div
-          className={cn(
-            "flex flex-col lg:flex-row items-start gap-12 lg:gap-16 transition-all duration-500 ease-out",
-            isTransitioning ? "opacity-0 scale-95" : "opacity-100 scale-100",
-          )}
-        >
-          {/* Left Content */}
+        <div className="flex flex-col lg:flex-row items-start gap-12 lg:gap-16">
+          {/* Left Content - Collapses during expansion */}
           <div
             className={cn(
               "flex-1 w-full lg:w-1/2 transition-all duration-500 ease-out",
-              isTransitioning
-                ? "opacity-0 -translate-x-8"
-                : "opacity-100 translate-x-0",
+              (animationPhase === "expanding" ||
+                (isCustomizing && animationPhase !== "collapsing")) &&
+                cn(
+                  "lg:w-0 lg:min-w-0 lg:opacity-0 lg:overflow-hidden lg:mr-0 lg:gap-0",
+                  showPanel ? "lg:h-0" : "lg:h-0",
+                ),
             )}
           >
             {/* Badge */}
@@ -717,16 +624,26 @@ export function UpdatedHeroSection() {
             </p>
           </div>
 
-          {/* Right Content - Chatbot */}
+          {/* Right Content - Chatbot with Expansion Animation */}
           <div
             className={cn(
-              "w-full lg:w-1/2 flex justify-center lg:justify-end transition-all duration-500 ease-out delay-75",
-              isTransitioning
-                ? "opacity-0 translate-x-8"
-                : "opacity-100 translate-x-0",
+              "flex transition-all duration-500 ease-out",
+              (isCustomizing || animationPhase === "expanding") &&
+                animationPhase !== "collapsing"
+                ? "w-full justify-center"
+                : "w-full lg:w-1/2 justify-center lg:justify-end",
             )}
           >
-            <div className="relative">
+            {/* Expandable Card Container - Expands to fit panel, smoothly shrinks when collapsing */}
+            <div
+              className={cn(
+                "relative transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
+                (isCustomizing || animationPhase === "expanding") &&
+                  animationPhase !== "collapsing"
+                  ? "w-full max-w-[860px]"
+                  : "w-full max-w-[480px]",
+              )}
+            >
               {/* Blurred overlay when no bank selected */}
               {!selectedBank && (
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/40 backdrop-blur-[2px] rounded-2xl">
@@ -766,10 +683,12 @@ export function UpdatedHeroSection() {
                               <button
                                 key={bank.id}
                                 onClick={() => handleBankSelect(bank)}
-                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-left bg-muted/50 hover:bg-muted border border-transparent hover:border-border group"
+                                className={cn(
+                                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left bg-muted/50 hover:bg-muted border border-transparent hover:border-border group",
+                                )}
                               >
                                 <div
-                                  className="h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-md group-hover:scale-105 transition-transform"
+                                  className="h-10 w-10 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-md group-hover:scale-105 transition-transform"
                                   style={{ backgroundColor: bank.primaryColor }}
                                 >
                                   {bank.name.charAt(0)}
@@ -798,8 +717,10 @@ export function UpdatedHeroSection() {
                   </div>
                 </div>
               )}
+              {/* Chatbot Card Container - Panel expands from within */}
               <div
                 className={cn(
+                  "bg-card rounded-2xl border shadow-xl overflow-hidden transition-all duration-500 ease-out",
                   !selectedBank && "pointer-events-none select-none",
                 )}
               >
