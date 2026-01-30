@@ -155,7 +155,7 @@ export function UpdatedHeroSection() {
     setSavedTagline(tagline);
     setSavedColor(primaryColor);
     setSavedQuestions(quickQuestions);
-    setSavedLogo(`${process.env.NEXT_PUBLIC_SERVER_API}/${workspace?.url}` || null);
+    setSavedLogo(`${process.env.NEXT_PUBLIC_SERVER_API}/${workspace?.url?.replace(/^uploads\//, "assets/")}` || null);
     setSavedBotIcon("🤖");
     setMessages([
       {
