@@ -1,13 +1,34 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { FileText, Plus, ChevronDown, Trash2 } from "lucide-react";
+import {
+  FileText,
+  Plus,
+  ChevronDown,
+  Trash2,
+  AlertCircle,
+  AlertTriangle,
+  CircleGauge,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { AvailableDocument } from "@/lib/customize-bank-data";
+import { dismissToast, toastUtils } from "@/lib/toast-utils";
+import {
+  useDocUploadMutation,
+  useEmbeddingMutation,
+  useUnembeddingMutation,
+} from "@/queries/demoSiteQuery";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CustomizationPanelProps {
   bankName: string;
@@ -35,6 +56,8 @@ interface CustomizationPanelProps {
   onRemovePdf?: (index: number) => void;
   enabledPdfs?: boolean[];
   onTogglePdf?: (index: number) => void;
+  workspaceSlug?: string;
+  bankCode?: string;
 }
 
 export function CustomizationPanel({
@@ -63,10 +86,30 @@ export function CustomizationPanel({
   onRemovePdf,
   enabledPdfs = [],
   onTogglePdf,
+  workspaceSlug,
+  bankCode,
 }: CustomizationPanelProps) {
+  console.log(bankCode, "bankcode");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAvailableDocsExpanded, setIsAvailableDocsExpanded] = useState(false);
   const [uploadedPdfEnabled, setUploadedPdfEnabled] = useState(true);
+  const [trainingDocumentId, setTrainingDocumentId] = useState<string | null>(
+    null,
+  );
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const embeddingMutation = useEmbeddingMutation(
+    workspaceSlug as string,
+    bankCode,
+  );
+
+  const unEmbeddingMutation = useUnembeddingMutation(
+    workspaceSlug as string,
+    bankCode,
+  );
 
   const handleRemoveUploadedPdf = () => {
     onPdfUpload?.(null);
@@ -76,6 +119,111 @@ export function CustomizationPanel({
     }
   };
 
+  const handleTrain = async (
+    documentId: string,
+    fileName: string,
+    isRetrain: boolean,
+  ) => {
+    const action = isRetrain ? "Retraining" : "Training";
+    const loadingToastId = toastUtils.generic.loading(
+      `${action} document. Please wait a moment.`,
+    );
+
+    // Set the training document ID to show loading state for this specific document
+    setTrainingDocumentId(documentId);
+
+    const mutation = isRetrain ? unEmbeddingMutation : embeddingMutation;
+
+    mutation.mutate(documentId, {
+      onError: (error: unknown) => {
+        dismissToast(loadingToastId);
+        setTrainingDocumentId(null); // Clear training state
+
+        let errorMessage = `Failed to ${action.toLowerCase()} "${fileName}".`;
+        let errorTitle = `${action} failed`;
+
+        if (error instanceof Error) {
+          errorMessage = error.message;
+
+          // Check for specific error types to provide better user guidance
+          if (error.message.includes("Failed to parse PDF")) {
+            errorTitle = "Document Processing Error";
+            errorMessage =
+              "The PDF file appears to be corrupted or invalid. Please try uploading a different file.";
+          } else if (
+            error.message.includes("invalid top-level pages dictionary")
+          ) {
+            errorTitle = "PDF Format Error";
+            errorMessage =
+              "This PDF file has an invalid format and cannot be processed. Please try a different PDF file.";
+          }
+        }
+
+        toastUtils.generic.error(errorTitle, errorMessage);
+      },
+      onSuccess: () => {
+        dismissToast(loadingToastId);
+        setTrainingDocumentId(null); // Clear training state
+      },
+    });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFileError(null); // Reset previous errors
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Allowed files
+    const allowedTypes = ["application/pdf"];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    // Validate type
+    if (!allowedTypes.includes(file.type)) {
+      setFileError("Invalid file type. Only PDF files are allowed.");
+      return;
+    }
+
+    // Validate size
+    if (file.size > maxSize) {
+      setFileError("File size exceeds 10 MB.");
+      setSelectedFile(null);
+      return;
+    }
+    setSelectedFile(file);
+  };
+  const uploadMutation = useDocUploadMutation(workspaceSlug, bankCode, () => {
+    toastUtils.fileUpload.success(selectedFile?.name || "File");
+    setSelectedFile(null);
+    setIsUploading(false);
+  });
+
+  const handleUpload = () => {
+    if (!selectedFile) {
+      toastUtils.generic.error(
+        "No file selected",
+        "Please select a file to upload",
+      );
+      return;
+    }
+
+    setIsUploading(true);
+
+    // Show upload started toast
+    toastUtils.fileUpload.started(selectedFile.name);
+
+    uploadMutation.mutate(selectedFile, {
+      onError: (error: unknown) => {
+        const errorMessage = error instanceof Error ? error.message : undefined;
+        toastUtils.fileUpload.error(errorMessage);
+        setIsUploading(false);
+      },
+      onSuccess: () => {
+        setIsUploadModalOpen(false);
+        // Success is handled in the mutation callback above
+      },
+    });
+  };
   return (
     <div className="flex flex-col h-full bg-muted/30 overflow-hidden">
       {/* Header */}
@@ -110,12 +258,15 @@ export function CustomizationPanel({
                   <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium text-foreground truncate">
-                      {doc.name}
+                      {doc.fileName}
                     </p>
                   </div>
                   <Switch
-                    checked={isEnabled}
-                    onCheckedChange={() => onToggleDocument?.(doc.id)}
+                    checked={doc.status !== "PENDING"}
+                    onCheckedChange={(checked) =>
+                      handleTrain(doc.id, doc.fileName || "", !checked)
+                    }
+                    disabled={trainingDocumentId === doc.id}
                     className="mt-0"
                   />
                 </div>
@@ -156,7 +307,7 @@ export function CustomizationPanel({
               <>
                 {/* Add Document Card */}
                 <button
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => setIsUploadModalOpen(true)}
                   className="w-full flex items-center gap-2 p-2.5 rounded border border-dashed border-border/60 bg-muted/5 hover:bg-muted/10 hover:border-blue-400 transition-colors"
                 >
                   <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -187,7 +338,54 @@ export function CustomizationPanel({
             </p>
           </div>
         </section>
+        {/* file upload modal   */}
+        <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold">
+                Upload File
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                Select a file from your computer to upload.
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="file-upload">File</Label>
+                <Input
+                  id="file-upload"
+                  type="file"
+                  onChange={handleFileChange}
+                  className={
+                    fileError ? "border-red-600 focus:ring-red-600" : ""
+                  }
+                />
 
+                {fileError && (
+                  <Alert className="border-red-200 bg-red-50 mt-1">
+                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-800">
+                      {fileError}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+              <Alert className="border-yellow-200 bg-yellow-50">
+                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                <AlertDescription className="text-yellow-800">
+                  File size shouldn&apos;t exceed 10 MB.
+                </AlertDescription>
+              </Alert>
+              <Button
+                onClick={handleUpload}
+                disabled={isUploading || !selectedFile}
+                className="w-full bg-gray-600 hover:bg-gray-700"
+              >
+                {isUploading ? "Uploading..." : "Upload"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
         {/* Branding Section */}
         <section>
           <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">

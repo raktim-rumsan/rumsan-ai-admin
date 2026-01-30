@@ -3,6 +3,8 @@ export interface AvailableDocument {
   name: string;
   description: string;
   size: string;
+  fileName?: string;
+  status?: "PENDING" | "ACCEPTED" | "CANCELLED" | "REVOKED" | "EXPIRED";
 }
 
 export interface BotIcon {
@@ -161,5 +163,5 @@ export const banks: BankConfig[] = [
 
 export const readyBanks = banks.filter((bank) => bank.status === "ready");
 export const comingSoonBanks = banks.filter(
-  (bank) => bank.status === "coming-soon"
+  (bank) => bank.status === "coming-soon",
 );

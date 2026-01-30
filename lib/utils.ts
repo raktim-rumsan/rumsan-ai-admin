@@ -13,6 +13,10 @@ export function getAuthToken() {
   return match ? match[1] : null;
 }
 
+export function getApiKey() {
+  if (typeof window === "undefined") return null;
+  return process.env.NEXT_PUBLIC_API_KEY || null;
+}
 export function generateRandomPassword(length: number = 16): string {
   return randomBytes(length).toString("hex");
 }
@@ -40,15 +44,13 @@ export function humanizeToolName(name: string): string {
   return name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-
-
 /** Utils For Demo Chat Bot Start **/
 export function getBankApiKey(bank: string) {
   if (typeof window === "undefined") return null;
   try {
     const bankKeys = JSON.parse(process.env.NEXT_PUBLIC_BANK_KEYS || "{}");
     const bankConfig = bankKeys[bank];
-    
+
     if (typeof bankConfig === "string") {
       return bankConfig; // Old format
     }
@@ -80,10 +82,10 @@ export function getEnvKeyFromWorkspaceName(name: string): string {
   if (WORKSPACE_NAME_TO_ENV_KEY[name]) {
     return WORKSPACE_NAME_TO_ENV_KEY[name];
   }
-  
+
   // Fallback: try to match by converting name to uppercase and removing spaces
   const normalizedName = name.toUpperCase().replace(/\s+/g, "");
-  
+
   // Check if normalized name exists in ENV keys
   if (typeof window !== "undefined") {
     try {
@@ -95,7 +97,7 @@ export function getEnvKeyFromWorkspaceName(name: string): string {
       console.error("Error parsing bank keys:", e);
     }
   }
-  
+
   // Return normalized name as fallback
   return normalizedName;
 }
@@ -111,18 +113,18 @@ function getBankConfig(bankKey: string): {
   [key: string]: any;
 } {
   if (typeof window === "undefined") return { apiKey: null };
-  
+
   try {
     const bankKeys = JSON.parse(process.env.NEXT_PUBLIC_BANK_KEYS || "{}");
     const config = bankKeys[bankKey];
-    
+
     if (!config) return { apiKey: null };
-    
+
     // Old format: string API key
     if (typeof config === "string") {
       return { apiKey: config };
     }
-    
+
     // New format: object with apiKey and other config
     if (typeof config === "object") {
       return {
@@ -132,7 +134,7 @@ function getBankConfig(bankKey: string): {
         ...config, // Spread all other properties
       };
     }
-    
+
     return { apiKey: null };
   } catch (error) {
     console.error("Error parsing bank config:", error);
@@ -144,14 +146,20 @@ function getBankConfig(bankKey: string): {
  * Hardcoded bank configurations (quickQuestions, primaryColor, etc.)
  * These are defined in code, not in ENV
  */
-const BANK_CONFIGS: Record<string, {
-  quickQuestions?: string[];
-  primaryColor?: string;
-  [key: string]: any;
-}> = {
-  "NABIL": {
-    quickQuestions: ['What is the capital of Nepal?', 'What is the population of Nepal?'],
-    primaryColor: '#fefefe'
+const BANK_CONFIGS: Record<
+  string,
+  {
+    quickQuestions?: string[];
+    primaryColor?: string;
+    [key: string]: any;
+  }
+> = {
+  NABIL: {
+    quickQuestions: [
+      "What is the capital of Nepal?",
+      "What is the population of Nepal?",
+    ],
+    primaryColor: "#fefefe",
   },
 };
 
@@ -167,13 +175,13 @@ function getHardcodedBankConfig(bankName: string): {
   if (BANK_CONFIGS[bankName]) {
     return BANK_CONFIGS[bankName];
   }
-  
+
   // Try matching by normalized name
   const normalizedName = bankName.toUpperCase().replace(/\s+/g, "");
   if (BANK_CONFIGS[normalizedName]) {
     return BANK_CONFIGS[normalizedName];
   }
-  
+
   return {};
 }
 
@@ -181,26 +189,29 @@ function getHardcodedBankConfig(bankName: string): {
  * Match workspace name to bank config name
  * Handles cases like "Nabil Bank" matching "NABIL"
  */
-function matchWorkspaceToBankName(workspaceName: string, bankName: string): boolean {
+function matchWorkspaceToBankName(
+  workspaceName: string,
+  bankName: string,
+): boolean {
   // Normalize both names: uppercase and remove spaces
   const normalizedWorkspace = workspaceName.toUpperCase().replace(/\s+/g, "");
   const normalizedBank = bankName.toUpperCase().replace(/\s+/g, "");
-  
+
   // Check if normalized names match
   if (normalizedWorkspace === normalizedBank) {
     return true;
   }
-  
+
   // Check if workspace name contains bank name (e.g., "Nabil Bank" contains "NABIL")
   if (normalizedWorkspace.includes(normalizedBank)) {
     return true;
   }
-  
+
   // Check if bank name contains workspace name
   if (normalizedBank.includes(normalizedWorkspace)) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -209,8 +220,17 @@ function matchWorkspaceToBankName(workspaceName: string, bankName: string): bool
  */
 function getBankConfigFromArray(
   workspaceName: string,
-  bankConfigs: Array<{ name: string; quickQuestions?: string[]; primaryColor?: string; [key: string]: any }>
-): { quickQuestions?: string[]; primaryColor?: string; [key: string]: any } | null {
+  bankConfigs: Array<{
+    name: string;
+    quickQuestions?: string[];
+    primaryColor?: string;
+    [key: string]: any;
+  }>,
+): {
+  quickQuestions?: string[];
+  primaryColor?: string;
+  [key: string]: any;
+} | null {
   for (const bank of bankConfigs) {
     if (matchWorkspaceToBankName(workspaceName, bank.name)) {
       return bank;
@@ -223,48 +243,71 @@ function getBankConfigFromArray(
  * Enriches organization data with API keys from ENV and hardcoded bank config
  * Matches workspace names to ENV keys and adds apiKey, quickQuestions, primaryColor, etc. to each workspace
  */
-export function enrichOrganizationsWithApiKeys<T extends {
-  workspaces?: Array<{ name: string; [key: string]: any }>;
-  name?: string;
-  [key: string]: any;
-}>(organizations: T[], bankConfigs?: Array<{ name: string; quickQuestions?: string[]; primaryColor?: string; [key: string]: any }>): T[] {
+export function enrichOrganizationsWithApiKeys<
+  T extends {
+    workspaces?: Array<{ name: string; [key: string]: any }>;
+    name?: string;
+    [key: string]: any;
+  },
+>(
+  organizations: T[],
+  bankConfigs?: Array<{
+    name: string;
+    quickQuestions?: string[];
+    primaryColor?: string;
+    [key: string]: any;
+  }>,
+): T[] {
   if (typeof window === "undefined") return organizations;
-  
+
   try {
-    console.log('bankKeys ==>', JSON.parse(process.env.NEXT_PUBLIC_BANK_KEYS || "{}"));
-    console.log('bankConfigs ==>', bankConfigs);
-    
+    console.log(
+      "bankKeys ==>",
+      JSON.parse(process.env.NEXT_PUBLIC_BANK_KEYS || "{}"),
+    );
+    console.log("bankConfigs ==>", bankConfigs);
+
     return organizations.map((org) => {
       // If organization has workspaces array
       if (org.workspaces && Array.isArray(org.workspaces)) {
         const enrichedWorkspaces = org.workspaces.map((workspace) => {
           const envKey = getEnvKeyFromWorkspaceName(workspace.name);
           const envBankConfig = getBankConfig(envKey); // API key and config from ENV
-          
+
           // Get hardcoded config from bankConfigs array (matching by name)
-          let hardcodedConfig: { quickQuestions?: string[]; primaryColor?: string; [key: string]: any } = {};
-          
+          let hardcodedConfig: {
+            quickQuestions?: string[];
+            primaryColor?: string;
+            [key: string]: any;
+          } = {};
+
           if (bankConfigs && Array.isArray(bankConfigs)) {
-            const matchedBank = getBankConfigFromArray(workspace.name, bankConfigs);
+            const matchedBank = getBankConfigFromArray(
+              workspace.name,
+              bankConfigs,
+            );
             if (matchedBank) {
               // Extract only quickQuestions and primaryColor, exclude name
               const { name, ...config } = matchedBank;
               hardcodedConfig = config;
             }
           }
-          
+
           // Fallback to static BANK_CONFIGS if not found in array
-          if (!hardcodedConfig.quickQuestions && !hardcodedConfig.primaryColor) {
+          if (
+            !hardcodedConfig.quickQuestions &&
+            !hardcodedConfig.primaryColor
+          ) {
             hardcodedConfig = getHardcodedBankConfig(workspace.name);
           }
-          
+
           console.log(`Enriching workspace "${workspace.name}":`, {
             envKey,
             apiKey: envBankConfig.apiKey,
-            hardcodedConfig
+            hardcodedConfig,
           });
-          
-          // Merge: workspace data + ENV config (apiKey) + hardcoded config (quickQuestions, primaryColor) + bankCode
+
+          // Merge: workspace data + ENV config (apiKey) + hardcoded config (quickQuestions, primaryColor)
           return {
             ...workspace,
             apiKey: envBankConfig.apiKey || null, // From ENV
@@ -272,20 +315,24 @@ export function enrichOrganizationsWithApiKeys<T extends {
             ...hardcodedConfig, // quickQuestions, primaryColor from hardcoded config
           };
         });
-        
+
         return {
           ...org,
           workspaces: enrichedWorkspaces,
         };
       }
-      
+
       // If organization itself needs config (no workspaces)
       if (org.name) {
         const envKey = getEnvKeyFromWorkspaceName(org.name);
         const envBankConfig = getBankConfig(envKey);
-        
-        let hardcodedConfig: { quickQuestions?: string[]; primaryColor?: string; [key: string]: any } = {};
-        
+
+        let hardcodedConfig: {
+          quickQuestions?: string[];
+          primaryColor?: string;
+          [key: string]: any;
+        } = {};
+
         if (bankConfigs && Array.isArray(bankConfigs)) {
           const matchedBank = getBankConfigFromArray(org.name, bankConfigs);
           if (matchedBank) {
@@ -293,11 +340,11 @@ export function enrichOrganizationsWithApiKeys<T extends {
             hardcodedConfig = config;
           }
         }
-        
+
         if (!hardcodedConfig.quickQuestions && !hardcodedConfig.primaryColor) {
           hardcodedConfig = getHardcodedBankConfig(org.name);
         }
-        
+
         return {
           ...org,
           apiKey: envBankConfig.apiKey || null,
@@ -306,8 +353,8 @@ export function enrichOrganizationsWithApiKeys<T extends {
         };
       }
 
-      console.log('return org', org);
-      
+      console.log("return org", org);
+
       return org;
     });
   } catch (error) {
@@ -322,7 +369,7 @@ export function enrichOrganizationsWithApiKeys<T extends {
  */
 export function getApiKeyForWorkspace(workspaceName: string): string | null {
   if (typeof window === "undefined") return null;
-  
+
   try {
     const envKey = getEnvKeyFromWorkspaceName(workspaceName);
     return getBankApiKey(envKey);
@@ -337,18 +384,20 @@ export function getApiKeyForWorkspace(workspaceName: string): string | null {
  * Takes an array of bank objects (with quickQuestions, primaryColor, etc. already set)
  * and adds API keys from ENV while preserving existing properties
  */
-export function enrichBanksWithApiKeys<T extends {
-  name: string;
-  [key: string]: any;
-}>(banks: T[]): T[] {
+export function enrichBanksWithApiKeys<
+  T extends {
+    name: string;
+    [key: string]: any;
+  },
+>(banks: T[]): T[] {
   if (typeof window === "undefined") return banks;
-  
+
   try {
     return banks.map((bank) => {
       // Get the ENV key from bank name (e.g., "NABIL" -> "NABIL" or "Nabil Bank" -> "NABIL")
       const envKey = getEnvKeyFromWorkspaceName(bank.name);
       const bankConfig = getBankConfig(envKey);
-      
+
       // Only add API key from ENV, preserve all existing properties (quickQuestions, primaryColor, etc.)
       return {
         ...bank,
@@ -367,18 +416,20 @@ export function enrichBanksWithApiKeys<T extends {
  * quickQuestions, primaryColor, apiKey, and any other config from ENV
  * Note: This will override existing properties with ENV values
  */
-export function enrichBanksWithConfig<T extends {
-  name: string;
-  [key: string]: any;
-}>(banks: T[]): T[] {
+export function enrichBanksWithConfig<
+  T extends {
+    name: string;
+    [key: string]: any;
+  },
+>(banks: T[]): T[] {
   if (typeof window === "undefined") return banks;
-  
+
   try {
     return banks.map((bank) => {
       // Get the ENV key from bank name (e.g., "NABIL" -> "NABIL" or "Nabil Bank" -> "NABIL")
       const envKey = getEnvKeyFromWorkspaceName(bank.name);
       const bankConfig = getBankConfig(envKey);
-      
+
       // Merge bank data with config from ENV
       // Config from ENV will override any existing properties
       return {

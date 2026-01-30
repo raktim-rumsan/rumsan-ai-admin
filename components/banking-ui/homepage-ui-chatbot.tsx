@@ -18,6 +18,7 @@ import { BankConfig } from "@/lib/customize-bank-data";
 import { CustomizationPanel } from "./customize-chatbot-pannel";
 import { useOrgBySectorQuery } from "@/queries/demoSiteQuery";
 import { SECTOR } from "@/constants/chatbot-demo-bank";
+import { useDocsQuery } from "@/queries/demoSiteQuery";
 
 interface Message {
   id: string;
@@ -67,30 +68,43 @@ export function UpdatedHeroSection() {
   // Extract workspace data if selectedBank is from API
   const selectedWorkspace = selectedBank?.workspaces?.[0];
   const currentBankName =
-    savedName || 
-    selectedWorkspace?.name || 
-    selectedBank?.name || 
+    savedName ||
+    selectedWorkspace?.name ||
+    selectedBank?.name ||
     "Rumsan Banking Assistant";
   const currentTagline =
     savedTagline ||
     selectedWorkspace?.description ||
     selectedBank?.tagline ||
     "Ask about our banking services here";
-  const currentColor = 
-    savedColor || 
-    selectedWorkspace?.primaryColor || 
-    selectedBank?.primaryColor || 
+  const currentColor =
+    savedColor ||
+    selectedWorkspace?.primaryColor ||
+    selectedBank?.primaryColor ||
     "#1a1a1a";
   const currentLogo = savedLogo || selectedWorkspace?.url || null;
   const currentQuestions =
-    savedQuestions.length > 0
+    savedQuestions?.length > 0
       ? savedQuestions
       : selectedWorkspace?.quickQuestions ||
         selectedBank?.quickQuestions || [
           "How do I open a bank account?",
           "What is the bank's loan interest rate?",
         ];
+  //fetch organizations
+  const { data } = useOrgBySectorQuery(SECTOR, "RUMSANWORKSPACE");
+  console.log("data ==>", data?.data);
 
+  //fetch documents
+  const { data: docs, isPending: isDocsPending } = useDocsQuery(
+    data?.data?.[0]?.workspaces?.[0]?.slug,
+    data?.data?.[0]?.workspaces?.[0]?.bankCode,
+  );
+
+  const workspaceSlug = data?.data?.[0]?.workspaces?.[0]?.slug;
+  if (docs) {
+    console.log("docs", docs);
+  }
   const handleSendMessage = (content: string) => {
     if (!content.trim()) return;
 
@@ -117,9 +131,13 @@ export function UpdatedHeroSection() {
     let tagline: string;
     let primaryColor: string;
     let quickQuestions: string[];
-    
+
     // Check if it's API data (has workspaces array)
-    if (bank.workspaces && Array.isArray(bank.workspaces) && bank.workspaces.length > 0) {
+    if (
+      bank.workspaces &&
+      Array.isArray(bank.workspaces) &&
+      bank.workspaces.length > 0
+    ) {
       workspace = bank.workspaces[0];
       bankName = workspace.name;
       tagline = workspace.description || "Ask about our banking services here";
@@ -136,7 +154,7 @@ export function UpdatedHeroSection() {
       primaryColor = bank.primaryColor;
       quickQuestions = bank.quickQuestions;
     }
-    
+
     setSelectedBank(bank);
     setShowBankSelector(false);
     // Set both draft and saved values when selecting a new bank
@@ -155,7 +173,10 @@ export function UpdatedHeroSection() {
     setSavedTagline(tagline);
     setSavedColor(primaryColor);
     setSavedQuestions(quickQuestions);
-    setSavedLogo(`${process.env.NEXT_PUBLIC_SERVER_API}/${workspace?.url?.replace(/^uploads\//, "assets/")}` || null);
+    setSavedLogo(
+      `${process.env.NEXT_PUBLIC_SERVER_API}/${workspace?.url?.replace(/^uploads\//, "assets/")}` ||
+        null,
+    );
     setSavedBotIcon("🤖");
     setMessages([
       {
@@ -291,14 +312,6 @@ export function UpdatedHeroSection() {
     ]);
   };
 
-  
-
-  const { data } = useOrgBySectorQuery(SECTOR);
-  console.log('data ==>', data?.data);
-
-
-  
-
   // Chatbot component (reused in both modes)
   const ChatbotWidget = ({ expanded = false }: { expanded?: boolean }) => (
     <div
@@ -386,9 +399,10 @@ export function UpdatedHeroSection() {
 
                       {data?.data?.map((bank: any) => {
                         const workspace = bank.workspaces?.[0];
-                        const isSelected = selectedBank?.id === bank.id || 
-                                         selectedBank?.workspaces?.[0]?.id === workspace?.id;
-                        
+                        const isSelected =
+                          selectedBank?.id === bank.id ||
+                          selectedBank?.workspaces?.[0]?.id === workspace?.id;
+
                         return (
                           <button
                             key={workspace?.id || bank.id}
@@ -402,7 +416,10 @@ export function UpdatedHeroSection() {
                           >
                             <div
                               className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm"
-                              style={{ backgroundColor: workspace?.primaryColor || "#1a1a1a" }}
+                              style={{
+                                backgroundColor:
+                                  workspace?.primaryColor || "#1a1a1a",
+                              }}
                             >
                               {workspace?.name?.charAt(0) || "B"}
                             </div>
@@ -645,15 +662,17 @@ export function UpdatedHeroSection() {
                       Quick Questions:
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {currentQuestions.slice(0, 2).map((question: string, index: number) => (
-                        <button
-                          key={index}
-                          onClick={() => handleSendMessage(question)}
-                          className="text-xs px-3 py-1.5 rounded-full border bg-background hover:bg-muted transition-colors truncate max-w-full"
-                        >
-                          {question}
-                        </button>
-                      ))}
+                      {currentQuestions
+                        .slice(0, 2)
+                        .map((question: string, index: number) => (
+                          <button
+                            key={index}
+                            onClick={() => handleSendMessage(question)}
+                            className="text-xs px-3 py-1.5 rounded-full border bg-background hover:bg-muted transition-colors truncate max-w-full"
+                          >
+                            {question}
+                          </button>
+                        ))}
                     </div>
                   </div>
 
@@ -705,7 +724,7 @@ export function UpdatedHeroSection() {
                     logoUrl={draftLogo}
                     onSave={handleSaveConfiguration}
                     onReset={handleResetConfiguration}
-                    availableDocuments={selectedBank?.availableDocuments || []}
+                    availableDocuments={docs?.data || []}
                     enabledDocuments={enabledDocuments}
                     onToggleDocument={handleToggleDocument}
                     selectedBotIcon={draftBotIcon}
@@ -714,6 +733,8 @@ export function UpdatedHeroSection() {
                     onRemovePdf={handleRemovePdf}
                     enabledPdfs={enabledPdfs}
                     onTogglePdf={handleTogglePdf}
+                    workspaceSlug={workspaceSlug}
+                    bankCode={data?.data?.[0]?.workspaces?.[0]?.bankCode}
                   />
                 </div>
               </div>
@@ -823,7 +844,10 @@ export function UpdatedHeroSection() {
                               >
                                 <div
                                   className="h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-md group-hover:scale-105 transition-transform"
-                                  style={{ backgroundColor: bank?.workspaces[0]?.primaryColor }}
+                                  style={{
+                                    backgroundColor:
+                                      bank?.workspaces[0]?.primaryColor,
+                                  }}
                                 >
                                   {bank?.workspaces[0]?.name?.charAt(0)}
                                 </div>

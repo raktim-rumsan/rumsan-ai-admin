@@ -1,18 +1,50 @@
 import { ROUTES } from "@/constants";
 import { toastUtils } from "@/lib/toast-utils";
-import { getBankApiKey, enrichOrganizationsWithApiKeys, enrichBanksWithApiKeys } from "@/lib/utils";
+import { getBankApiKey, enrichOrganizationsWithApiKeys } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { WorkspacesResponse } from "./workspaceQuery";
-import { WorkspaceSettingsResponse } from "./workspaceSettingQuery";
 import { BANK_CONFIGS } from "@/constants/chatbot-demo-bank";
 
+export function useDocUploadMutation(
+  workspaceSlug?: string,
+  bankCode?: string,
+  onSuccess?: () => void,
+) {
+  const queryClient = useQueryClient();
 
-
-export function useDocsQuery(workspaceSlug?: string) {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(ROUTES.UPLOAD_DOCUMENTS, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "x-tenant-id": workspaceSlug || "",
+          "x-api-key": getBankApiKey(bankCode || "NABIL") || "",
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        // Handle API error responses properly
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate documents query to refetch the list
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      onSuccess?.();
+    },
+  });
+}
+export function useDocsQuery(workspaceSlug?: string, bankCode?: string) {
   return useQuery({
     queryKey: ["documents", workspaceSlug],
     queryFn: async () => {
-      const apiKey = getBankApiKey('NABIL');
+      const apiKey = getBankApiKey(bankCode || "NABIL");
       const res = await fetch(ROUTES.DOCUMENTS, {
         method: "GET",
         headers: {
@@ -30,10 +62,12 @@ export function useDocsQuery(workspaceSlug?: string) {
       }
       return data;
     },
+    enabled: !!workspaceSlug,
   });
 }
 export function useEmbeddingMutation(
   workspaceSlug: string,
+  bankCode?: string,
   onSuccess?: () => void,
 ) {
   const queryClient = useQueryClient();
@@ -41,7 +75,7 @@ export function useEmbeddingMutation(
   return useMutation({
     mutationFn: async (documentId: string) => {
       const workspaceId = workspaceSlug;
-      const apiKey = getBankApiKey('NABIL');
+      const apiKey = getBankApiKey(bankCode || "NABIL");
       const res = await fetch(ROUTES.EMBEDDINGS, {
         method: "POST",
         headers: {
@@ -79,13 +113,14 @@ export function useEmbeddingMutation(
 }
 export function useUnembeddingMutation(
   workspaceSlug: string,
+  bankCode?: string,
   onSuccess?: () => void,
 ) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (documentId: string) => {
-      const apiKey = getBankApiKey('NABIL');
+      const apiKey = getBankApiKey(bankCode || "NABIL");
       const res = await fetch(ROUTES.UNEMBEDDINGS, {
         method: "POST",
         headers: {
@@ -120,11 +155,11 @@ export function useUnembeddingMutation(
     },
   });
 }
-export function useWorkspaceQuery() {
+export function useWorkspaceQuery(bankCode?: string) {
   return useQuery({
     queryKey: ["workspaces"],
     queryFn: async (): Promise<WorkspacesResponse> => {
-      const apiKey = getBankApiKey('NABIL');
+      const apiKey = getBankApiKey(bankCode || "NABIL");
       const res = await fetch(`${ROUTES.MY_WORKSPACE}`, {
         method: "GET",
         headers: {
@@ -227,14 +262,16 @@ export async function sendWidgetChatQuery(
     throw error;
   }
 }
+
 export function useChangeBotNameMutation(
   workspaceSlug: string,
+  bankCode?: string,
   onSuccess?: () => void,
 ) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (botName: string) => {
-      const apiKey = getBankApiKey('NABIL');
+      const apiKey = getBankApiKey(bankCode || "NABIL");
       const res = await fetch(ROUTES.BOT_NAME, {
         method: "PATCH",
         headers: {
@@ -269,12 +306,13 @@ export function useChangeBotNameMutation(
     },
   });
 }
-export function useOrgBySectorQuery(sector: string) {
+export function useOrgBySectorQuery(sector: string, bankCode?: string) {
   return useQuery({
-    queryKey: ["organizationsBySector", sector],
+    queryKey: ["organizationsBySector", sector, bankCode],
     queryFn: async () => {
       // Use first available API key for the request (or get from first org if available)
-      const apiKey = getBankApiKey('NABIL');
+      const apiKey = getBankApiKey(bankCode || "NABIL");
+      console.log("apiKey", apiKey);
       const res = await fetch(`${ROUTES.ORG_BY_SECTOR(sector)}`, {
         method: "GET",
         headers: {
@@ -290,31 +328,23 @@ export function useOrgBySectorQuery(sector: string) {
         throw new Error(errorMessage);
       }
 
-   
-      
       // Enrich organizations with API keys from ENV and hardcoded bank config
       if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
-        
         // Define banks with hardcoded quickQuestions and primaryColor
-        const banksData = [
-          {
-            name: 'NABIL',
-            quickQuestions: ['What is the capital of Nepal?', 'What is the population of Nepal?'],
-            primaryColor: '#fefefe'
-          }
-        ];
-        
+
         // Enrich organizations: adds API keys from ENV and bank config to matching workspaces
-        const enrichedData = enrichOrganizationsWithApiKeys(data.data, BANK_CONFIGS);
-        
-        console.log('enriched data ==>', enrichedData);
-        
+        const enrichedData = enrichOrganizationsWithApiKeys(
+          data.data,
+          BANK_CONFIGS,
+        );
+
+        console.log("enriched data ==>", enrichedData);
+
         return {
           ...data,
           data: enrichedData,
         };
       }
-      
 
       return data;
     },
