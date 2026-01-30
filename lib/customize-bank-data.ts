@@ -15,6 +15,7 @@ export interface BankConfig {
   id: string;
   name: string;
   tagline: string;
+  botName?: string;
   logo: string;
   primaryColor: string;
   quickQuestions: string[];
@@ -161,5 +162,5 @@ export const banks: BankConfig[] = [
 
 export const readyBanks = banks.filter((bank) => bank.status === "ready");
 export const comingSoonBanks = banks.filter(
-  (bank) => bank.status === "coming-soon"
+  (bank) => bank.status === "coming-soon",
 );

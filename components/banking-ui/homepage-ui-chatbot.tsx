@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Zap,
@@ -13,11 +13,16 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, getBankApiKey } from "@/lib/utils";
 import { BankConfig } from "@/lib/customize-bank-data";
 import { CustomizationPanel } from "./customize-chatbot-pannel";
-import { useOrgBySectorQuery } from "@/queries/demoSiteQuery";
+import {
+  sendWidgetChatQuery,
+  useChangeBotNameMutation,
+  useOrgBySectorQuery,
+} from "@/queries/demoSiteQuery";
 import { SECTOR } from "@/constants/chatbot-demo-bank";
+import { getBackendFileUrl } from "@/queries/organizationQuery";
 
 interface Message {
   id: string;
@@ -27,6 +32,7 @@ interface Message {
 
 export function UpdatedHeroSection() {
   const [selectedBank, setSelectedBank] = useState<BankConfig | any>(null);
+  // console.log("selectedBank:", selectedBank);
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showBankSelector, setShowBankSelector] = useState(false);
@@ -42,6 +48,7 @@ export function UpdatedHeroSection() {
   // Draft state (what user edits in the form)
   const [draftName, setDraftName] = useState("");
   const [draftAssistantName, setDraftAssistantName] = useState("");
+  console.log("draftAssistantName:", draftAssistantName);
   const [draftTagline, setDraftTagline] = useState("");
   const [draftColor, setDraftColor] = useState("");
   const [draftLogo, setDraftLogo] = useState<string | null>(null);
@@ -67,21 +74,25 @@ export function UpdatedHeroSection() {
   // Extract workspace data if selectedBank is from API
   const selectedWorkspace = selectedBank?.workspaces?.[0];
   const currentBankName =
-    savedName || 
-    selectedWorkspace?.name || 
-    selectedBank?.name || 
+    savedName ||
+    selectedWorkspace?.name ||
+    selectedBank?.name ||
     "Rumsan Banking Assistant";
   const currentTagline =
     savedTagline ||
     selectedWorkspace?.description ||
     selectedBank?.tagline ||
     "Ask about our banking services here";
-  const currentColor = 
-    savedColor || 
-    selectedWorkspace?.primaryColor || 
-    selectedBank?.primaryColor || 
+  const currentColor =
+    savedColor ||
+    selectedWorkspace?.primaryColor ||
+    selectedBank?.primaryColor ||
     "#1a1a1a";
-  const currentLogo = savedLogo || selectedWorkspace?.url || null;
+  // const currentLogo = savedLogo || selectedWorkspace?.url || null;
+  const currentLogo = selectedWorkspace?.url
+    ? getBackendFileUrl(selectedWorkspace?.url)!
+    : null;
+  console.log("currentLogo:", currentLogo);
   const currentQuestions =
     savedQuestions.length > 0
       ? savedQuestions
@@ -91,37 +102,78 @@ export function UpdatedHeroSection() {
           "What is the bank's loan interest rate?",
         ];
 
-  const handleSendMessage = (content: string) => {
+  const workspace = selectedBank?.workspaces?.[0];
+  const apiKey = getBankApiKey(workspace?.bankCode); // get API key
+  const workspaceId = workspace?.slug;
+  const changeBotNameMutation = useChangeBotNameMutation(
+    apiKey,
+    workspace?.slug,
+  );
+  const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
 
+    // Add user message immediately
     const userMessage: Message = {
       id: Date.now().toString(),
       content,
       sender: "user",
     };
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
 
-    const botResponse: Message = {
+    // Show a "typing..." bot message while waiting
+    const typingMessage: Message = {
       id: (Date.now() + 1).toString(),
-      content: `Thank you for your question. This is a demo response from ${currentBankName}.`,
+      content: `${draftAssistantName} is thinking...`,
       sender: "bot",
     };
+    setMessages((prev) => [...prev, typingMessage]);
 
-    setMessages((prev) => [...prev, userMessage, botResponse]);
-    setInputValue("");
+    try {
+      const { answer } = await sendWidgetChatQuery(
+        content,
+        apiKey!,
+        workspaceId,
+      );
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === typingMessage.id ? { ...msg, content: answer } : msg,
+        ),
+      );
+    } catch (error) {
+      console.error("Error querying API:", error);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === typingMessage.id
+            ? {
+                ...msg,
+                content: "Sorry, something went wrong. Please try again later.",
+              }
+            : msg,
+        ),
+      );
+    }
   };
 
   const handleBankSelect = (bank: BankConfig | any) => {
     // Handle both BankConfig type and API organization data
     let workspace: any = null;
     let bankName: string;
+    let botName: string;
     let tagline: string;
     let primaryColor: string;
     let quickQuestions: string[];
-    
+
     // Check if it's API data (has workspaces array)
-    if (bank.workspaces && Array.isArray(bank.workspaces) && bank.workspaces.length > 0) {
+    if (
+      bank.workspaces &&
+      Array.isArray(bank.workspaces) &&
+      bank.workspaces.length > 0
+    ) {
       workspace = bank.workspaces[0];
       bankName = workspace.name;
+      botName = workspace.botName;
       tagline = workspace.description || "Ask about our banking services here";
       // Use enriched data from API (quickQuestions and primaryColor from workspace)
       primaryColor = workspace.primaryColor || "#1a1a1a";
@@ -132,16 +184,17 @@ export function UpdatedHeroSection() {
     } else {
       // Fallback to BankConfig type
       bankName = bank.name;
+      botName = bank.botName;
       tagline = bank.tagline;
       primaryColor = bank.primaryColor;
       quickQuestions = bank.quickQuestions;
     }
-    
+
     setSelectedBank(bank);
     setShowBankSelector(false);
     // Set both draft and saved values when selecting a new bank
     setDraftName(bankName);
-    setDraftAssistantName(bankName);
+    setDraftAssistantName(botName);
     setDraftTagline(tagline);
     setDraftColor(primaryColor);
     setDraftQuestions(quickQuestions);
@@ -155,7 +208,10 @@ export function UpdatedHeroSection() {
     setSavedTagline(tagline);
     setSavedColor(primaryColor);
     setSavedQuestions(quickQuestions);
-    setSavedLogo(`${process.env.NEXT_PUBLIC_SERVER_API}/${workspace?.url?.replace(/^uploads\//, "assets/")}` || null);
+    setSavedLogo(
+      `${process.env.NEXT_PUBLIC_SERVER_API}/${workspace?.url?.replace(/^uploads\//, "assets/")}` ||
+        null,
+    );
     setSavedBotIcon("🤖");
     setMessages([
       {
@@ -166,6 +222,22 @@ export function UpdatedHeroSection() {
     ]);
   };
 
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleAssistantNameChange = (value: string) => {
+    setDraftAssistantName(value);
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      const trimmed = value.trim();
+      if (!trimmed) return;
+
+      changeBotNameMutation.mutate(trimmed);
+    }, 600); // ⏱ debounce delay (500–800ms is ideal)
+  };
   const handleStartCustomizing = () => {
     if (selectedBank) {
       setIsTransitioning(true);
@@ -291,13 +363,7 @@ export function UpdatedHeroSection() {
     ]);
   };
 
-  
-
   const { data } = useOrgBySectorQuery(SECTOR);
-  console.log('data ==>', data?.data);
-
-
-  
 
   // Chatbot component (reused in both modes)
   const ChatbotWidget = ({ expanded = false }: { expanded?: boolean }) => (
@@ -386,9 +452,10 @@ export function UpdatedHeroSection() {
 
                       {data?.data?.map((bank: any) => {
                         const workspace = bank.workspaces?.[0];
-                        const isSelected = selectedBank?.id === bank.id || 
-                                         selectedBank?.workspaces?.[0]?.id === workspace?.id;
-                        
+                        const isSelected =
+                          selectedBank?.id === bank.id ||
+                          selectedBank?.workspaces?.[0]?.id === workspace?.id;
+
                         return (
                           <button
                             key={workspace?.id || bank.id}
@@ -402,7 +469,10 @@ export function UpdatedHeroSection() {
                           >
                             <div
                               className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm"
-                              style={{ backgroundColor: workspace?.primaryColor || "#1a1a1a" }}
+                              style={{
+                                backgroundColor:
+                                  workspace?.primaryColor || "#1a1a1a",
+                              }}
                             >
                               {workspace?.name?.charAt(0) || "B"}
                             </div>
@@ -645,15 +715,17 @@ export function UpdatedHeroSection() {
                       Quick Questions:
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {currentQuestions.slice(0, 2).map((question: string, index: number) => (
-                        <button
-                          key={index}
-                          onClick={() => handleSendMessage(question)}
-                          className="text-xs px-3 py-1.5 rounded-full border bg-background hover:bg-muted transition-colors truncate max-w-full"
-                        >
-                          {question}
-                        </button>
-                      ))}
+                      {currentQuestions
+                        .slice(0, 2)
+                        .map((question: string, index: number) => (
+                          <button
+                            key={index}
+                            onClick={() => handleSendMessage(question)}
+                            className="text-xs px-3 py-1.5 rounded-full border bg-background hover:bg-muted transition-colors truncate max-w-full"
+                          >
+                            {question}
+                          </button>
+                        ))}
                     </div>
                   </div>
 
@@ -695,7 +767,7 @@ export function UpdatedHeroSection() {
                     primaryColor={draftColor}
                     quickQuestions={draftQuestions}
                     onNameChange={setDraftName}
-                    onAssistantNameChange={setDraftAssistantName}
+                    onAssistantNameChange={handleAssistantNameChange}
                     onTaglineChange={setDraftTagline}
                     onColorChange={setDraftColor}
                     onLogoChange={setDraftLogo}
@@ -823,7 +895,10 @@ export function UpdatedHeroSection() {
                               >
                                 <div
                                   className="h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-md group-hover:scale-105 transition-transform"
-                                  style={{ backgroundColor: bank?.workspaces[0]?.primaryColor }}
+                                  style={{
+                                    backgroundColor:
+                                      bank?.workspaces[0]?.primaryColor,
+                                  }}
                                 >
                                   {bank?.workspaces[0]?.name?.charAt(0)}
                                 </div>
