@@ -264,10 +264,11 @@ export function enrichOrganizationsWithApiKeys<T extends {
             hardcodedConfig
           });
           
-          // Merge: workspace data + ENV config (apiKey) + hardcoded config (quickQuestions, primaryColor)
+          // Merge: workspace data + ENV config (apiKey) + hardcoded config (quickQuestions, primaryColor) + bankCode
           return {
             ...workspace,
             apiKey: envBankConfig.apiKey || null, // From ENV
+            bankCode: envKey, // ENV_KEY (e.g., "NABIL", "GIME")
             ...hardcodedConfig, // quickQuestions, primaryColor from hardcoded config
           };
         });
@@ -300,6 +301,7 @@ export function enrichOrganizationsWithApiKeys<T extends {
         return {
           ...org,
           apiKey: envBankConfig.apiKey || null,
+          bankCode: envKey,
           ...hardcodedConfig,
         };
       }
