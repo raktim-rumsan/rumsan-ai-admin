@@ -823,17 +823,17 @@ export function UpdatedHeroSection() {
                               >
                                 <div
                                   className="h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-md group-hover:scale-105 transition-transform"
-                                  style={{ backgroundColor: bank.primaryColor }}
+                                  style={{ backgroundColor: bank?.workspaces[0]?.primaryColor }}
                                 >
-                                  {bank.name.charAt(0)}
+                                  {bank?.workspaces[0]?.name?.charAt(0)}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium text-foreground truncate">
-                                    {bank.name}
+                                    {bank?.workspaces[0]?.name}
                                   </p>
-                                  <p className="text-xs text-muted-foreground truncate">
-                                    {bank.tagline}
-                                  </p>
+                                  {/* <p className="text-xs text-muted-foreground truncate">
+                                    {bank?.workspaces[0]?.description}
+                                  </p> */}
                                 </div>
                                 <ChevronDown className="h-4 w-4 text-muted-foreground -rotate-90 opacity-0 group-hover:opacity-100 transition-opacity" />
                               </button>

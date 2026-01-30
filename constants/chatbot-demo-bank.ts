@@ -47,14 +47,14 @@ export const BANK_CONFIGS = [
   },
   {
     name: 'GIME',
-    primaryColor: '#C5161D',
     quickQuestions: [
       'How can I open a new bank account?',
       'What are the charges for international remittance?',
       'How do I reset my internet banking password?',
       'What loan products do you offer?',
       'Where is the nearest branch located?'
-    ]
+    ],
+    primaryColor: '#1A3C47',
   },
   {
     name: 'SCB',
