@@ -21,6 +21,25 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  if (pathname.startsWith("/onboarding")) {
+    if (
+      !organizationContext ||
+      organizationContext.userState !== "FIRST_TIME_USER"
+    ) {
+      const url = request.nextUrl.clone();
+
+      // Redirect based on user state
+      if (organizationContext?.userState === "USER_WITH_ORG_ADMIN_ROLE") {
+        url.pathname = "/admin";
+      } else {
+        url.pathname = "/dashboard";
+      }
+      return NextResponse.redirect(url);
+    }
+
+    return supabaseResponse;
+  }
+
   // Allow auth and public routes to pass through without organization context checks
   // Note: API routes are excluded from middleware via the matcher config
   if (
@@ -29,8 +48,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/widget") ||
     pathname.startsWith("/bank") ||
     pathname.startsWith("/accept-invitation") ||
-    pathname.startsWith("/invitation-pending") ||
-    pathname.startsWith("/onboarding")
+    pathname.startsWith("/invitation-pending")
   ) {
     return supabaseResponse;
   }
@@ -122,7 +140,7 @@ interface OrganizationContextData {
 }
 
 function checkIfUserIsAdmin(
-  organizationContext: OrganizationContextData
+  organizationContext: OrganizationContextData,
 ): boolean {
   try {
     // Check userState
@@ -141,7 +159,7 @@ function checkIfUserIsAdmin(
     // Check if any organization has admin role
     if (Array.isArray(organizationContext.organizations)) {
       return organizationContext.organizations.some(
-        (org: Organization) => org.role === "ORG_ADMIN" || org.isOwner === true
+        (org: Organization) => org.role === "ORG_ADMIN" || org.isOwner === true,
       );
     }
 
