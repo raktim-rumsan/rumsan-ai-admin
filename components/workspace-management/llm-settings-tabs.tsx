@@ -41,7 +41,15 @@ const validationSchema = z
     chatModel: z.string().optional(),
     embeddingModel: z.string().optional(),
     temperature: z.string().optional(),
-    maxTokens: z.string().optional(),
+    maxTokens: z.string().refine(
+      (val) => {
+        const num = Number(val);
+        return num >= 2000 && num <= 4000;
+      },
+      {
+        message: "Max Tokens must be between 2000 and 4000",
+      },
+    ),
     apiKey: z.string().optional(),
   })
   .superRefine((data, ctx) => {
@@ -89,6 +97,7 @@ export default function LLMConfigPage() {
       apiKey: "",
     },
     resolver: zodResolver(validationSchema),
+    mode: "onChange",
   });
 
   const { control, handleSubmit, watch, reset, setValue } = form;
@@ -145,10 +154,10 @@ export default function LLMConfigPage() {
 
     const isSameProvider = workspaceSettings.data.provider === provider;
     const chatModel = isSameProvider
-      ? workspaceSettings.data.llmModel ?? ""
+      ? (workspaceSettings.data.llmModel ?? "")
       : providerConfig.defaultChatModel;
     const embeddingModel = isSameProvider
-      ? workspaceSettings.data.embeddingModel ?? ""
+      ? (workspaceSettings.data.embeddingModel ?? "")
       : providerConfig.defaultEmbeddingModel;
 
     setValue("chatModel", chatModel);
@@ -184,7 +193,7 @@ export default function LLMConfigPage() {
         onSuccess: () => {
           reset(form.getValues());
         },
-      }
+      },
     );
   };
 
@@ -392,15 +401,6 @@ export default function LLMConfigPage() {
                       max="4000"
                       {...form.register("maxTokens", {
                         required: "Max Tokens is required",
-                        validate: (value) => {
-                          const num = Number(value);
-                          if (isNaN(num)) return "Max Tokens must be a number";
-                          if (num < 2000)
-                            return "Max Tokens cannot be less than 2000";
-                          if (num > 4000)
-                            return "Max Tokens cannot be greater than 4000";
-                          return true;
-                        },
                       })}
                       className="h-12"
                     />
@@ -469,7 +469,7 @@ export default function LLMConfigPage() {
                     onClick={() =>
                       testConnection(
                         { apiKey: apiKeyValue },
-                        { onSuccess: () => setLastTestedKey(apiKeyValue) }
+                        { onSuccess: () => setLastTestedKey(apiKeyValue) },
                       )
                     }
                     disabled={isTesting}
