@@ -14,8 +14,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { BankConfig, banks } from "@/lib/customize-bank-data";
+import { BankConfig } from "@/lib/customize-bank-data";
 import { CustomizationPanel } from "./customize-chatbot-pannel";
+import { useOrgBySectorQuery } from "@/queries/demoSiteQuery";
+import { SECTOR } from "@/constants/chatbot-demo-bank";
 
 interface Message {
   id: string;
@@ -24,7 +26,7 @@ interface Message {
 }
 
 export function UpdatedHeroSection() {
-  const [selectedBank, setSelectedBank] = useState<BankConfig | null>(null);
+  const [selectedBank, setSelectedBank] = useState<BankConfig | any>(null);
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showBankSelector, setShowBankSelector] = useState(false);
@@ -62,18 +64,29 @@ export function UpdatedHeroSection() {
   const [enabledDocuments, setEnabledDocuments] = useState<string[]>([]);
 
   // Chatbot preview uses saved values
+  // Extract workspace data if selectedBank is from API
+  const selectedWorkspace = selectedBank?.workspaces?.[0];
   const currentBankName =
-    savedName || selectedBank?.name || "Rumsan Banking Assistant";
+    savedName || 
+    selectedWorkspace?.name || 
+    selectedBank?.name || 
+    "Rumsan Banking Assistant";
   const currentTagline =
     savedTagline ||
+    selectedWorkspace?.description ||
     selectedBank?.tagline ||
     "Ask about our banking services here";
-  const currentColor = savedColor || selectedBank?.primaryColor || "#1a1a1a";
-  const currentLogo = savedLogo;
+  const currentColor = 
+    savedColor || 
+    selectedWorkspace?.primaryColor || 
+    selectedBank?.primaryColor || 
+    "#1a1a1a";
+  const currentLogo = savedLogo || selectedWorkspace?.url || null;
   const currentQuestions =
     savedQuestions.length > 0
       ? savedQuestions
-      : selectedBank?.quickQuestions || [
+      : selectedWorkspace?.quickQuestions ||
+        selectedBank?.quickQuestions || [
           "How do I open a bank account?",
           "What is the bank's loan interest rate?",
         ];
@@ -97,31 +110,57 @@ export function UpdatedHeroSection() {
     setInputValue("");
   };
 
-  const handleBankSelect = (bank: BankConfig) => {
+  const handleBankSelect = (bank: BankConfig | any) => {
+    // Handle both BankConfig type and API organization data
+    let workspace: any = null;
+    let bankName: string;
+    let tagline: string;
+    let primaryColor: string;
+    let quickQuestions: string[];
+    
+    // Check if it's API data (has workspaces array)
+    if (bank.workspaces && Array.isArray(bank.workspaces) && bank.workspaces.length > 0) {
+      workspace = bank.workspaces[0];
+      bankName = workspace.name;
+      tagline = workspace.description || "Ask about our banking services here";
+      // Use enriched data from API (quickQuestions and primaryColor from workspace)
+      primaryColor = workspace.primaryColor || "#1a1a1a";
+      quickQuestions = workspace.quickQuestions || [
+        "How do I open a bank account?",
+        "What is the bank's loan interest rate?",
+      ];
+    } else {
+      // Fallback to BankConfig type
+      bankName = bank.name;
+      tagline = bank.tagline;
+      primaryColor = bank.primaryColor;
+      quickQuestions = bank.quickQuestions;
+    }
+    
     setSelectedBank(bank);
     setShowBankSelector(false);
     // Set both draft and saved values when selecting a new bank
-    setDraftName(bank.name);
-    setDraftAssistantName(bank.name);
-    setDraftTagline(bank.tagline);
-    setDraftColor(bank.primaryColor);
-    setDraftQuestions(bank.quickQuestions);
-    setDraftLogo(null);
+    setDraftName(bankName);
+    setDraftAssistantName(bankName);
+    setDraftTagline(tagline);
+    setDraftColor(primaryColor);
+    setDraftQuestions(quickQuestions);
+    setDraftLogo(workspace?.url || null);
     setDraftBotIcon("🤖");
     setUploadedPdfs([]);
     setEnabledPdfs([]);
     // Set saved values too (so preview shows bank defaults)
-    setSavedName(bank.name);
-    setSavedAssistantName(bank.name);
-    setSavedTagline(bank.tagline);
-    setSavedColor(bank.primaryColor);
-    setSavedQuestions(bank.quickQuestions);
-    setSavedLogo(null);
+    setSavedName(bankName);
+    setSavedAssistantName(bankName);
+    setSavedTagline(tagline);
+    setSavedColor(primaryColor);
+    setSavedQuestions(quickQuestions);
+    setSavedLogo(`${process.env.NEXT_PUBLIC_SERVER_API}/${workspace?.url}` || null);
     setSavedBotIcon("🤖");
     setMessages([
       {
         id: Date.now().toString(),
-        content: `Hello! I'm your ${bank.name}. How can I help you today?`,
+        content: `Hello! I'm your ${bankName}. How can I help you today?`,
         sender: "bot",
       },
     ]);
@@ -252,6 +291,14 @@ export function UpdatedHeroSection() {
     ]);
   };
 
+  
+
+  const { data } = useOrgBySectorQuery(SECTOR);
+  console.log('data ==>', data?.data);
+
+
+  
+
   // Chatbot component (reused in both modes)
   const ChatbotWidget = ({ expanded = false }: { expanded?: boolean }) => (
     <div
@@ -337,36 +384,42 @@ export function UpdatedHeroSection() {
 
                       <div className="border-t my-1.5" />
 
-                      {banks.map((bank) => (
-                        <button
-                          key={bank.id}
-                          onClick={() => handleBankSelect(bank)}
-                          className={cn(
-                            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left border",
-                            selectedBank?.id === bank.id
-                              ? "bg-primary/10 border-primary/30"
-                              : "border-transparent hover:bg-muted hover:border-border",
-                          )}
-                        >
-                          <div
-                            className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm"
-                            style={{ backgroundColor: bank.primaryColor }}
+                      {data?.data?.map((bank: any) => {
+                        const workspace = bank.workspaces?.[0];
+                        const isSelected = selectedBank?.id === bank.id || 
+                                         selectedBank?.workspaces?.[0]?.id === workspace?.id;
+                        
+                        return (
+                          <button
+                            key={workspace?.id || bank.id}
+                            onClick={() => handleBankSelect(bank)}
+                            className={cn(
+                              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left border",
+                              isSelected
+                                ? "bg-primary/10 border-primary/30"
+                                : "border-transparent hover:bg-muted hover:border-border",
+                            )}
                           >
-                            {bank.name.charAt(0)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">
-                              {bank.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {bank.tagline}
-                            </p>
-                          </div>
-                          {selectedBank?.id === bank.id && (
-                            <div className="text-primary text-sm">✓</div>
-                          )}
-                        </button>
-                      ))}
+                            <div
+                              className="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm"
+                              style={{ backgroundColor: workspace?.primaryColor || "#1a1a1a" }}
+                            >
+                              {workspace?.name?.charAt(0) || "B"}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate">
+                                {workspace?.name || bank.name}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {workspace?.description || "Banking services"}
+                              </p>
+                            </div>
+                            {isSelected && (
+                              <div className="text-primary text-sm">✓</div>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -448,7 +501,7 @@ export function UpdatedHeroSection() {
         <div className="flex flex-wrap gap-2">
           {currentQuestions
             .slice(0, expanded ? 4 : 2)
-            .map((question, index) => (
+            .map((question: string, index: number) => (
               <button
                 key={index}
                 onClick={() => handleSendMessage(question)}
@@ -592,7 +645,7 @@ export function UpdatedHeroSection() {
                       Quick Questions:
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {currentQuestions.slice(0, 2).map((question, index) => (
+                      {currentQuestions.slice(0, 2).map((question: string, index: number) => (
                         <button
                           key={index}
                           onClick={() => handleSendMessage(question)}
@@ -762,7 +815,7 @@ export function UpdatedHeroSection() {
                       {showBankSelector && (
                         <div className="space-y-3">
                           <div className="max-h-[220px] overflow-y-auto space-y-1.5 pr-1">
-                            {banks.map((bank) => (
+                            {data?.data?.map((bank: any) => (
                               <button
                                 key={bank.id}
                                 onClick={() => handleBankSelect(bank)}
