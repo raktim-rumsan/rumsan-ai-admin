@@ -1,6 +1,10 @@
 import { ROUTES } from "@/constants";
 import { toastUtils } from "@/lib/toast-utils";
-import { getBankApiKey, enrichOrganizationsWithApiKeys } from "@/lib/utils";
+import {
+  getBankApiKey,
+  enrichOrganizationsWithApiKeys,
+  enrichBanksWithApiKeys,
+} from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { WorkspacesResponse } from "./workspaceQuery";
 import { BANK_CONFIGS } from "@/constants/chatbot-demo-bank";
@@ -305,6 +309,7 @@ export async function sendWidgetChatQuery(
 }
 
 export function useChangeBotNameMutation(
+  apiKey: string,
   workspaceSlug: string,
   bankCode?: string,
   onSuccess?: () => void,

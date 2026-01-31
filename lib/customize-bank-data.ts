@@ -17,6 +17,7 @@ export interface BankConfig {
   id: string;
   name: string;
   tagline: string;
+  botName?: string;
   logo: string;
   primaryColor: string;
   quickQuestions: string[];
