@@ -65,6 +65,47 @@ export function useDocsQuery(workspaceSlug?: string, bankCode?: string) {
     enabled: !!workspaceSlug,
   });
 }
+
+export function useDocDeleteMutation(
+  workspaceSlug?: string,
+  bankCode?: string,
+  onSuccess?: () => void,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (documentId: string) => {
+      const apiKey = getBankApiKey(bankCode || "NABIL");
+      const res = await fetch(ROUTES.DELETE_DOCUMENT(documentId), {
+        method: "DELETE",
+        headers: {
+          accept: "application/json",
+          "x-tenant-id": workspaceSlug || "",
+          "x-api-key": apiKey || "",
+        },
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        // Handle API error responses properly
+        const errorMessage =
+          errorData.message ||
+          errorData.error ||
+          `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      // Return success response (might be empty for DELETE)
+      const data = await res.json().catch(() => ({ success: true }));
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate documents query to refetch the list
+      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      onSuccess?.();
+    },
+  });
+}
 export function useEmbeddingMutation(
   workspaceSlug: string,
   bankCode?: string,

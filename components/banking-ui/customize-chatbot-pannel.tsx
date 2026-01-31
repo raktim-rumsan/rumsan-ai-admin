@@ -21,6 +21,7 @@ import {
   useDocUploadMutation,
   useEmbeddingMutation,
   useUnembeddingMutation,
+  useDocDeleteMutation,
 } from "@/queries/demoSiteQuery";
 import {
   Dialog,
@@ -29,6 +30,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import ConfirmDelete from "@/components/documents/DeleteModal";
 
 interface CustomizationPanelProps {
   bankName: string;
@@ -100,6 +102,11 @@ export function CustomizationPanel({
   const [fileError, setFileError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [currentDeleteInfo, setCurrentDeleteInfo] = useState<{
+    id: string;
+    fileName: string;
+  } | null>(null);
 
   const embeddingMutation = useEmbeddingMutation(
     workspaceSlug as string,
@@ -111,6 +118,10 @@ export function CustomizationPanel({
     bankCode,
   );
 
+  const deleteMutation = useDocDeleteMutation(workspaceSlug, bankCode, () => {
+    toastUtils.data.deleteSuccess("Document");
+  });
+
   const handleRemoveUploadedPdf = () => {
     onPdfUpload?.(null);
     setUploadedPdfEnabled(true);
@@ -118,6 +129,35 @@ export function CustomizationPanel({
       fileInputRef.current.value = "";
     }
   };
+
+  const handleDeleteDocument = (documentId: string, fileName: string) => {
+    // Show confirmation modal
+    setCurrentDeleteInfo({ id: documentId, fileName });
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!currentDeleteInfo) return;
+
+    deleteMutation.mutate(currentDeleteInfo.id, {
+      onError: (error: unknown) => {
+        const errorMessage = error instanceof Error ? error.message : undefined;
+        toastUtils.generic.error("Failed to delete document", errorMessage);
+        setIsDeleteModalOpen(false);
+        setCurrentDeleteInfo(null);
+      },
+      onSuccess: () => {
+        setIsDeleteModalOpen(false);
+        setCurrentDeleteInfo(null);
+      },
+    });
+  };
+
+  // Check if there's already a demo upload (DEMO_TEMP_ prefix) or a local uploaded file
+  const hasDemoUpload = availableDocuments.some(
+    (doc) => doc.fileName?.startsWith("DEMO_TEMP_"),
+  );
+  const hasExistingPdf = hasDemoUpload || !!uploadedPdf;
 
   const handleTrain = async (
     documentId: string,
@@ -196,6 +236,9 @@ export function CustomizationPanel({
     toastUtils.fileUpload.success(selectedFile?.name || "File");
     setSelectedFile(null);
     setIsUploading(false);
+    setIsUploadModalOpen(false);
+    // Clear the uploadedPdf state since it's now in the backend
+    onPdfUpload?.(null);
   });
 
   const handleUpload = () => {
@@ -212,7 +255,21 @@ export function CustomizationPanel({
     // Show upload started toast
     toastUtils.fileUpload.started(selectedFile.name);
 
-    uploadMutation.mutate(selectedFile, {
+    // Create a new File object with DEMO_TEMP_ prefix for backend cleanup
+    // This allows the backend to identify and delete demo uploads after 1 day
+    const timestamp = Date.now();
+    const originalName = selectedFile.name;
+    const extension = originalName.substring(originalName.lastIndexOf("."));
+    const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf("."));
+    const demoFileName = `DEMO_TEMP_${timestamp}_${nameWithoutExt}${extension}`;
+    
+    // Create a new File with the modified name
+    const demoFile = new File([selectedFile], demoFileName, {
+      type: selectedFile.type,
+      lastModified: selectedFile.lastModified,
+    });
+
+    uploadMutation.mutate(demoFile, {
       onError: (error: unknown) => {
         const errorMessage = error instanceof Error ? error.message : undefined;
         toastUtils.fileUpload.error(errorMessage);
@@ -243,38 +300,100 @@ export function CustomizationPanel({
 
           {/* Documents List */}
           <div className="space-y-2">
-            {availableDocuments.map((doc) => {
-              const isEnabled = enabledDocuments.includes(doc.id);
-              return (
-                <div
-                  key={doc.id}
-                  className={cn(
-                    "flex items-center gap-2 p-2.5 rounded border transition-colors",
-                    isEnabled
-                      ? "bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/40"
-                      : "bg-muted/5 border-border/40",
-                  )}
-                >
-                  <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-foreground truncate">
-                      {doc.fileName}
-                    </p>
-                  </div>
-                  <Switch
-                    checked={doc.status !== "PENDING"}
-                    onCheckedChange={(checked) =>
-                      handleTrain(doc.id, doc.fileName || "", !checked)
-                    }
-                    disabled={trainingDocumentId === doc.id}
-                    className="mt-0"
-                  />
-                </div>
+            {/* Separate regular backend documents from demo uploads */}
+            {(() => {
+              const regularDocs = availableDocuments.filter(
+                (doc) => !doc.fileName?.startsWith("DEMO_TEMP_"),
               );
-            })}
+              const demoDocs = availableDocuments.filter(
+                (doc) => doc.fileName?.startsWith("DEMO_TEMP_"),
+              );
+
+              return (
+                <>
+                  {/* Regular backend documents first */}
+                  {regularDocs.map((doc) => {
+                    const isEnabled = enabledDocuments.includes(doc.id);
+                    return (
+                      <div
+                        key={doc.id}
+                        className={cn(
+                          "flex items-center gap-2 p-2.5 rounded border transition-colors",
+                          isEnabled
+                            ? "bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/40"
+                            : "bg-muted/5 border-border/40",
+                        )}
+                      >
+                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-foreground truncate">
+                            {doc.fileName}
+                          </p>
+                        </div>
+                        <Switch
+                          checked={doc.status !== "PENDING"}
+                          onCheckedChange={(checked) =>
+                            handleTrain(doc.id, doc.fileName || "", !checked)
+                          }
+                          disabled={trainingDocumentId === doc.id}
+                          className="mt-0"
+                        />
+                      </div>
+                    );
+                  })}
+
+                  {/* Demo uploads at the bottom */}
+                  {demoDocs.map((doc) => {
+                    const isEnabled = enabledDocuments.includes(doc.id);
+                    return (
+                      <div
+                        key={doc.id}
+                        className={cn(
+                          "flex items-center gap-2 p-2.5 rounded border transition-colors",
+                          isEnabled
+                            ? "bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/40"
+                            : "bg-muted/5 border-border/40",
+                        )}
+                      >
+                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-foreground truncate">
+                            {doc.fileName
+                              ? doc.fileName
+                                  .replace("DEMO_TEMP_", "")
+                                  .replace(/^\d+_/, "")
+                              : "Untitled Document"}
+                          </p>
+                        </div>
+                        <Switch
+                          checked={doc.status !== "PENDING"}
+                          onCheckedChange={(checked) =>
+                            handleTrain(doc.id, doc.fileName || "", !checked)
+                          }
+                          disabled={trainingDocumentId === doc.id}
+                          className="mt-0"
+                        />
+                        {/* Show delete button for demo uploads */}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDeleteDocument(doc.id, doc.fileName || "")
+                          }
+                          className="p-1.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          aria-label="Delete document"
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </>
+              );
+            })()}
 
             {/* Uploaded PDF row (replaces Add Document when a file is uploaded) */}
-            {uploadedPdf ? (
+            {uploadedPdf && (
               <div
                 className={cn(
                   "flex items-center gap-2 p-2.5 rounded border transition-colors",
@@ -303,9 +422,11 @@ export function CustomizationPanel({
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
-            ) : (
+            )}
+
+            {/* Add Document Button - Only show if no PDF exists */}
+            {!hasExistingPdf && (
               <>
-                {/* Add Document Card */}
                 <button
                   onClick={() => setIsUploadModalOpen(true)}
                   className="w-full flex items-center gap-2 p-2.5 rounded border border-dashed border-border/60 bg-muted/5 hover:bg-muted/10 hover:border-blue-400 transition-colors"
@@ -332,9 +453,9 @@ export function CustomizationPanel({
             )}
 
             <p className="text-xs text-muted-foreground leading-snug px-1">
-              {uploadedPdf
-                ? "Uploaded PDF. Delete to add another."
-                : "Upload a PDF (only 1 file allowed)"}
+              {hasExistingPdf
+                ? "Only 1 PDF allowed (max 10MB). Delete existing to upload another."
+                : "Upload a PDF (1 file limit, max 10MB)"}
             </p>
           </div>
         </section>
@@ -576,6 +697,21 @@ export function CustomizationPanel({
           Claim This Bot
         </Button>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDelete
+        isOpen={isDeleteModalOpen}
+        setIsOpen={setIsDeleteModalOpen}
+        onConfirm={handleConfirmDelete}
+        isDeleting={deleteMutation.isPending}
+        item={
+          currentDeleteInfo?.fileName
+            ? currentDeleteInfo.fileName
+                .replace("DEMO_TEMP_", "")
+                .replace(/^\d+_/, "")
+            : ""
+        }
+      />
     </div>
   );
 }

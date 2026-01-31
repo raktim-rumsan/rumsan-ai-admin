@@ -92,16 +92,21 @@ export function UpdatedHeroSection() {
           "What is the bank's loan interest rate?",
         ];
   //fetch organizations
-  const { data } = useOrgBySectorQuery(SECTOR, "RUMSANWORKSPACE");
-  console.log("data ==>", data?.data);
+  const { data } = useOrgBySectorQuery(SECTOR, "NABIL");
+  console.log("data ==>", data, data?.data[0]);
 
-  //fetch documents
-  const { data: docs, isPending: isDocsPending } = useDocsQuery(
-    data?.data?.[0]?.workspaces?.[0]?.slug,
-    data?.data?.[0]?.workspaces?.[0]?.bankCode,
+  // Extract workspace slug and bank code from selected bank
+  const selectedWorkspaceSlug = selectedBank?.workspaces?.[0]?.slug;
+  const selectedBankCode = selectedBank?.workspaces?.[0]?.bankCode;
+
+  //fetch documents - only after a bank is selected
+  const { data: docs, isPending: isDocsPending, refetch: refetchDocs } = useDocsQuery(
+    selectedWorkspaceSlug,
+    selectedBankCode,
   );
 
-  const workspaceSlug = data?.data?.[0]?.workspaces?.[0]?.slug;
+  const workspaceSlug = selectedWorkspaceSlug;
+  console.log("workspaceSlug ==>", workspaceSlug);
   if (docs) {
     console.log("docs", docs);
   }
@@ -167,6 +172,7 @@ export function UpdatedHeroSection() {
     setDraftBotIcon("🤖");
     setUploadedPdfs([]);
     setEnabledPdfs([]);
+    setEnabledDocuments([]);
     // Set saved values too (so preview shows bank defaults)
     setSavedName(bankName);
     setSavedAssistantName(bankName);
@@ -185,6 +191,13 @@ export function UpdatedHeroSection() {
         sender: "bot",
       },
     ]);
+    // Refetch documents when a bank is selected
+    if (workspace?.slug) {
+      // Small delay to ensure state is updated first
+      setTimeout(() => {
+        refetchDocs();
+      }, 100);
+    }
   };
 
   const handleStartCustomizing = () => {
