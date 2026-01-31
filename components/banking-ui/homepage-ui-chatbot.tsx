@@ -813,7 +813,7 @@ export function UpdatedHeroSection() {
   // Customization mode layout
   if (isCustomizing) {
     return (
-      <section className="py-6 md:py-10">
+      <section className="py-6 md:py-10 mt-10">
         <div className="container mx-auto px-4">
           <div
             className={cn(
