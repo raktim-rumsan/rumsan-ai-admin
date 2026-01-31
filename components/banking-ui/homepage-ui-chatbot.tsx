@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import {
   Zap,
@@ -16,9 +16,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { BankConfig } from "@/lib/customize-bank-data";
 import { CustomizationPanel } from "./customize-chatbot-pannel";
-import { useOrgBySectorQuery } from "@/queries/demoSiteQuery";
+import { useOrgBySectorQuery, useDocsQuery, sendWidgetChatQuery } from "@/queries/demoSiteQuery";
 import { SECTOR } from "@/constants/chatbot-demo-bank";
-import { useDocsQuery } from "@/queries/demoSiteQuery";
+import { getBankApiKey } from "@/lib/utils";
 
 interface Message {
   id: string;
@@ -39,6 +39,9 @@ export function UpdatedHeroSection() {
     },
   ]);
   const [inputValue, setInputValue] = useState("");
+  const [isLoadingMessage, setIsLoadingMessage] = useState(false);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const customizationMessagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Draft state (what user edits in the form)
   const [draftName, setDraftName] = useState("");
@@ -67,18 +70,45 @@ export function UpdatedHeroSection() {
   // Chatbot preview uses saved values
   // Extract workspace data if selectedBank is from API
   const selectedWorkspace = selectedBank?.workspaces?.[0];
+  // Header name - always shows bank name (doesn't change with bot name)
   const currentBankName =
     savedName ||
     selectedWorkspace?.name ||
     selectedBank?.name ||
     "Rumsan Banking Assistant";
+  // Bot name - used only in chatbot greeting (can be customized)
+  const currentBotName =
+    draftAssistantName ||
+    savedAssistantName ||
+    currentBankName;
   const currentTagline =
     savedTagline ||
     selectedWorkspace?.description ||
     selectedBank?.tagline ||
     "Ask about our banking services here";
+  
+  // Extract workspace slug and bank code from selected bank
+  const selectedWorkspaceSlug = selectedBank?.workspaces?.[0]?.slug;
+  const selectedBankCode = selectedBank?.workspaces?.[0]?.bankCode;
+
+  // Get locally stored primary color for this workspace (session-based)
+  const getLocalPrimaryColor = (workspaceSlug: string | undefined) => {
+    if (!workspaceSlug || typeof window === "undefined") return null;
+    try {
+      const stored = sessionStorage.getItem(`primaryColor_${workspaceSlug}`);
+      return stored || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const localPrimaryColor = getLocalPrimaryColor(selectedWorkspaceSlug);
+
+  // Use draftColor for live preview, fallback to saved/other sources
   const currentColor =
+    draftColor ||
     savedColor ||
+    localPrimaryColor ||
     selectedWorkspace?.primaryColor ||
     selectedBank?.primaryColor ||
     "#1a1a1a";
@@ -95,10 +125,6 @@ export function UpdatedHeroSection() {
   const { data } = useOrgBySectorQuery(SECTOR, "NABIL");
   console.log("data ==>", data, data?.data[0]);
 
-  // Extract workspace slug and bank code from selected bank
-  const selectedWorkspaceSlug = selectedBank?.workspaces?.[0]?.slug;
-  const selectedBankCode = selectedBank?.workspaces?.[0]?.bankCode;
-
   //fetch documents - only after a bank is selected
   const { data: docs, isPending: isDocsPending, refetch: refetchDocs } = useDocsQuery(
     selectedWorkspaceSlug,
@@ -110,8 +136,64 @@ export function UpdatedHeroSection() {
   if (docs) {
     console.log("docs", docs);
   }
-  const handleSendMessage = (content: string) => {
-    if (!content.trim()) return;
+
+  // Update greeting message when bot name changes
+  useEffect(() => {
+    if (currentBotName && messages.length > 0 && messages[0].sender === "bot") {
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        if (newMessages[0] && newMessages[0].sender === "bot") {
+          newMessages[0] = {
+            ...newMessages[0],
+            content: `Hello! I'm your ${currentBotName}. How can I help you today?`,
+          };
+        }
+        return newMessages;
+      });
+    }
+  }, [currentBotName]);
+
+  // Save primary color to sessionStorage when draftColor changes (debounced)
+  useEffect(() => {
+    if (selectedWorkspaceSlug && draftColor && typeof window !== "undefined") {
+      const timeoutId = setTimeout(() => {
+        try {
+          sessionStorage.setItem(`primaryColor_${selectedWorkspaceSlug}`, draftColor);
+        } catch {
+          // Ignore storage errors
+        }
+      }, 500); // 500ms debounce
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [draftColor, selectedWorkspaceSlug]);
+
+  // Auto-scroll to bottom when messages change or loading state changes
+  useEffect(() => {
+    // Scroll default view messages container
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+    // Scroll customization mode messages container
+    if (customizationMessagesContainerRef.current) {
+      customizationMessagesContainerRef.current.scrollTo({
+        top: customizationMessagesContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messages, isLoadingMessage]);
+
+  const handleSendMessage = async (content: string) => {
+    if (!content.trim() || isLoadingMessage) return;
+
+    // Only send if bank is selected
+    if (!selectedBank || !selectedWorkspaceSlug || !selectedBankCode) {
+      toast.error("Please select a bank first");
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -119,14 +201,44 @@ export function UpdatedHeroSection() {
       sender: "user",
     };
 
-    const botResponse: Message = {
-      id: (Date.now() + 1).toString(),
-      content: `Thank you for your question. This is a demo response from ${currentBankName}.`,
-      sender: "bot",
-    };
-
-    setMessages((prev) => [...prev, userMessage, botResponse]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
+    setIsLoadingMessage(true);
+
+    try {
+      const apiKey = getBankApiKey(selectedBankCode);
+      if (!apiKey) {
+        throw new Error("API key not found for selected bank");
+      }
+
+      const response = await sendWidgetChatQuery(
+        content.trim(),
+        apiKey,
+        selectedWorkspaceSlug,
+      );
+
+      const botResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        content: response.answer || "Sorry, I couldn't process your request.",
+        sender: "bot",
+      };
+
+      setMessages((prev) => [...prev, botResponse]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content:
+          error instanceof Error
+            ? error.message
+            : "Sorry, I encountered an error. Please try again.",
+        sender: "bot",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+      toast.error("Failed to get response");
+    } finally {
+      setIsLoadingMessage(false);
+    }
   };
 
   const handleBankSelect = (bank: BankConfig | any) => {
@@ -162,11 +274,26 @@ export function UpdatedHeroSection() {
 
     setSelectedBank(bank);
     setShowBankSelector(false);
+    
+    // Check for locally stored primary color for this workspace
+    const workspaceSlug = workspace?.slug;
+    let colorToUse = primaryColor;
+    if (workspaceSlug && typeof window !== "undefined") {
+      try {
+        const storedColor = sessionStorage.getItem(`primaryColor_${workspaceSlug}`);
+        if (storedColor) {
+          colorToUse = storedColor;
+        }
+      } catch {
+        // Ignore storage errors
+      }
+    }
+    
     // Set both draft and saved values when selecting a new bank
     setDraftName(bankName);
     setDraftAssistantName(bankName);
     setDraftTagline(tagline);
-    setDraftColor(primaryColor);
+    setDraftColor(colorToUse);
     setDraftQuestions(quickQuestions);
     setDraftLogo(workspace?.url || null);
     setDraftBotIcon("🤖");
@@ -177,7 +304,7 @@ export function UpdatedHeroSection() {
     setSavedName(bankName);
     setSavedAssistantName(bankName);
     setSavedTagline(tagline);
-    setSavedColor(primaryColor);
+    setSavedColor(colorToUse);
     setSavedQuestions(quickQuestions);
     setSavedLogo(
       `${process.env.NEXT_PUBLIC_SERVER_API}/${workspace?.url?.replace(/^uploads\//, "assets/")}` ||
@@ -231,6 +358,16 @@ export function UpdatedHeroSection() {
     setSavedLogo(draftLogo);
     setSavedQuestions(draftQuestions);
     setSavedBotIcon(draftBotIcon);
+    
+    // Save primary color to sessionStorage for this workspace
+    if (selectedWorkspaceSlug && draftColor && typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(`primaryColor_${selectedWorkspaceSlug}`, draftColor);
+      } catch {
+        // Ignore storage errors
+      }
+    }
+    
     toast.success(`Configuration saved for ${draftName}!`);
   };
 
@@ -467,39 +604,35 @@ export function UpdatedHeroSection() {
         )}
       </div>
 
-      <div
-        className={cn(
-          "flex justify-center shrink-0",
-          expanded ? "py-8" : "py-6",
-        )}
-      >
-        <div className="relative">
-          <div
-            className={cn(
-              "rounded-2xl flex items-center justify-center",
-              expanded ? "h-20 w-20" : "h-16 w-16",
-            )}
-            style={{ backgroundColor: `${currentColor}15` }}
-          >
-            <Bot
-              className={cn(expanded ? "h-10 w-10" : "h-8 w-8")}
-              style={{ color: currentColor }}
-            />
-          </div>
-          <div
-            className="absolute -top-1 -right-1 h-4 w-4 rounded-full border-2 border-card"
-            style={{ backgroundColor: "#22d3ee" }}
-          />
-        </div>
-      </div>
-
       {/* Messages */}
       <div
+        ref={messagesContainerRef}
         className={cn(
-          "px-4 space-y-3 overflow-y-auto flex-1",
+          "px-4 space-y-3 overflow-y-auto flex-1 pb-2",
           expanded ? "min-h-[200px]" : "min-h-[150px]",
         )}
       >
+        {/* Bot Icon at top - scrolls with messages */}
+        <div className="flex justify-center shrink-0 py-8">
+          <div className="relative">
+            <div
+              className={cn(
+                "rounded-2xl flex items-center justify-center",
+                expanded ? "h-20 w-20" : "h-16 w-16",
+              )}
+              style={{ backgroundColor: `${currentColor}15` }}
+            >
+              <Bot
+                className={cn(expanded ? "h-10 w-10" : "h-8 w-8")}
+                style={{ color: currentColor }}
+              />
+            </div>
+            <div
+              className="absolute -top-1 -right-1 h-4 w-4 rounded-full border-2 border-card"
+              style={{ backgroundColor: "#22d3ee" }}
+            />
+          </div>
+        </div>
         {messages.map((message) => (
           <div
             key={message.id}
@@ -509,9 +642,24 @@ export function UpdatedHeroSection() {
             )}
           >
             {message.sender === "bot" && (
-              <div className="rounded-xl px-4 py-2.5 text-sm bg-muted text-foreground">
-                {message.content}
-              </div>
+              <>
+                <div className="flex-shrink-0">
+                  <div
+                    className="rounded-full flex items-center justify-center h-8 w-8"
+                    style={{ backgroundColor: `${currentColor}15` }}
+                  >
+                    <Bot className="h-4 w-4" style={{ color: currentColor }} />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-xs text-muted-foreground px-1">
+                    {currentBotName}
+                  </p>
+                  <div className="rounded-xl px-4 py-2.5 text-sm bg-muted text-foreground">
+                    {message.content}
+                  </div>
+                </div>
+              </>
             )}
             {message.sender === "user" && (
               <div
@@ -523,10 +671,31 @@ export function UpdatedHeroSection() {
             )}
           </div>
         ))}
+        {/* Show thinking message while loading */}
+        {isLoadingMessage && (
+          <div className="flex gap-2 max-w-[85%]">
+            <div className="flex-shrink-0">
+              <div
+                className="rounded-full flex items-center justify-center h-8 w-8"
+                style={{ backgroundColor: `${currentColor}15` }}
+              >
+                <Bot className="h-4 w-4" style={{ color: currentColor }} />
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <p className="text-xs text-muted-foreground px-1">
+                {currentBotName}
+              </p>
+              <div className="rounded-xl px-4 py-2.5 text-sm bg-muted text-foreground">
+                {currentBotName} is thinking...
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Quick Questions */}
-      <div className="px-4 py-4 shrink-0">
+      <div className="px-4 py-4 shrink-0 border-t bg-background/50 backdrop-blur-sm">
         <p className="text-xs text-muted-foreground mb-2">Quick Questions:</p>
         <div className="flex flex-wrap gap-2">
           {currentQuestions
@@ -556,11 +725,13 @@ export function UpdatedHeroSection() {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type your question..."
-            className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+            disabled={isLoadingMessage}
+            className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground disabled:opacity-50"
           />
           <button
             type="submit"
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            disabled={isLoadingMessage}
+            className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
           >
             <Send className="h-4 w-4" />
           </button>
@@ -621,27 +792,29 @@ export function UpdatedHeroSection() {
               <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
                 {/* Left - Chatbot Messages */}
                 <div className="flex-1 flex flex-col min-h-0 border-b lg:border-b-0 lg:border-r">
-                  {/* Bot Avatar */}
-                  <div className="flex justify-center py-4 shrink-0">
-                    <div className="relative">
-                      <div
-                        className="rounded-2xl flex items-center justify-center h-16 w-16"
-                        style={{ backgroundColor: `${currentColor}15` }}
-                      >
-                        <Bot
-                          className="h-8 w-8"
-                          style={{ color: currentColor }}
+                  {/* Messages */}
+                  <div
+                    ref={customizationMessagesContainerRef}
+                    className="px-4 space-y-3 overflow-y-auto flex-1 min-h-0 pb-2"
+                  >
+                    {/* Bot Icon at top - scrolls with messages */}
+                    <div className="flex justify-center shrink-0 py-4">
+                      <div className="relative">
+                        <div
+                          className="rounded-2xl flex items-center justify-center h-16 w-16"
+                          style={{ backgroundColor: `${currentColor}15` }}
+                        >
+                          <Bot
+                            className="h-8 w-8"
+                            style={{ color: currentColor }}
+                          />
+                        </div>
+                        <div
+                          className="absolute -top-1 -right-1 h-4 w-4 rounded-full border-2 border-card"
+                          style={{ backgroundColor: "#22d3ee" }}
                         />
                       </div>
-                      <div
-                        className="absolute -top-1 -right-1 h-4 w-4 rounded-full border-2 border-card"
-                        style={{ backgroundColor: "#22d3ee" }}
-                      />
                     </div>
-                  </div>
-
-                  {/* Messages */}
-                  <div className="px-4 space-y-3 overflow-y-auto flex-1 min-h-0">
                     {messages.map((message) => (
                       <div
                         key={message.id}
@@ -653,9 +826,27 @@ export function UpdatedHeroSection() {
                         )}
                       >
                         {message.sender === "bot" && (
-                          <div className="rounded-xl px-4 py-2.5 text-sm bg-muted text-foreground">
-                            {message.content}
-                          </div>
+                          <>
+                            <div className="flex-shrink-0">
+                              <div
+                                className="rounded-full flex items-center justify-center h-8 w-8"
+                                style={{ backgroundColor: `${currentColor}15` }}
+                              >
+                                <Bot
+                                  className="h-4 w-4"
+                                  style={{ color: currentColor }}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <p className="text-xs text-muted-foreground px-1">
+                                {currentBotName}
+                              </p>
+                              <div className="rounded-xl px-4 py-2.5 text-sm bg-muted text-foreground">
+                                {message.content}
+                              </div>
+                            </div>
+                          </>
                         )}
                         {message.sender === "user" && (
                           <div
@@ -667,10 +858,34 @@ export function UpdatedHeroSection() {
                         )}
                       </div>
                     ))}
+                    {/* Show thinking message while loading */}
+                    {isLoadingMessage && (
+                      <div className="flex gap-2 max-w-[85%]">
+                        <div className="flex-shrink-0">
+                          <div
+                            className="rounded-full flex items-center justify-center h-8 w-8"
+                            style={{ backgroundColor: `${currentColor}15` }}
+                          >
+                            <Bot
+                              className="h-4 w-4"
+                              style={{ color: currentColor }}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <p className="text-xs text-muted-foreground px-1">
+                            {currentBotName}
+                          </p>
+                          <div className="rounded-xl px-4 py-2.5 text-sm bg-muted text-foreground">
+                            {currentBotName} is thinking...
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Quick Questions */}
-                  <div className="px-4 py-3 shrink-0 border-t">
+                  <div className="px-4 py-3 shrink-0 border-t bg-background/50 backdrop-blur-sm">
                     <p className="text-xs text-muted-foreground mb-2">
                       Quick Questions:
                     </p>
@@ -702,11 +917,13 @@ export function UpdatedHeroSection() {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder="Type your question..."
-                        className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
+                        disabled={isLoadingMessage}
+                        className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground disabled:opacity-50"
                       />
                       <button
                         type="submit"
-                        className="text-muted-foreground hover:text-foreground transition-colors"
+                        disabled={isLoadingMessage}
+                        className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
                       >
                         <Send className="h-4 w-4" />
                       </button>

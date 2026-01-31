@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   FileText,
   Plus,
@@ -22,6 +22,7 @@ import {
   useEmbeddingMutation,
   useUnembeddingMutation,
   useDocDeleteMutation,
+  useChangeBotNameMutation,
 } from "@/queries/demoSiteQuery";
 import {
   Dialog,
@@ -92,6 +93,25 @@ export function CustomizationPanel({
   bankCode,
 }: CustomizationPanelProps) {
   console.log(bankCode, "bankcode");
+
+  // Function to determine if color is light or dark for text contrast
+  const getTextColor = (bgColor: string): string => {
+    if (!bgColor) return "text-white";
+    
+    // Remove # if present
+    const hex = bgColor.replace("#", "");
+    
+    // Convert to RGB
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    // Calculate luminance (relative brightness)
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    
+    // Use white text for dark backgrounds, dark text for light backgrounds
+    return luminance > 0.5 ? "text-gray-900" : "text-white";
+  };
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAvailableDocsExpanded, setIsAvailableDocsExpanded] = useState(false);
   const [uploadedPdfEnabled, setUploadedPdfEnabled] = useState(true);
@@ -121,6 +141,29 @@ export function CustomizationPanel({
   const deleteMutation = useDocDeleteMutation(workspaceSlug, bankCode, () => {
     toastUtils.data.deleteSuccess("Document");
   });
+
+  const changeBotNameMutation = useChangeBotNameMutation(
+    workspaceSlug as string,
+    bankCode,
+  );
+
+  // Debounced bot name change - save as user types
+  useEffect(() => {
+    if (!workspaceSlug || !assistantName.trim()) return;
+
+    const timeoutId = setTimeout(() => {
+      changeBotNameMutation.mutate(assistantName.trim(), {
+        onError: (error: unknown) => {
+          const errorMessage = error instanceof Error ? error.message : undefined;
+          console.error("Failed to update bot name:", errorMessage);
+          // Don't show toast on every keystroke, only log error
+        },
+      });
+    }, 1000); // 1 second debounce
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assistantName, workspaceSlug, bankCode]);
 
   const handleRemoveUploadedPdf = () => {
     onPdfUpload?.(null);
@@ -690,8 +733,13 @@ export function CustomizationPanel({
       {/* Footer */}
       <div className="px-4 py-3 border-t bg-background/40 flex gap-2">
         <Button
-          className="flex-1 text-white font-medium hover:opacity-90 transition-opacity h-9"
-          style={{ backgroundColor: primaryColor }}
+          className={cn(
+            "flex-1 font-medium h-9 transition-colors",
+            getTextColor(primaryColor)
+          )}
+          style={{
+            backgroundColor: primaryColor || "#1a1a1a",
+          }}
           onClick={onSave}
         >
           Claim This Bot
