@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useRef as useRefForTracking } from "react";
 import {
   FileText,
   Plus,
@@ -147,18 +147,63 @@ export function CustomizationPanel({
     bankCode,
   );
 
-  // Debounced bot name change - save as user types
+  // Track the initial assistant name to prevent API call on mount
+  const initialAssistantNameRef = useRef<string | null>(null);
+  const lastSavedAssistantNameRef = useRef<string>("");
+  const lastWorkspaceSlugRef = useRef<string | undefined>(undefined);
+  
+  // Initialize the refs when workspaceSlug is first set or changes
+  useEffect(() => {
+    if (workspaceSlug && workspaceSlug !== lastWorkspaceSlugRef.current) {
+      // Workspace changed, reset refs
+      initialAssistantNameRef.current = assistantName;
+      lastSavedAssistantNameRef.current = assistantName;
+      lastWorkspaceSlugRef.current = workspaceSlug;
+    } else if (workspaceSlug && initialAssistantNameRef.current === null) {
+      // First mount with workspaceSlug
+      initialAssistantNameRef.current = assistantName;
+      lastSavedAssistantNameRef.current = assistantName;
+      lastWorkspaceSlugRef.current = workspaceSlug;
+    }
+  }, [workspaceSlug, assistantName]);
+
+  // Debounced bot name change - save as user types (only if actually changed from initial)
   useEffect(() => {
     if (!workspaceSlug || !assistantName.trim()) return;
+    
+    // Skip if not initialized yet (wait for initialization)
+    if (initialAssistantNameRef.current === null) {
+      return;
+    }
+    
+    const trimmedValue = assistantName.trim();
+    const initialValue = initialAssistantNameRef.current;
+    const lastSaved = lastSavedAssistantNameRef.current;
+    
+    // Skip if value is the same as initial (user hasn't changed it from original)
+    if (trimmedValue === initialValue) {
+      return;
+    }
+    
+    // Skip if value is the same as what we last saved (avoid duplicate API calls)
+    if (trimmedValue === lastSaved) {
+      return;
+    }
 
+    // User has changed the value from initial, so save it after debounce
     const timeoutId = setTimeout(() => {
-      changeBotNameMutation.mutate(assistantName.trim(), {
-        onError: (error: unknown) => {
-          const errorMessage = error instanceof Error ? error.message : undefined;
-          console.error("Failed to update bot name:", errorMessage);
-          // Don't show toast on every keystroke, only log error
-        },
-      });
+      // Double-check the value is still different before calling API
+      const currentTrimmed = assistantName.trim();
+      if (currentTrimmed !== lastSavedAssistantNameRef.current && currentTrimmed !== initialAssistantNameRef.current) {
+        lastSavedAssistantNameRef.current = currentTrimmed;
+        changeBotNameMutation.mutate(currentTrimmed, {
+          onError: (error: unknown) => {
+            const errorMessage = error instanceof Error ? error.message : undefined;
+            console.error("Failed to update bot name:", errorMessage);
+            // Don't show toast on every keystroke, only log error
+          },
+        });
+      }
     }, 1000); // 1 second debounce
 
     return () => clearTimeout(timeoutId);

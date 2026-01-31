@@ -340,7 +340,22 @@ export function useChangeBotNameMutation(
       return data;
     },
     onSuccess: (data) => {
-      toastUtils.generic.success(data?.data?.status, data?.data?.message);
+      // Use proper title and description for the toast
+      // Handle different API response structures - ensure title is always a valid string
+      const message = data?.data?.message || data?.message;
+      const status = data?.data?.status || data?.status;
+      
+      // Always use a valid string for title (required by toast)
+      const title = (message && typeof message === "string" && message.trim()) 
+        ? message.trim() 
+        : "Bot name updated successfully";
+      
+      // Description is optional, but if provided should be a valid string
+      const description = (status && typeof status === "string" && status.trim() && status !== "success") 
+        ? status.trim() 
+        : undefined;
+      
+      toastUtils.generic.success(title, description);
       // Invalidate workspace query to refetch the updated bot name
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       onSuccess?.();
