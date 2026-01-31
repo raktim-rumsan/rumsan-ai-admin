@@ -198,7 +198,7 @@ export function useUnembeddingMutation(
 }
 export function useWorkspaceQuery(bankCode?: string) {
   return useQuery({
-    queryKey: ["workspaces"],
+    queryKey: ["workspaces", bankCode], // Include bankCode in query key to make it unique per bank
     queryFn: async (): Promise<WorkspacesResponse> => {
       const apiKey = getBankApiKey(bankCode || "NABIL");
       const res = await fetch(`${ROUTES.MY_WORKSPACE}`, {
@@ -216,7 +216,8 @@ export function useWorkspaceQuery(bankCode?: string) {
       }
       return data;
     },
-    staleTime: 2 * 60 * 1000,
+    enabled: !!bankCode, // Only fetch when bankCode is available
+    staleTime: 30 * 1000, // Cache for 30 seconds to prevent unnecessary refetches
   });
 }
 // export function useWorkspaceSettingQuery(workspaceSlug: string) {

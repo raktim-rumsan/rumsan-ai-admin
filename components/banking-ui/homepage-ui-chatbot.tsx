@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { BankConfig } from "@/lib/customize-bank-data";
 import { CustomizationPanel } from "./customize-chatbot-pannel";
-import { useOrgBySectorQuery, useDocsQuery, sendWidgetChatQuery } from "@/queries/demoSiteQuery";
+import { useOrgBySectorQuery, useDocsQuery, sendWidgetChatQuery, useWorkspaceQuery } from "@/queries/demoSiteQuery";
 import { SECTOR } from "@/constants/chatbot-demo-bank";
 import { getBankApiKey } from "@/lib/utils";
 
@@ -159,6 +159,39 @@ export function UpdatedHeroSection() {
     selectedWorkspaceSlug,
     selectedBankCode,
   );
+
+  //fetch workspaces to get bot name - only after a bank is selected
+  // React Query will automatically refetch when selectedBankCode changes (query key changes)
+  const { data: workspaceData } = useWorkspaceQuery(selectedBankCode);
+  
+  // Extract bot name from workspace data when bank is selected
+  useEffect(() => {
+    if (workspaceData?.data?.myWorkspaces && selectedWorkspaceSlug) {
+      const workspace = workspaceData.data.myWorkspaces.find(
+        (w: any) => w.slug === selectedWorkspaceSlug
+      );
+      if (workspace?.botName) {
+        // Set the bot name from API to saved state
+        setSavedAssistantName(workspace.botName);
+        // Also update draft if user hasn't customized it yet
+        // Only update if draftAssistantName is empty or matches the bank name (not customized)
+        const currentDraft = draftAssistantName || savedAssistantName;
+        const bankName = selectedWorkspace?.name || selectedBank?.name;
+        if (!currentDraft || currentDraft === bankName) {
+          setDraftAssistantName(workspace.botName);
+        }
+      } else if (workspace && !workspace.botName) {
+        // If workspace exists but no botName, fallback to bank name
+        const bankName = workspace.name || selectedBank?.name;
+        if (bankName && !savedAssistantName) {
+          setSavedAssistantName(bankName);
+          if (!draftAssistantName || draftAssistantName === bankName) {
+            setDraftAssistantName(bankName);
+          }
+        }
+      }
+    }
+  }, [workspaceData, selectedWorkspaceSlug, selectedWorkspace?.name, selectedBank?.name, draftAssistantName, savedAssistantName]);
 
   const workspaceSlug = selectedWorkspaceSlug;
   console.log("workspaceSlug ==>", workspaceSlug);
@@ -329,9 +362,7 @@ export function UpdatedHeroSection() {
     setUploadedPdfs([]);
     setEnabledPdfs([]);
     setEnabledDocuments([]);
-    // Set saved values too (so preview shows bank defaults)
     setSavedName(bankName);
-    setSavedAssistantName(bankName);
     setSavedTagline(tagline);
     setSavedColor(colorToUse);
     setSavedQuestions(quickQuestions);
@@ -348,6 +379,7 @@ export function UpdatedHeroSection() {
       },
     ]);
     // Refetch documents when a bank is selected
+    // Workspaces will automatically refetch when selectedBankCode changes (via query key)
     if (workspace?.slug) {
       // Small delay to ensure state is updated first
       setTimeout(() => {
