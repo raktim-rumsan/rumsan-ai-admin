@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import {
   Zap,
@@ -42,6 +42,35 @@ export function UpdatedHeroSection() {
   const [isLoadingMessage, setIsLoadingMessage] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const customizationMessagesContainerRef = useRef<HTMLDivElement>(null);
+  const defaultInputRef = useRef<HTMLInputElement>(null);
+  const wasFocusedRef = useRef<boolean>(false);
+  
+  // Stable input change handler for default mode to prevent focus loss
+  const handleDefaultInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    wasFocusedRef.current = true;
+    setInputValue(e.target.value);
+    // Maintain focus immediately after state update
+    requestAnimationFrame(() => {
+      if (defaultInputRef.current && wasFocusedRef.current) {
+        defaultInputRef.current.focus();
+      }
+    });
+  }, []);
+  
+  // Handle blur to track when input loses focus
+  const handleDefaultInputBlur = useCallback(() => {
+    wasFocusedRef.current = false;
+  }, []);
+  
+  // Handle focus to track when input gains focus
+  const handleDefaultInputFocus = useCallback(() => {
+    wasFocusedRef.current = true;
+  }, []);
+  
+  // Stable input change handler for customization mode
+  const handleCustomizationInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  }, []);
 
   // Draft state (what user edits in the form)
   const [draftName, setDraftName] = useState("");
@@ -718,15 +747,21 @@ export function UpdatedHeroSection() {
           onSubmit={(e) => {
             e.preventDefault();
             handleSendMessage(inputValue);
+            setInputValue("");
           }}
           className="flex gap-2 border rounded-lg px-3 py-2"
         >
           <input
+            ref={defaultInputRef}
+            key="default-chat-input"
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={handleDefaultInputChange}
+            onBlur={handleDefaultInputBlur}
+            onFocus={handleDefaultInputFocus}
             placeholder="Type your question..."
             disabled={isLoadingMessage}
             className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground disabled:opacity-50"
+            autoComplete="off"
           />
           <button
             type="submit"
@@ -910,15 +945,17 @@ export function UpdatedHeroSection() {
                       onSubmit={(e) => {
                         e.preventDefault();
                         handleSendMessage(inputValue);
+                        setInputValue("");
                       }}
                       className="flex gap-2 border rounded-lg px-3 py-2"
                     >
                       <input
                         value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
+                        onChange={handleCustomizationInputChange}
                         placeholder="Type your question..."
                         disabled={isLoadingMessage}
                         className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground disabled:opacity-50"
+                        autoComplete="off"
                       />
                       <button
                         type="submit"
