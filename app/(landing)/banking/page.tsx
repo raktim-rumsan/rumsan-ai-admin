@@ -8,6 +8,7 @@ import { PricingSection } from "@/components/banking/pricing";
 import { FeaturesSection } from "@/components/banking/features-sections";
 import { AboutSection } from "@/components/banking/about-section";
 import { CTASection } from "@/components/banking/cta-section";
+import { UpdatedHeroSection } from "@/components/banking-ui/homepage-ui-chatbot";
 
 export const metadata: Metadata = {
   title:
@@ -56,7 +57,8 @@ export default function BankHome() {
   return (
     <main className="min-h-screen">
       <Navigation />
-      <HeroSection />
+      {/* <HeroSection /> */}
+      <UpdatedHeroSection />
       <UseCasesSection />
       <HowItWorks />
       <FeaturesSection />

@@ -7,7 +7,10 @@ const API_BASE_URL = `${serverAPI}/api/v1`;
 export const ROUTES = {
   //workspace routes
   MY_WORKSPACE: `${API_BASE_URL}/workspaces/my-workspaces`,
+  BOT_NAME: `${API_BASE_URL}/workspaces/bot-name`,
   ORG_WORKSPACE: `${API_BASE_URL}/organizations`,
+  ORG_BY_SECTOR: (sector: string) =>
+    `${API_BASE_URL}/organizations/sector/${sector}`,
   ADMIN_WORKSPACE: `${API_BASE_URL}/workspaces/admin`,
   MEMBER: `${API_BASE_URL}/workspaces/members`,
   CREATE_WORKSPACE: `${API_BASE_URL}/workspaces`,
