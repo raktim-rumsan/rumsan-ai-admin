@@ -272,11 +272,10 @@ export function enrichOrganizationsWithApiKeys<
   if (typeof window === "undefined") return organizations;
 
   try {
-    console.log(
-      "bankKeys ==>",
-      JSON.parse(process.env.NEXT_PUBLIC_BANK_KEYS || "{}"),
-    );
-    console.log("bankConfigs ==>", bankConfigs);
+    // console.log(
+    //   "bankKeys ==>",
+    //   JSON.parse(process.env.NEXT_PUBLIC_BANK_KEYS || "{}"),
+    // );
 
     return organizations.map((org) => {
       // If organization has workspaces array
@@ -312,11 +311,11 @@ export function enrichOrganizationsWithApiKeys<
             hardcodedConfig = getHardcodedBankConfig(workspace.name);
           }
 
-          console.log(`Enriching workspace "${workspace.name}":`, {
-            envKey,
-            apiKey: envBankConfig.apiKey,
-            hardcodedConfig,
-          });
+          // console.log(`Enriching workspace "${workspace.name}":`, {
+          //   envKey,
+          //   apiKey: envBankConfig.apiKey,
+          //   hardcodedConfig,
+          // });
 
           // Merge: workspace data + ENV config (apiKey) + hardcoded config (quickQuestions, primaryColor)
           return {
@@ -363,8 +362,6 @@ export function enrichOrganizationsWithApiKeys<
           ...hardcodedConfig,
         };
       }
-
-      console.log("return org", org);
 
       return org;
     });

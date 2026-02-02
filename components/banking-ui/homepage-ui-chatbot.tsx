@@ -165,7 +165,6 @@ export function UpdatedHeroSection() {
         ];
   //fetch organizations - only those with API keys in env
   const { data } = useOrgByApiKeysQuery();
-  console.log("data ==>", data, data?.data?.[0]);
 
   //fetch documents - only after a bank is selected
   const {
@@ -230,10 +229,6 @@ export function UpdatedHeroSection() {
   ]);
 
   const workspaceSlug = selectedWorkspaceSlug;
-  console.log("workspaceSlug ==>", workspaceSlug);
-  if (docs) {
-    console.log("docs", docs);
-  }
 
   // Update greeting message when bot name changes
   useEffect(() => {

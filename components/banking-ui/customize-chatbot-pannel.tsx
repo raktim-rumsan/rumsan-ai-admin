@@ -92,7 +92,6 @@ export function CustomizationPanel({
   workspaceSlug,
   bankCode,
 }: CustomizationPanelProps) {
-  console.log(bankCode, "bankcode");
 
   // Function to determine if color is light or dark for text contrast
   const getTextColor = (bgColor: string): string => {

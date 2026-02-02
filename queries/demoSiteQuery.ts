@@ -379,7 +379,7 @@ export function useOrgByApiKeysQuery() {
         return { data: [] };
       }
 
-      console.log("Fetching organizations with API keys:", apiKeys);
+      // console.log("Fetching organizations with API keys:", apiKeys);
 
       const res = await fetch(`${ROUTES.ORG_BY_API_KEYS}`, {
         method: "POST",
@@ -406,7 +406,7 @@ export function useOrgByApiKeysQuery() {
           BANK_CONFIGS,
         );
 
-        console.log("enriched data ==>", enrichedData);
+        // console.log("enriched data ==>", enrichedData);
 
         return {
           ...data,
@@ -429,7 +429,6 @@ export function useOrgBySectorQuery(sector: string, bankCode?: string) {
     queryFn: async () => {
       // Use first available API key for the request (or get from first org if available)
       const apiKey = getBankApiKey(bankCode || "NABIL");
-      console.log("apiKey", apiKey);
       const res = await fetch(`${ROUTES.ORG_BY_SECTOR(sector)}`, {
         method: "GET",
         headers: {
@@ -455,7 +454,7 @@ export function useOrgBySectorQuery(sector: string, bankCode?: string) {
           BANK_CONFIGS,
         );
 
-        console.log("enriched data ==>", enrichedData);
+        // console.log("enriched data ==>", enrichedData);
 
         return {
           ...data,
