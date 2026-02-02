@@ -29,7 +29,7 @@ if [ -f .env.prod ]; then
 fi
 
 # Check required environment variables
-required_vars=("NEXT_PUBLIC_SUPABASE_URL" "NEXT_PUBLIC_SUPABASE_ANON_KEY" "NEXT_PUBLIC_ENCRYPT_KEY" "NEXT_PUBLIC_SCRAPER_URL")
+required_vars=("NEXT_PUBLIC_SUPABASE_URL" "NEXT_PUBLIC_SUPABASE_ANON_KEY" "NEXT_PUBLIC_ENCRYPT_KEY" "NEXT_PUBLIC_SCRAPER_URL" "NEXT_PUBLIC_BANK_KEYS")
 missing_vars=()
 
 for var in "${required_vars[@]}"; do
@@ -56,6 +56,7 @@ docker buildx build \
     --build-arg NEXT_PUBLIC_INDUSTRY_VALUES="$NEXT_PUBLIC_INDUSTRY_VALUES" \
     --build-arg NEXT_PUBLIC_ENCRYPT_KEY="$NEXT_PUBLIC_ENCRYPT_KEY" \
     --build-arg NEXT_PUBLIC_SCRAPER_URL="$NEXT_PUBLIC_SCRAPER_URL" \
+    --build-arg NEXT_PUBLIC_BANK_KEYS="$NEXT_PUBLIC_BANK_KEYS" \
     -t rumsan/ai-admin:latest \
     .
 
