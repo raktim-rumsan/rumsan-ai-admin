@@ -41,6 +41,7 @@ export const ROUTES = {
     `${API_BASE_URL}/organizations/${orgId}/logo`,
   ORGANIZATION_LOGO_REMOVE: (orgId: string) =>
     `${API_BASE_URL}/organizations/${orgId}/remove-logo`,
+  ORG_BY_API_KEYS: `${API_BASE_URL}/organizations/by-api-keys`,
 
   //auth register
   AUTH_REGISTER: `${API_BASE_URL}/auth/register`,

@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { BankConfig } from "@/lib/customize-bank-data";
 import { CustomizationPanel } from "./customize-chatbot-pannel";
 import {
-  useOrgBySectorQuery,
+  useOrgByApiKeysQuery,
   useDocsQuery,
   sendWidgetChatQuery,
   useWorkspaceQuery,
@@ -163,9 +163,9 @@ export function UpdatedHeroSection() {
           "How do I open a bank account?",
           "What is the bank's loan interest rate?",
         ];
-  //fetch organizations
-  const { data } = useOrgBySectorQuery(SECTOR, "NMB");
-  console.log("data ==>", data, data?.data[0]);
+  //fetch organizations - only those with API keys in env
+  const { data } = useOrgByApiKeysQuery();
+  console.log("data ==>", data, data?.data?.[0]);
 
   //fetch documents - only after a bank is selected
   const {

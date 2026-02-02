@@ -65,6 +65,24 @@ export function getBankApiKey(bank: string) {
   }
 }
 
+/**
+ * Get all API keys from NEXT_PUBLIC_BANK_KEYS environment variable
+ * Returns array of API key strings (e.g., ["rk_abc123...", "rk_def456..."])
+ */
+export function getAllApiKeysFromEnv(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const bankKeys = JSON.parse(process.env.NEXT_PUBLIC_BANK_KEYS || "{}");
+    // Extract all API key values from the object
+    return Object.values(bankKeys).filter((key): key is string => 
+      typeof key === "string"
+    );
+  } catch (error) {
+    console.error("Error parsing bank keys:", error);
+    return [];
+  }
+}
+
 
 /**
  * Get ENV key name from workspace/organization name
