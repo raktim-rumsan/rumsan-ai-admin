@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { toast } from "sonner";
 import {
   Zap,
@@ -65,7 +66,7 @@ export function UpdatedHeroSection() {
         }
       });
     },
-    []
+    [],
   );
 
   // Handle blur to track when input loses focus
@@ -83,7 +84,7 @@ export function UpdatedHeroSection() {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setInputValue(e.target.value);
     },
-    []
+    [],
   );
 
   // Draft state (what user edits in the form)
@@ -181,7 +182,7 @@ export function UpdatedHeroSection() {
   useEffect(() => {
     if (workspaceData?.data?.myWorkspaces && selectedWorkspaceSlug) {
       const workspace = workspaceData.data.myWorkspaces.find(
-        (w: any) => w.slug === selectedWorkspaceSlug
+        (w: any) => w.slug === selectedWorkspaceSlug,
       );
       if (workspace?.botName) {
         // Set the bot name from API to saved state
@@ -242,7 +243,7 @@ export function UpdatedHeroSection() {
         try {
           sessionStorage.setItem(
             `primaryColor_${selectedWorkspaceSlug}`,
-            draftColor
+            draftColor,
           );
         } catch {
           // Ignore storage errors
@@ -299,7 +300,7 @@ export function UpdatedHeroSection() {
       const response = await sendWidgetChatQuery(
         content.trim(),
         apiKey,
-        selectedWorkspaceSlug
+        selectedWorkspaceSlug,
       );
 
       const botResponse: Message = {
@@ -366,7 +367,7 @@ export function UpdatedHeroSection() {
     if (workspaceSlug && typeof window !== "undefined") {
       try {
         const storedColor = sessionStorage.getItem(
-          `primaryColor_${workspaceSlug}`
+          `primaryColor_${workspaceSlug}`,
         );
         if (storedColor) {
           colorToUse = storedColor;
@@ -394,8 +395,8 @@ export function UpdatedHeroSection() {
     setSavedLogo(
       `${process.env.NEXT_PUBLIC_SERVER_API}/${workspace?.url?.replace(
         /^uploads\//,
-        "assets/"
-      )}` || null
+        "assets/",
+      )}` || null,
     );
     setSavedBotIcon("🤖");
     setMessages([
@@ -451,7 +452,7 @@ export function UpdatedHeroSection() {
       try {
         sessionStorage.setItem(
           `primaryColor_${selectedWorkspaceSlug}`,
-          draftColor
+          draftColor,
         );
       } catch {
         // Ignore storage errors
@@ -490,7 +491,7 @@ export function UpdatedHeroSection() {
     setEnabledDocuments((prev) =>
       prev.includes(docId)
         ? prev.filter((id) => id !== docId)
-        : [...prev, docId]
+        : [...prev, docId],
     );
   };
 
@@ -568,7 +569,10 @@ export function UpdatedHeroSection() {
               "flex-1 w-full lg:w-1/2 transition-all duration-500 ease-out",
               (animationPhase === "expanding" ||
                 (isCustomizing && animationPhase !== "collapsing")) &&
-                "lg:w-0 lg:min-w-0 lg:opacity-0 lg:overflow-hidden lg:mr-0"
+                cn(
+                  "lg:w-0 lg:min-w-0 lg:opacity-0 lg:overflow-hidden lg:mr-0 lg:gap-0",
+                  showPanel ? "lg:h-0" : "lg:h-0",
+                ),
             )}
           >
             {/* Badge */}
@@ -605,7 +609,7 @@ export function UpdatedHeroSection() {
               (isCustomizing || animationPhase === "expanding") &&
                 animationPhase !== "collapsing"
                 ? "w-full justify-center"
-                : "w-full lg:w-1/2 justify-center lg:justify-end"
+                : "w-full lg:w-1/2 justify-center lg:justify-end",
             )}
           >
             {/* Expandable Card Container - Expands to fit panel, smoothly shrinks when collapsing */}
@@ -615,7 +619,7 @@ export function UpdatedHeroSection() {
                 (isCustomizing || animationPhase === "expanding") &&
                   animationPhase !== "collapsing"
                   ? "w-full max-w-[900px]"
-                  : "w-full max-w-[480px]"
+                  : "w-full max-w-[480px]",
               )}
             >
               {/* Blurred overlay when no bank selected */}
@@ -660,7 +664,7 @@ export function UpdatedHeroSection() {
                                   key={bank.id}
                                   onClick={() => handleBankSelect(bank)}
                                   className={cn(
-                                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-left bg-muted/50 hover:bg-muted border border-transparent hover:border-border group"
+                                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-left bg-muted/50 hover:bg-muted border border-transparent hover:border-border group",
                                   )}
                                 >
                                   <div
@@ -702,7 +706,7 @@ export function UpdatedHeroSection() {
               <div
                 className={cn(
                   "bg-card rounded-2xl border shadow-xl overflow-hidden transition-all duration-500 ease-out",
-                  !selectedBank && "pointer-events-none select-none"
+                  !selectedBank && "pointer-events-none select-none",
                 )}
               >
                 <div
@@ -710,7 +714,7 @@ export function UpdatedHeroSection() {
                     "overflow-hidden flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
                     showPanel
                       ? "h-[calc(100vh-200px)] min-h-[600px] max-h-[800px]"
-                      : "h-[calc(100vh-200px)] min-h-[500px] max-h-[700px]"
+                      : "h-[calc(100vh-200px)] min-h-[500px] max-h-[700px]",
                   )}
                 >
                   {/* Header with Bank Selector */}
@@ -724,7 +728,7 @@ export function UpdatedHeroSection() {
                         "transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden",
                         showBackButton && !isCollapsing
                           ? "w-8 opacity-100"
-                          : "w-0 opacity-0"
+                          : "w-0 opacity-0",
                       )}
                     >
                       <Button
@@ -738,9 +742,11 @@ export function UpdatedHeroSection() {
                     </div>
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 shrink-0">
                       {currentLogo ? (
-                        <img
+                        <Image
                           src={currentLogo || "/placeholder.svg"}
                           alt="Logo"
+                          width={24}
+                          height={24}
                           className="h-6 w-6 object-contain"
                         />
                       ) : (
@@ -764,7 +770,7 @@ export function UpdatedHeroSection() {
                           !isCustomizing &&
                           animationPhase !== "expanding"
                           ? "opacity-100 w-auto"
-                          : "opacity-0 w-0 overflow-hidden"
+                          : "opacity-0 w-0 overflow-hidden",
                       )}
                     >
                       <div className="relative">
@@ -778,7 +784,7 @@ export function UpdatedHeroSection() {
                           <ChevronDown
                             className={cn(
                               "h-3 w-3 mr-1 transition-transform",
-                              showBankSelector && "rotate-180"
+                              showBankSelector && "rotate-180",
                             )}
                           />
                           Switch
@@ -824,7 +830,7 @@ export function UpdatedHeroSection() {
                                         "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left border",
                                         isSelected
                                           ? "bg-primary/10 border-primary/30"
-                                          : "border-transparent hover:bg-muted hover:border-border"
+                                          : "border-transparent hover:bg-muted hover:border-border",
                                       )}
                                     >
                                       <div
@@ -873,7 +879,7 @@ export function UpdatedHeroSection() {
                   {/* Main Content Area - Chat and Panel side by side */}
                   <div
                     className={cn(
-                      "flex flex-1 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                      "flex flex-1 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
                     )}
                   >
                     {/* Left - Chat Messages Area - Expands to cover panel when collapsing */}
@@ -882,7 +888,7 @@ export function UpdatedHeroSection() {
                         "flex flex-col flex-1 min-w-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
                         showPanel && !isCollapsing
                           ? "border-r border-border"
-                          : "border-r-0"
+                          : "border-r-0",
                       )}
                     >
                       {/* Messages */}
@@ -919,7 +925,7 @@ export function UpdatedHeroSection() {
                               "flex gap-2 max-w-[85%]",
                               message.sender === "user"
                                 ? "ml-auto flex-row-reverse"
-                                : ""
+                                : "",
                             )}
                           >
                             {message.sender === "bot" && (
@@ -1052,13 +1058,13 @@ export function UpdatedHeroSection() {
                       className={cn(
                         "overflow-hidden shrink-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
                         showPanel ? "w-[380px] opacity-100" : "w-0 opacity-0",
-                        isCollapsing && "translate-x-[100px]"
+                        isCollapsing && "translate-x-[100px]",
                       )}
                     >
                       <div
                         className={cn(
                           "w-[380px] h-full transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
-                          isCollapsing && "opacity-0 translate-x-8"
+                          isCollapsing && "opacity-0 translate-x-8",
                         )}
                       >
                         <CustomizationPanel
