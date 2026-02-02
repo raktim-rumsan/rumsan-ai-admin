@@ -179,31 +179,46 @@ export function UpdatedHeroSection() {
   const { data: workspaceData } = useWorkspaceQuery(selectedBankCode);
 
   // Extract bot name from workspace data when bank is selected
+  // Use a ref to track if we've already set the bot name for this workspace to prevent unnecessary updates
+  const lastWorkspaceSlugForBotNameRef = useRef<string | undefined>(undefined);
+  
   useEffect(() => {
     if (workspaceData?.data?.myWorkspaces && selectedWorkspaceSlug) {
+      // Only update if this is a new workspace (bank selection changed)
+      if (lastWorkspaceSlugForBotNameRef.current === selectedWorkspaceSlug) {
+        return; // Already processed this workspace
+      }
+      
       const workspace = workspaceData.data.myWorkspaces.find(
         (w: any) => w.slug === selectedWorkspaceSlug,
       );
-      if (workspace?.botName) {
-        // Set the bot name from API to saved state
-        setSavedAssistantName(workspace.botName);
-        // Also update draft if user hasn't customized it yet
-        // Only update if draftAssistantName is empty or matches the bank name (not customized)
-        const currentDraft = draftAssistantName || savedAssistantName;
-        const bankName = selectedWorkspace?.name || selectedBank?.name;
-        if (!currentDraft || currentDraft === bankName) {
-          setDraftAssistantName(workspace.botName);
-        }
-      } else if (workspace && !workspace.botName) {
-        // If workspace exists but no botName, fallback to bank name
-        const bankName = workspace.name || selectedBank?.name;
-        if (bankName && !savedAssistantName) {
-          setSavedAssistantName(bankName);
-          if (!draftAssistantName || draftAssistantName === bankName) {
-            setDraftAssistantName(bankName);
+      
+      if (workspace) {
+        lastWorkspaceSlugForBotNameRef.current = selectedWorkspaceSlug;
+        
+        if (workspace.botName) {
+          // Set the bot name from API to saved state
+          setSavedAssistantName(workspace.botName);
+          // Only update draft if it's empty or matches the bank name (not customized by user)
+          const currentDraft = draftAssistantName || savedAssistantName;
+          const bankName = selectedWorkspace?.name || selectedBank?.name;
+          if (!currentDraft || currentDraft === bankName) {
+            setDraftAssistantName(workspace.botName);
+          }
+        } else {
+          // If workspace exists but no botName, fallback to bank name
+          const bankName = workspace.name || selectedBank?.name;
+          if (bankName && !savedAssistantName) {
+            setSavedAssistantName(bankName);
+            if (!draftAssistantName || draftAssistantName === bankName) {
+              setDraftAssistantName(bankName);
+            }
           }
         }
       }
+    } else if (!selectedWorkspaceSlug) {
+      // Reset ref when no workspace is selected
+      lastWorkspaceSlugForBotNameRef.current = undefined;
     }
   }, [
     workspaceData,

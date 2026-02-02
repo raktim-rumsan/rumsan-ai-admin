@@ -151,19 +151,49 @@ export function CustomizationPanel({
   const initialAssistantNameRef = useRef<string | null>(null);
   const lastSavedAssistantNameRef = useRef<string>("");
   const lastWorkspaceSlugRef = useRef<string | undefined>(undefined);
+  const isInitializingRef = useRef<boolean>(false);
+  const skipNextChangeRef = useRef<boolean>(false);
   
   // Initialize the refs when workspaceSlug is first set or changes
   useEffect(() => {
     if (workspaceSlug && workspaceSlug !== lastWorkspaceSlugRef.current) {
-      // Workspace changed, reset refs
+      // Workspace changed (bank selection), reset refs and mark as initializing
+      isInitializingRef.current = true;
+      skipNextChangeRef.current = true; // Skip the next assistantName change (from bank selection)
       initialAssistantNameRef.current = assistantName;
       lastSavedAssistantNameRef.current = assistantName;
       lastWorkspaceSlugRef.current = workspaceSlug;
+      
+      // Clear the initializing flag after a short delay to allow state to settle
+      const timeoutId = setTimeout(() => {
+        isInitializingRef.current = false;
+        skipNextChangeRef.current = false;
+      }, 500); // Increased delay to ensure all state updates are complete
+      
+      return () => clearTimeout(timeoutId);
     } else if (workspaceSlug && initialAssistantNameRef.current === null) {
       // First mount with workspaceSlug
+      isInitializingRef.current = true;
+      skipNextChangeRef.current = true;
       initialAssistantNameRef.current = assistantName;
       lastSavedAssistantNameRef.current = assistantName;
       lastWorkspaceSlugRef.current = workspaceSlug;
+      
+      const timeoutId = setTimeout(() => {
+        isInitializingRef.current = false;
+        skipNextChangeRef.current = false;
+      }, 500);
+      
+      return () => clearTimeout(timeoutId);
+    } else if (workspaceSlug === lastWorkspaceSlugRef.current && initialAssistantNameRef.current !== null) {
+      // Same workspace, but assistantName might have changed programmatically
+      // Only update refs if the change is from API/initialization, not user input
+      // We detect this by checking if the value matches what we expect from initialization
+      if (assistantName === initialAssistantNameRef.current || assistantName === lastSavedAssistantNameRef.current) {
+        // This is a programmatic update (from bank selection or API), update refs silently
+        initialAssistantNameRef.current = assistantName;
+        lastSavedAssistantNameRef.current = assistantName;
+      }
     }
   }, [workspaceSlug, assistantName]);
 
@@ -176,12 +206,26 @@ export function CustomizationPanel({
       return;
     }
     
+    // Skip if we're still initializing (prevent API call during bank selection)
+    if (isInitializingRef.current) {
+      return;
+    }
+    
+    // Skip if this is a programmatic change from bank selection
+    if (skipNextChangeRef.current) {
+      return;
+    }
+    
     const trimmedValue = assistantName.trim();
     const initialValue = initialAssistantNameRef.current;
     const lastSaved = lastSavedAssistantNameRef.current;
     
     // Skip if value is the same as initial (user hasn't changed it from original)
     if (trimmedValue === initialValue) {
+      // Update lastSaved to match if it doesn't (handles programmatic updates)
+      if (lastSaved !== trimmedValue) {
+        lastSavedAssistantNameRef.current = trimmedValue;
+      }
       return;
     }
     
@@ -192,7 +236,11 @@ export function CustomizationPanel({
 
     // User has changed the value from initial, so save it after debounce
     const timeoutId = setTimeout(() => {
-      // Double-check the value is still different before calling API
+      // Double-check we're not initializing and the value is still different
+      if (isInitializingRef.current || skipNextChangeRef.current) {
+        return;
+      }
+      
       const currentTrimmed = assistantName.trim();
       if (currentTrimmed !== lastSavedAssistantNameRef.current && currentTrimmed !== initialAssistantNameRef.current) {
         lastSavedAssistantNameRef.current = currentTrimmed;
