@@ -151,7 +151,7 @@ export function UpdatedHeroSection() {
           "What is the bank's loan interest rate?",
         ];
   //fetch organizations
-  const { data } = useOrgBySectorQuery(SECTOR, "NABIL");
+  const { data } = useOrgBySectorQuery(SECTOR, "NMB");
   console.log("data ==>", data, data?.data[0]);
 
   //fetch documents - only after a bank is selected
