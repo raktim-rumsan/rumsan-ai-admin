@@ -8,6 +8,8 @@ import type React from "react";
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
+import { useWorkspaceQuery } from "@/queries/workspaceQuery";
+import NotFound from "@/app/not-found";
 
 interface SectionsLayoutProps {
   children: React.ReactNode;
@@ -18,6 +20,17 @@ export default function SectionsLayout({ children }: SectionsLayoutProps) {
   const [chatOpen, setChatOpen] = useState(true);
   const params = useParams();
   const workSpaceSlug = params?.workSpaceSlug as string;
+
+  const { data: workspaceData, isLoading: isWorkspaceLoading } =
+    useWorkspaceQuery();
+
+  const filterWorkspace = workspaceData?.data?.myWorkspaces.find(
+    (ws: any) => ws.slug === workSpaceSlug,
+  );
+
+  if (!isWorkspaceLoading && !filterWorkspace) {
+    return <NotFound />;
+  }
 
   const handleChatButtonClick = () => setChatOpen(true);
   const handleChatClose = () => setChatOpen(false);

@@ -1,6 +1,6 @@
 import { ROUTES } from "@/constants";
 import { toastUtils } from "@/lib/toast-utils";
-import { getBankApiKey, enrichOrganizationsWithApiKeys } from "@/lib/utils";
+import { getBankApiKey, enrichOrganizationsWithApiKeys, getAllApiKeysFromEnv } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { WorkspacesResponse } from "./workspaceQuery";
 import { BANK_CONFIGS } from "@/constants/chatbot-demo-bank";
@@ -363,13 +363,72 @@ export function useChangeBotNameMutation(
     },
   });
 }
+/**
+ * Fetch organizations by API keys from environment variable
+ * Only returns organizations that have matching API keys in NEXT_PUBLIC_BANK_KEYS
+ */
+export function useOrgByApiKeysQuery() {
+  return useQuery({
+    queryKey: ["organizationsByApiKeys"],
+    queryFn: async () => {
+      // Get all API keys from environment variable
+      const apiKeys = getAllApiKeysFromEnv();
+      
+      if (apiKeys.length === 0) {
+        console.warn("No API keys found in NEXT_PUBLIC_BANK_KEYS");
+        return { data: [] };
+      }
+
+      // console.log("Fetching organizations with API keys:", apiKeys);
+
+      const res = await fetch(`${ROUTES.ORG_BY_API_KEYS}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
+        body: JSON.stringify({ apiKeys }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        // Handle API error responses properly
+        const errorMessage =
+          data.message || data.error || `HTTP ${res.status}: ${res.statusText}`;
+        throw new Error(errorMessage);
+      }
+
+      // Enrich organizations with API keys from ENV and hardcoded bank config
+      if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+        // Enrich organizations: adds API keys from ENV and bank config to matching workspaces
+        const enrichedData = enrichOrganizationsWithApiKeys(
+          data.data,
+          BANK_CONFIGS,
+        );
+
+        // console.log("enriched data ==>", enrichedData);
+
+        return {
+          ...data,
+          data: enrichedData,
+        };
+      }
+
+      return data;
+    },
+  });
+}
+
+/**
+ * @deprecated Use useOrgByApiKeysQuery instead for demo filtering
+ * Fetch organizations by sector (returns all organizations in the sector)
+ */
 export function useOrgBySectorQuery(sector: string, bankCode?: string) {
   return useQuery({
     queryKey: ["organizationsBySector", sector, bankCode],
     queryFn: async () => {
       // Use first available API key for the request (or get from first org if available)
       const apiKey = getBankApiKey(bankCode || "NABIL");
-      console.log("apiKey", apiKey);
       const res = await fetch(`${ROUTES.ORG_BY_SECTOR(sector)}`, {
         method: "GET",
         headers: {
@@ -395,7 +454,7 @@ export function useOrgBySectorQuery(sector: string, bankCode?: string) {
           BANK_CONFIGS,
         );
 
-        console.log("enriched data ==>", enrichedData);
+        // console.log("enriched data ==>", enrichedData);
 
         return {
           ...data,
