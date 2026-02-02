@@ -45,9 +45,14 @@ if [ ${#missing_vars[@]} -ne 0 ]; then
     exit 1
 fi
 
+# Properly escape JSON for Docker build args
+# Remove outer quotes if present and ensure proper JSON format
+NEXT_PUBLIC_BANK_KEYS=$(echo "$NEXT_PUBLIC_BANK_KEYS" | sed "s/^['\"]//;s/['\"]$//")
+
 # Build the image
 echo "🔨 Building Docker image for AMD64 platform..."
 docker buildx build \
+    --no-cache \
     --platform linux/amd64 \
     --build-arg NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL" \
     --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="$NEXT_PUBLIC_SUPABASE_ANON_KEY" \
