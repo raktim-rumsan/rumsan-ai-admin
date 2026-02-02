@@ -24,7 +24,7 @@ export const BANK_CONFIGS = [
     primaryColor: '#1A3C47',
   },
   {
-    name: 'SCB',
+    name: 'NMB',
     primaryColor: '#0072AA',
     quickQuestions: [
       'How can I apply for a credit card?',
@@ -35,3 +35,13 @@ export const BANK_CONFIGS = [
     ]
   }
 ];
+
+/**
+ * Maps workspace/organization names to ENV key names
+ * This allows matching "Nabil Bank" -> "NABIL" for API key lookup
+ */
+export const WORKSPACE_NAME_TO_ENV_KEY: Record<string, string> = {
+  "Nabil Bank": "NABIL",
+  "Global IME Bank": "GIME",
+  "NMB Bank Limited": "NMB",
+};
