@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { randomBytes } from "crypto";
 import { toastUtils } from "./toast-utils";
+import { WORKSPACE_NAME_TO_ENV_KEY } from "@/constants/chatbot-demo-bank";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -64,14 +65,6 @@ export function getBankApiKey(bank: string) {
   }
 }
 
-/**
- * Maps workspace/organization names to ENV key names
- * This allows matching "Nabil Bank" -> "NABIL" for API key lookup
- */
-const WORKSPACE_NAME_TO_ENV_KEY: Record<string, string> = {
-  "Nabil Bank": "NABIL",
-  "Global IME Bank": "GIME",
-};
 
 /**
  * Get ENV key name from workspace/organization name
