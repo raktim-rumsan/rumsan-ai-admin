@@ -1,4 +1,6 @@
+import { mapSupabaseAuthError } from "@/lib/supabase/auth-error-mapper";
 import { createClient } from "@/lib/supabase/server";
+import { AuthError } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -12,9 +14,13 @@ export async function POST(request: NextRequest) {
         shouldCreateUser: false,
       },
     });
+
     if (error) {
-      console.error(error.message, "error");
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      const mappedError = mapSupabaseAuthError(error);
+      return NextResponse.json(
+        { error: mappedError.message, code: mappedError.code },
+        { status: mappedError.status },
+      );
     }
 
     return NextResponse.json({ success: true });
@@ -22,7 +28,7 @@ export async function POST(request: NextRequest) {
     console.error(error, "error");
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

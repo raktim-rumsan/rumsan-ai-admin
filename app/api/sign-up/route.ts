@@ -1,3 +1,4 @@
+import { mapSupabaseAuthError } from "@/lib/supabase/auth-error-mapper";
 import { createClient } from "@/lib/supabase/server";
 import { generateRandomPassword } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
@@ -22,16 +23,11 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       // Check if the error is due to user already existing
-      if (
-        error.message.includes("already registered") ||
-        error.message.includes("already exists")
-      ) {
-        return NextResponse.json(
-          { error: "User is already registered with this email" },
-          { status: 409 }
-        );
-      }
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      const mappedError = mapSupabaseAuthError(error);
+      return NextResponse.json(
+        { error: mappedError.message, code: mappedError.code },
+        { status: mappedError.status },
+      );
     }
 
     return NextResponse.json({
@@ -42,7 +38,7 @@ export async function POST(request: NextRequest) {
     console.error("Sign-up error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
