@@ -24,7 +24,7 @@ export function ProfileUserDashboard() {
   const router = useRouter();
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
   // Extract user data with fallbacks
   const getUserDisplayData = () => {
@@ -62,10 +62,10 @@ export function ProfileUserDashboard() {
       await supabase.auth.signOut();
       await clearUser();
       localStorage.clear();
-      router.push("/auth/login");
+      window.location.href = "/auth/login";
     } catch (error) {
       console.error("Logout error:", error);
-      router.push("/auth/login");
+      window.location.href = "/auth/login";
     }
   };
 
@@ -73,7 +73,7 @@ export function ProfileUserDashboard() {
     router.push(
       orgContext?.userState === "USER_WITH_ORG_ADMIN_ROLE"
         ? "/admin"
-        : "/dashboard"
+        : "/dashboard",
     );
   };
 
