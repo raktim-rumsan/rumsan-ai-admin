@@ -16,9 +16,17 @@ export const OPENAI_EMBEDDING_MODELS = [
   { value: "text-embedding-3-large", label: "text-embedding-3-large" },
   { value: "text-embedding-ada-002", label: "text-embedding-ada-002" },
 ];
+
+export const RUMSAN_AI_CHAT_MODELS = [
+  { value: "gpt-4.1-2025-04-14", label: "GPT-4.1" },
+];
+export const RUMSAN_AI_EMBEDDING_MODELS = [
+  { value: "nomic-embed-text:latest", label: "nomic-embed-text:latest" },
+];
 export const PROVIDER = [
   { value: "openai", label: "OpenAI" },
   { value: "ollama", label: "Ollama" },
+  { value: "rumsan_ai", label: "Rumsan AI" },
 ];
 
 // Provider configuration map - scalable solution for multiple providers
@@ -45,6 +53,13 @@ export const PROVIDER_CONFIG: Record<string, ProviderConfig> = {
     chatModels: OLLOMA_CHAT_MODELS,
     embeddingModels: OLLOMA_EMBEDDING_MODELS,
     defaultChatModel: "llama3.1:latest",
+    defaultEmbeddingModel: "nomic-embed-text:latest",
+    requiresApiKey: false,
+  },
+  rumsan_ai: {
+    chatModels: RUMSAN_AI_CHAT_MODELS,
+    embeddingModels: RUMSAN_AI_EMBEDDING_MODELS,
+    defaultChatModel: "gpt-4.1-2025-04-14",
     defaultEmbeddingModel: "nomic-embed-text:latest",
     requiresApiKey: false,
   },

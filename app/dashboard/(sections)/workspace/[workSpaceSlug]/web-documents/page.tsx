@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, FileText, RefreshCw, Edit2 } from "lucide-react";
+import {
+  Trash2,
+  RefreshCw,
+  Edit2,
+  ExternalLink,
+  SquarePen,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
@@ -40,7 +46,6 @@ import {
   useWebDocumentsQuery,
   useWebDocUnembeddingMutation,
 } from "@/queries/webDocuments";
-import { dismissToast, toastUtils } from "@/lib/toast-utils";
 import { useParams } from "next/navigation";
 import ConfirmDelete from "@/components/documents/DeleteModal";
 
@@ -72,7 +77,6 @@ export default function WebDocumentsPage() {
   const { workSpaceSlug } = useParams();
 
   const [urlInput, setUrlInput] = useState("");
-  const [refreshingId, setRefreshingId] = useState<string | null>(null);
   const [capturedContents, setCapturedContents] = useState<CapturedContent[]>(
     []
   );
@@ -80,7 +84,6 @@ export default function WebDocumentsPage() {
     useState<CapturedContent | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isUrlModalOpen, setIsUrlModalOpen] = useState(false);
-  const [trainingId, setTrainingId] = useState<string | null>(null);
   const [tempContentForTraining, setTempContentForTraining] =
     useState<CapturedContent | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
@@ -98,12 +101,7 @@ export default function WebDocumentsPage() {
   const updateWebDocumentMutation = useUpdateWebDocumentMutation(
     workSpaceSlug as string
   );
-  const deleteMutation = useWebDocDeleteMutation(
-    workSpaceSlug as string,
-    () => {
-      toastUtils.data.deleteSuccess("webDocuments");
-    }
-  );
+  const deleteMutation = useWebDocDeleteMutation(workSpaceSlug as string);
   const embeddingMutation = useWebDocEmbeddingMutation(workSpaceSlug as string);
   const unEmbeddingMutation = useWebDocUnembeddingMutation(
     workSpaceSlug as string
@@ -206,85 +204,6 @@ export default function WebDocumentsPage() {
     return indicators.some((indicator) => lowerMarkdown.includes(indicator));
   };
 
-  const handleFetchContent = () => {
-    setUrlError(null);
-
-    if (!urlInput.trim()) {
-      const errorMsg = "Please enter a valid URL";
-      setUrlError(errorMsg);
-      toast.error(errorMsg);
-      return;
-    }
-
-    scrapeWebsite(
-      { url: urlInput },
-      {
-        onSuccess: (data: ScrapeWebsiteResponse) => {
-          // Assuming the API returns markdown content in data.markdown or data.content
-          const markdown =
-            data?.markdown ||
-            data?.content ||
-            data?.data?.markdown ||
-            data?.data?.content ||
-            "";
-
-          if (!markdown) {
-            const errorMsg = "No content found in the response";
-            setUrlError(errorMsg);
-            toast.error(errorMsg);
-            return;
-          }
-
-          // Check if the response is a 404 page
-          if (is404Page(markdown)) {
-            const errorMsg =
-              "The requested page was not found (404). Please check the URL and try again.";
-            setUrlError(errorMsg);
-            toast.error(errorMsg);
-            return;
-          }
-
-          // Clear any previous errors on success
-          setUrlError(null);
-
-          const sections = parseMarkdownIntoSections(markdown);
-          const pageTitle = extractTitleFromMarkdown(markdown, urlInput);
-
-          const now = new Date();
-          const dateStr = now.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          });
-
-          const newContent: CapturedContent = {
-            id: undefined as unknown as string,
-            url: urlInput,
-            title: pageTitle,
-            date: dateStr,
-            sections,
-            enabled: false,
-            isTraining: false,
-          };
-
-          setTempContentForTraining(newContent);
-          setSelectedContent(newContent);
-          setUrlInput("");
-          setIsUrlModalOpen(false);
-          setIsEditDialogOpen(true);
-
-          toast.success("Content captured successfully");
-        },
-        onError: (error: Error) => {
-          const errorMsg =
-            error.message || "Failed to fetch content. Please check the URL.";
-          setUrlError(errorMsg);
-          toast.error(errorMsg);
-        },
-      }
-    );
-  };
-
   const updateSection = (sectionId: string, newContent: string) => {
     if (selectedContent) {
       const updatedContent = {
@@ -337,8 +256,9 @@ export default function WebDocumentsPage() {
     }
   };
 
-  const handleSaveEdits = async () => {
+  const handleSaveEdits = (shouldTrain: boolean = false) => {
     if (!selectedContent) return;
+
     if (selectedContent.sections.length === 0) {
       toast.error("Cannot save content with no sections");
       return;
@@ -348,144 +268,168 @@ export default function WebDocumentsPage() {
       selectedContent.sections
     );
 
-    try {
-      if (selectedContent.id) {
-        updateWebDocumentMutation.mutate({
+    let documentId: string;
+
+    if (selectedContent.id) {
+      // UPDATE
+      updateWebDocumentMutation.mutate(
+        {
           id: selectedContent.id,
-          body: {
-            url: selectedContent.url,
-            content: mergedMarkdown,
+          body: { url: selectedContent.url, content: mergedMarkdown },
+        },
+        {
+          onSuccess: (res: any) => {
+            documentId = selectedContent.id;
+
+            // Update local state
+            setCapturedContents((prev) =>
+              prev.map((c) =>
+                c.id === documentId
+                  ? { ...c, sections: selectedContent.sections }
+                  : c
+              )
+            );
+
+            if (shouldTrain) {
+              embeddingMutation.mutate(documentId);
+            }
+
+            setIsEditDialogOpen(false);
           },
-        });
+        }
+      );
+    } else {
+      // CREATE
+      createWebDocumentMutation.mutate(
+        { url: selectedContent.url, content: mergedMarkdown },
+        {
+          onSuccess: (res: any) => {
+            documentId = res.data.id;
 
-        toast.success("Content updated successfully");
+            // Update local state
+            setCapturedContents((prev) => [
+              { ...selectedContent, id: documentId },
+              ...prev,
+            ]);
 
-        setCapturedContents((prev) =>
-          prev.map((c) =>
-            c.id === selectedContent.id
-              ? { ...c, sections: selectedContent.sections }
-              : c
-          )
-        );
-      } else {
-        const created = await createWebDocumentMutation.mutateAsync({
-          url: selectedContent.url,
-          content: mergedMarkdown,
-        });
+            if (shouldTrain) {
+              embeddingMutation.mutate(documentId);
+            }
 
-        toast.success("Content created successfully");
-
-        setCapturedContents((prev) => [
-          { ...selectedContent, id: created.id },
-          ...prev,
-        ]);
-      }
-
-      setIsEditDialogOpen(false);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save content");
+            setIsEditDialogOpen(false);
+          },
+        }
+      );
     }
   };
 
-  const handleTrain = async () => {
-    const contentToTrain = tempContentForTraining || selectedContent;
-    if (!contentToTrain) return;
+  const fetchOrRefreshContent = (
+    url: string,
+    existingContent?: CapturedContent
+  ) => {
+    setUrlError(null);
 
-    try {
-      setTrainingId(contentToTrain.id);
-      toast.loading("Saving to database...");
-
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      const updatedContent = { ...contentToTrain, enabled: false };
-      setCapturedContents([updatedContent, ...capturedContents]);
-      setTempContentForTraining(null);
-      setIsEditDialogOpen(false);
-
-      toast.success("Data saved successfully");
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setCapturedContents((prev) =>
-        prev.map((content) =>
-          content.id === contentToTrain.id
-            ? { ...content, enabled: true }
-            : content
-        )
-      );
-
-      toast.loading("Training document...");
-
-      const randomDuration = Math.random() * 2000 + 3000;
-      await new Promise((resolve) => setTimeout(resolve, randomDuration));
-
-      toast.success("Training completed successfully");
-    } catch {
-      toast.error("Operation failed");
-    } finally {
-      setTrainingId(null);
+    if (!url.trim()) {
+      const errorMsg = "Please enter a valid URL";
+      setUrlError(errorMsg);
+      toast.error(errorMsg);
+      return;
     }
-  };
 
-  const handleRefresh = async (content: CapturedContent) => {
-    setRefreshingId(content.id);
-    toast.loading("Refreshing...");
+    const loadingToastId = toast.loading(
+      existingContent ? "Refreshing..." : "Capturing content..."
+    );
 
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+    scrapeWebsite(
+      { url },
+      {
+        onSuccess: (data: ScrapeWebsiteResponse) => {
+          const markdown =
+            data?.markdown ||
+            data?.content ||
+            data?.data?.markdown ||
+            data?.data?.content ||
+            "";
 
-      const mockMarkdown = `# Rahat
+          if (!markdown) {
+            const errorMsg = "No content found in the response";
+            setUrlError(errorMsg);
+            toast.error(errorMsg);
+            toast.dismiss(loadingToastId);
+            return;
+          }
 
-Rahat (relief in Nepali) is an open-source blockchain-based financial access platform to support vulnerable communities.
+          if (is404Page(markdown)) {
+            const errorMsg =
+              "The requested page was not found (404). Please check the URL and try again.";
+            setUrlError(errorMsg);
+            toast.error(errorMsg);
+            toast.dismiss(loadingToastId);
+            return;
+          }
 
-We are building resilience against the impact of climate shocks through decentralized and transparent financial access.
+          const sections = parseMarkdownIntoSections(markdown);
+          const pageTitle = extractTitleFromMarkdown(markdown, url);
 
-## Our Mission
+          const now = new Date();
+          const dateStr = now.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
 
-To bridge the opportunity divide and break the poverty cycle by providing immediate access to financial aid, building financial resilience, and fostering digital financial literacy for the last billion.
+          let newContent: CapturedContent;
 
-## Our Vision
+          if (existingContent) {
+            // Refreshing existing content
+            newContent = {
+              ...existingContent,
+              title: pageTitle,
+              sections,
+              enabled: false,
+            };
+            setCapturedContents((prev) =>
+              prev.map((c) => (c.id === existingContent.id ? newContent : c))
+            );
+          } else {
+            // New content capture
+            newContent = {
+              id: undefined as unknown as string,
+              url,
+              title: pageTitle,
+              date: dateStr,
+              sections,
+              enabled: false,
+              isTraining: false,
+            };
+          }
 
-Financial Inclusion & Access for the last billion.
+          setTempContentForTraining(newContent);
+          setSelectedContent(newContent);
 
-## Our Team
+          setIsEditDialogOpen(true);
+          if (!existingContent) setIsUrlModalOpen(false);
+          if (!existingContent) setUrlInput("");
 
-### Rumee Singh
-
-CEO & Founder
-
-### Santosh Shrestha
-
-CTO & Lead Developer`;
-
-      const sections = parseMarkdownIntoSections(mockMarkdown);
-      const pageTitle = extractTitleFromMarkdown(mockMarkdown, content.url);
-
-      const updatedContent = {
-        ...content,
-        title: pageTitle,
-        sections,
-        enabled: false,
-      };
-
-      setCapturedContents(
-        capturedContents.map((c) => (c.id === content.id ? updatedContent : c))
-      );
-
-      if (selectedContent?.id === content.id) {
-        setSelectedContent(updatedContent);
+          toast.success(
+            existingContent
+              ? "Content refreshed successfully"
+              : "Content captured successfully"
+          );
+          toast.dismiss(loadingToastId);
+        },
+        onError: (error: Error) => {
+          const errorMsg =
+            error.message ||
+            (existingContent
+              ? "Failed to refresh content"
+              : "Failed to fetch content. Please check the URL.");
+          setUrlError(errorMsg);
+          toast.error(errorMsg);
+          toast.dismiss(loadingToastId);
+        },
       }
-
-      if (tempContentForTraining?.id === content.id) {
-        setTempContentForTraining(updatedContent);
-      }
-
-      toast.success("Content refreshed successfully");
-    } catch {
-      toast.error("Failed to refresh content");
-    } finally {
-      setRefreshingId(null);
-    }
+    );
   };
 
   const formatDate = (dateString: string) => {
@@ -496,50 +440,11 @@ CTO & Lead Developer`;
     });
   };
 
-  //   const content = capturedContents.find((c) => c.id === id);
-  //   if (!content) return;
-
-  //   if (!content.enabled) {
-  //     setCapturedContents(
-  //       capturedContents.map((content) =>
-  //         content.id === id ? { ...content, enabled: true } : content
-  //       )
-  //     );
-
-  //     setTrainingId(id);
-  //     toast.loading("Training document...");
-
-  //     try {
-  //       const randomDuration = Math.random() * 2000 + 3000;
-  //       await new Promise((resolve) => setTimeout(resolve, randomDuration));
-
-  //       toast.success("Training completed successfully");
-  //     } catch {
-  //       toast.error("Training failed");
-  //     } finally {
-  //       setTrainingId(null);
-  //     }
-  //   } else {
-  //     setCapturedContents(
-  //       capturedContents.map((content) =>
-  //         content.id === id ? { ...content, enabled: false } : content
-  //       )
-  //     );
-  //   }
-  // };
-
-  const handleDelete = async () => {
-    if (!currentDeleteInfo) return; // safety
-    const loadingToastId = toastUtils.generic.loading("Deleting document...");
+  const handleDelete = () => {
+    if (!currentDeleteInfo) return;
 
     deleteMutation.mutate(currentDeleteInfo.id, {
-      onError: (error: unknown) => {
-        dismissToast(loadingToastId);
-        const errorMessage = error instanceof Error ? error.message : undefined;
-        toastUtils.data.deleteError(errorMessage);
-      },
-      onSuccess: () => {
-        dismissToast(loadingToastId);
+      onSettled: () => {
         setOpenDeleteModal(false);
         setCurrentDeleteInfo(null);
       },
@@ -559,42 +464,10 @@ CTO & Lead Developer`;
       .join("\n\n");
   };
 
-  const handleEmbedding = async (webDocumentId: string, isRetrain: boolean) => {
-    const action = isRetrain ? "Retraining" : "Training";
-    const loadingToastId = toastUtils.generic.loading(
-      `${action} document. Please wait a moment.`
-    );
-
-    // Set the training document ID to show loading state for this specific document
-    setTrainingId(webDocumentId);
-
-    // const mutation = isRetrain ? unEmbeddingMutation : embeddingMutation;
+  const handleEmbedding = (webDocumentId: string, isRetrain: boolean) => {
     const mutation = isRetrain ? unEmbeddingMutation : embeddingMutation;
-    mutation.mutate(webDocumentId, {
-      onError: (error: unknown) => {
-        dismissToast(loadingToastId);
-        setTrainingId(null); // Clear training state
 
-        let errorTitle = `${action} failed`;
-
-        if (error instanceof Error) {
-          // Check for specific error types to provide better user guidance
-          if (error.message.includes("Failed to parse PDF")) {
-            errorTitle = "Document Processing Error";
-          } else if (
-            error.message.includes("invalid top-level pages dictionary")
-          ) {
-            errorTitle = "PDF Format Error";
-          }
-        }
-
-        toastUtils.generic.error(errorTitle);
-      },
-      onSuccess: () => {
-        dismissToast(loadingToastId);
-        setTrainingId(null); // Clear training state
-      },
-    });
+    mutation.mutate(webDocumentId);
   };
 
   const cropUrl = (url: string) => {
@@ -646,11 +519,12 @@ CTO & Lead Developer`;
                       </TableCell>
                       <TableCell>
                         <div
-                          className="text-muted-foreground text-sm max-w-xs cursor-pointer hover:text-foreground transition-colors"
+                          className="text-muted-foreground text-sm max-w-xs inline-flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors"
                           title={doc.url}
                           onClick={() => window.open(doc.url, "_blank")}
                         >
-                          {cropUrl(doc.url)}
+                          <span>{cropUrl(doc.url)}</span>
+                          <ExternalLink className="w-4 h-4" />
                         </div>
                       </TableCell>
 
@@ -659,27 +533,12 @@ CTO & Lead Developer`;
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                {/* <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedContent(doc);
-                                    setIsEditDialogOpen(true);
-                                  }}
-                                  className="text-muted-foreground hover:text-foreground cursor-pointer"
-                                  disabled={
-                                    trainingId === doc.id ||
-                                    refreshingId === doc.id
-                                  }
-                                >
-                                  <FileText className="size-4" />
-                                </Button> */}
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleLoadContentForEdit(doc)}
                                 >
-                                  <FileText className="size-4" />
+                                  <SquarePen className="size-4" />
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>View & Edit</TooltipContent>
@@ -692,10 +551,12 @@ CTO & Lead Developer`;
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleRefresh(doc)}
+                                  onClick={() =>
+                                    fetchOrRefreshContent(doc.url, doc)
+                                  }
                                   disabled={
-                                    refreshingId === doc.id ||
-                                    trainingId === doc.id
+                                    embeddingMutation.isPending ||
+                                    unEmbeddingMutation.isPending
                                   }
                                   className="text-muted-foreground hover:text-foreground cursor-pointer"
                                 >
@@ -715,12 +576,15 @@ CTO & Lead Developer`;
                                     onCheckedChange={(checked) =>
                                       handleEmbedding(doc.id, !checked)
                                     }
-                                    disabled={trainingId === doc.id}
+                                    disabled={
+                                      embeddingMutation.isPending ||
+                                      unEmbeddingMutation.isPending
+                                    }
                                   />
                                 </div>
                               </TooltipTrigger>
                               <TooltipContent>
-                                {doc.isActive
+                                {doc.status !== "PENDING"
                                   ? "Disable Training"
                                   : "Enable Training"}
                               </TooltipContent>
@@ -736,7 +600,7 @@ CTO & Lead Developer`;
                                   onClick={() => {
                                     setCurrentDeleteInfo({
                                       id: doc.id,
-                                      fileName: doc.fileName,
+                                      url: doc.url,
                                     });
                                     setOpenDeleteModal(true);
                                   }}
@@ -780,12 +644,12 @@ CTO & Lead Developer`;
                 value={urlInput}
                 onChange={(e) => {
                   setUrlInput(e.target.value);
-                  setUrlError(null); // Clear error when user types
+                  setUrlError(null);
                 }}
                 placeholder="Enter website URL"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    handleFetchContent();
+                    fetchOrRefreshContent(urlInput);
                   }
                 }}
                 className={urlError ? "border-destructive" : ""}
@@ -809,7 +673,7 @@ CTO & Lead Developer`;
               Cancel
             </Button>
             <Button
-              onClick={handleFetchContent}
+              onClick={() => fetchOrRefreshContent(urlInput)}
               disabled={isScraping}
               className="cursor-pointer"
             >
@@ -937,21 +801,20 @@ CTO & Lead Developer`;
                 Cancel
               </Button>
               <Button
-                onClick={handleSaveEdits}
-                disabled={trainingId !== null}
+                onClick={() => handleSaveEdits(false)}
+                disabled={
+                  embeddingMutation.isPending || unEmbeddingMutation.isPending
+                }
                 className="cursor-pointer"
               >
                 Save
               </Button>
               <Button
-                onClick={handleTrain}
-                disabled={trainingId !== null}
+                onClick={() => handleSaveEdits(true)}
                 className="gap-2 cursor-pointer bg-blue-600 hover:bg-blue-700"
               >
                 <RefreshCw className="size-4" />
-                {trainingId === selectedContent?.id
-                  ? "Training..."
-                  : "Save & Train"}
+                {embeddingMutation.isPending ? "Training..." : "Save & Train"}
               </Button>
             </div>
           </DialogFooter>
@@ -962,7 +825,7 @@ CTO & Lead Developer`;
         setIsOpen={setOpenDeleteModal}
         onConfirm={handleDelete}
         isDeleting={deleteMutation.isPending}
-        item={selectedContent?.url || ""}
+        item={currentDeleteInfo?.url || ""}
       />
     </div>
   );
