@@ -1,5 +1,5 @@
 import { ROUTES } from "@/constants";
-import { toastUtils } from "@/lib/toast-utils";
+import { dismissToast, toastUtils } from "@/lib/toast-utils";
 import { getAuthToken } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -103,92 +103,118 @@ export function useUpdateWebDocumentMutation(workspaceSlug: string) {
   });
 }
 
-export function useWebDocEmbeddingMutation(
-  workspaceSlug: string,
-  onSuccess?: () => void
-) {
+export function useWebDocEmbeddingMutation(workspaceSlug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (webDocumentId: string) => {
-      const workspaceId = workspaceSlug;
-      const access_token = getAuthToken();
       const res = await fetch(ROUTES.WEB_DOCUMENT_EMBEDDINGS, {
         method: "POST",
         headers: {
           accept: "application/json",
-          "x-tenant-id": workspaceId,
-          access_token: access_token!,
+          "x-tenant-id": workspaceSlug,
+          access_token: getAuthToken()!,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          documentId: webDocumentId,
-        }),
+        body: JSON.stringify({ documentId: webDocumentId }),
       });
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        // API returns error message in 'message' field
-        const errorMessage =
+        throw new Error(
           errorData.message ||
-          errorData.error ||
-          `Failed to train document (${res.status})`;
-        throw new Error(errorMessage);
+            errorData.error ||
+            `Failed to train document (${res.status})`
+        );
       }
 
-      const data = await res.json();
-      return data;
+      return res.json();
     },
+
     retry: false,
-    onSuccess: (data) => {
+
+    onMutate: () => {
+      const toastId = toastUtils.generic.loading(
+        "Training document. Please wait a moment."
+      );
+      return { toastId };
+    },
+
+    onError: (error, _variables, context) => {
+      if (context?.toastId) dismissToast(context.toastId);
+
+      let title = "Training failed";
+      if (error instanceof Error) {
+        if (error.message.includes("Failed to parse PDF")) {
+          title = "Document Processing Error";
+        } else if (
+          error.message.includes("invalid top-level pages dictionary")
+        ) {
+          title = "PDF Format Error";
+        }
+      }
+
+      toastUtils.generic.error(title);
+    },
+
+    onSuccess: (data, _variables, context) => {
+      if (context?.toastId) dismissToast(context.toastId);
+
       toastUtils.generic.success(data?.data?.status, data?.data?.message);
-      // Invalidate documents query to refetch the list and update status
+
       queryClient.invalidateQueries({ queryKey: ["webDocuments"] });
-      onSuccess?.();
     },
   });
 }
 
-export function useWebDocUnembeddingMutation(
-  workspaceSlug: string,
-  onSuccess?: () => void
-) {
+export function useWebDocUnembeddingMutation(workspaceSlug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (webDocumentId: string) => {
-      const access_token = getAuthToken();
       const res = await fetch(ROUTES.WEB_DOCUMENT_UNEMBEDDINGS, {
         method: "POST",
         headers: {
           accept: "application/json",
           "x-tenant-id": workspaceSlug,
-          access_token: access_token!,
+          access_token: getAuthToken()!,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          documentId: webDocumentId,
-        }),
+        body: JSON.stringify({ documentId: webDocumentId }),
       });
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        // API returns error message in 'message' field
-        const errorMessage =
+        throw new Error(
           errorData.message ||
-          errorData.error ||
-          `Failed to unembed document (${res.status})`;
-        throw new Error(errorMessage);
+            errorData.error ||
+            `Failed to retrain document (${res.status})`
+        );
       }
 
-      const data = await res.json();
-      return data;
+      return res.json();
     },
-    onSuccess: (data) => {
+
+    retry: false,
+
+    onMutate: () => {
+      const toastId = toastUtils.generic.loading(
+        "Retraining document. Please wait a moment."
+      );
+      return { toastId };
+    },
+
+    onError: (_error, _variables, context) => {
+      if (context?.toastId) dismissToast(context.toastId);
+      toastUtils.generic.error("Retraining failed");
+    },
+
+    onSuccess: (data, _variables, context) => {
+      if (context?.toastId) dismissToast(context.toastId);
+
       toastUtils.generic.success(data?.data?.status, data?.data?.message);
-      // Invalidate documents query to refetch the list and update status
+
       queryClient.invalidateQueries({ queryKey: ["webDocuments"] });
-      onSuccess?.();
     },
   });
 }
@@ -213,7 +239,6 @@ export function useWebDocDeleteMutation(
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        // Handle API error responses properly
         const errorMessage =
           errorData.message ||
           errorData.error ||
@@ -221,12 +246,30 @@ export function useWebDocDeleteMutation(
         throw new Error(errorMessage);
       }
 
-      // Return success response (might be empty for DELETE)
       const data = await res.json().catch(() => ({ success: true }));
       return data;
     },
-    onSuccess: () => {
-      // Invalidate documents query to refetch the list
+
+    retry: false,
+
+    onMutate: () => {
+      const toastId = toastUtils.generic.loading("Deleting document...");
+      return { toastId };
+    },
+
+    onError: (error, _variables, context) => {
+      if (context?.toastId) dismissToast(context.toastId);
+
+      const errorMessage =
+        error instanceof Error ? error.message : "Delete failed";
+      toastUtils.data.deleteError(errorMessage);
+    },
+
+    onSuccess: (_data, _variables, context) => {
+      if (context?.toastId) dismissToast(context.toastId);
+
+      toastUtils.generic.success("Document deleted successfully");
+
       queryClient.invalidateQueries({ queryKey: ["webDocuments"] });
       onSuccess?.();
     },
